@@ -15,6 +15,8 @@ var _rain: RainEffect
 @onready var _fade: ScreenFade = $ScreenFade
 @onready var _post_fx: PostFx = $PostFx
 @onready var _journal: JournalUi = $JournalUi
+@onready var _board: BoardUi = $BoardUi
+@onready var _accusation: AccusationUi = $AccusationUi
 @onready var player: PlayerController = $Player
 @onready var camera: ExplorationCamera = $CameraRig
 
@@ -24,6 +26,7 @@ func _ready() -> void:
 	player.camera_yaw = camera.get_yaw()
 	EventBus.location_change_requested.connect(go_to)
 	EventBus.rest_requested.connect(_on_rest_requested)
+	EventBus.story_action.connect(_on_story_action)
 	GameState.reset()
 	GameClock.reset()
 	Investigation.discover_clue("carta_valdes")
@@ -37,6 +40,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("open_journal"):
 		get_viewport().set_input_as_handled()
 		_journal.open()
+	elif event.is_action_pressed("open_board"):
+		get_viewport().set_input_as_handled()
+		_board.open()
 	elif event.is_action_pressed("wait_time"):
 		get_viewport().set_input_as_handled()
 		_wait_an_hour()
@@ -96,6 +102,14 @@ func _wait_an_hour() -> void:
 		return
 	GameClock.advance(WAIT_MINUTES)
 	EventBus.notification_requested.emit("Pasa el tiempo", "Son las %s." % GameClock.format_time(), "info")
+
+
+func _on_story_action(action: String) -> void:
+	match action:
+		"open_accusation":
+			_accusation.open()
+		"start_epilogue":
+			DialogueManager.play_scene("epilogo")
 
 
 func _on_rest_requested() -> void:
