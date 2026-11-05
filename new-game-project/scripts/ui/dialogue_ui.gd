@@ -76,6 +76,8 @@ func _process(delta: float) -> void:
 	if not _typing:
 		return
 	_visible_progress += delta * CHARACTERS_PER_SECOND
+	if int(_visible_progress) / 3 > _text.visible_characters / 3:
+		AudioManager.play("tecla")
 	_text.visible_characters = int(_visible_progress)
 	if _text.visible_characters >= _text.get_total_character_count():
 		_finish_typing()
@@ -168,6 +170,7 @@ func _on_options_shown(options: Array) -> void:
 
 
 func _choose(option_id: String) -> void:
+	AudioManager.play("click")
 	_options_scroll.hide()
 	DialogueManager.choose(option_id)
 
