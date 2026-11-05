@@ -19,9 +19,9 @@ var _hypothesis_suspect := ""
 
 @onready var _root: Control = $Root
 @onready var _suspects: HBoxContainer = $Root/Layout/Suspects
-@onready var _scroll: ScrollContainer = $Root/Layout/Body/CardScroll
-@onready var _grid: GridContainer = $Root/Layout/Body/CardScroll/Cards
-@onready var _strings: Control = $Root/Layout/Body/CardScroll/Strings
+@onready var _scroll: ScrollContainer = $Root/Layout/Body/CardArea/CardScroll
+@onready var _grid: GridContainer = $Root/Layout/Body/CardArea/CardScroll/Cards
+@onready var _strings: Control = $Root/Layout/Body/CardArea/Strings
 @onready var _slot_a: RichTextLabel = $Root/Layout/Body/Side/Box/SlotA
 @onready var _slot_b: RichTextLabel = $Root/Layout/Body/Side/Box/SlotB
 @onready var _link_button: Button = $Root/Layout/Body/Side/Box/Link
@@ -175,19 +175,31 @@ func _on_link_pressed() -> void:
 			_result.text = "No encuentro ninguna relación concluyente entre estos dos elementos."
 
 
+## Une con hilo rojo las tarjetas de cada deducción, de chincheta a chincheta. Las
+## chinchetas van en el borde superior para que el hilo no tape el texto.
 func _draw_strings() -> void:
-	var origin := _strings.get_global_rect().position
 	for deduction_id in GameState.deductions:
-		for pair: Array in GameData.deductions[deduction_id]["pairs"]:
-			if not _cards.has(pair[0]) or not _cards.has(pair[1]):
-				continue
-			var from_card: Button = _cards[pair[0]]
-			var to_card: Button = _cards[pair[1]]
-			var from_point := from_card.get_global_rect().get_center() - origin
-			var to_point := to_card.get_global_rect().get_center() - origin
-			_strings.draw_line(from_point, to_point, Color(0.62, 0.1, 0.09, 0.85), 3.0, true)
-			_strings.draw_circle(from_point, 6.0, UiTheme.STAMP)
-			_strings.draw_circle(to_point, 6.0, UiTheme.STAMP)
+		var pair := _visible_pair(deduction_id)
+		if pair.is_empty():
+			continue
+		var from_point := _pin_position(_cards[pair[0]])
+		var to_point := _pin_position(_cards[pair[1]])
+		_strings.draw_line(from_point, to_point, Color(0.62, 0.1, 0.09, 0.6), 2.0, true)
+		_strings.draw_circle(from_point, 5.0, UiTheme.STAMP)
+		_strings.draw_circle(to_point, 5.0, UiTheme.STAMP)
+
+
+## Primera combinación de una deducción cuyas dos tarjetas están en el tablero.
+func _visible_pair(deduction_id: String) -> Array:
+	for pair: Array in GameData.deductions[deduction_id]["pairs"]:
+		if _cards.has(pair[0]) and _cards.has(pair[1]):
+			return pair
+	return []
+
+
+func _pin_position(card: Button) -> Vector2:
+	var rect := card.get_global_rect()
+	return rect.position + Vector2(rect.size.x * 0.5, 7.0) - _strings.get_global_rect().position
 
 
 func _open_hypothesis(suspect_id: String) -> void:
