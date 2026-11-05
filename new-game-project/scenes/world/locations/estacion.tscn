@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/locations/estacion.gd" id="1"]
+
+[node name="Estacion" type="Node3D"]
+script = ExtResource("1")
+location_id = "estacion"
