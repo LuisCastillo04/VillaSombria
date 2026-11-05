@@ -1,0 +1,83 @@
+{
+  "intro": [
+    {
+      "if": {"not_flags": ["ortega_conocido"]},
+      "lines": [
+        {"s": "ortega", "t": "Inspector Ibarra. Soy el sargento Ortega. Gracias por venir tan deprisa."},
+        {"s": "ortega", "t": "Nunca habíamos tenido algo así en Villa Sombría. Don Julián era... era el pueblo entero."}
+      ],
+      "effects": {"flags": ["ortega_conocido"]}
+    },
+    {"lines": [{"s": "ortega", "t": "Inspector. Usted dirá."}]}
+  ],
+  "topics": [
+    {
+      "id": "caso",
+      "label": "Cuénteme qué ocurrió.",
+      "lines": [
+        {"s": "ortega", "t": "El sábado se celebraba en esta casa el aniversario del banco. A las 23:40, la doncella encontró a don Julián muerto en su despacho."},
+        {"s": "ortega", "t": "La puerta principal estaba cerrada por dentro, con la llave puesta. Él seguía en el sillón, sin una sola herida."},
+        {"s": "ortega", "t": "El reloj de la repisa estaba roto en el suelo, parado a las 22:15. Debió de arrastrarlo al caer, así que ésa es la hora de la muerte."},
+        {"s": "ortega", "t": "He retenido a los cinco que no tienen quien responda por ellos: la señora, el hijo, la doncella, el mayordomo y una invitada a la que nadie conoce."},
+        {"s": "detective", "t": "¿Y el médico?"},
+        {"s": "ortega", "t": "Habla del corazón, pero he pedido autopsia. Mañana a mediodía tendremos el informe. El despacho está al fondo a la derecha."}
+      ],
+      "effects": {"flags": ["ortega_briefing"], "testimonies": ["t_ortega_escena"]}
+    },
+    {
+      "id": "puerta",
+      "label": "Si estaba cerrado por dentro, ¿cómo entró la doncella?",
+      "if": {"flags": ["ortega_briefing"]},
+      "lines": [
+        {"s": "ortega", "t": "Por la otra puerta. El despacho tiene una entrada que da a la escalera de servicio."},
+        {"s": "ortega", "t": "Sólo la usa el personal de la casa. Los invitados ni saben que existe."}
+      ],
+      "effects": {"testimonies": ["t_ortega_servicio"]}
+    },
+    {
+      "id": "informe",
+      "label": "¿Ha llegado el informe del forense?",
+      "if": {"day_min": 2, "not_clues": ["informe_forense"]},
+      "variants": [
+        {
+          "if": {"flags": ["informe_llegado"]},
+          "lines": [
+            {"s": "ortega", "t": "Acaba de llegar. Y no es el corazón, inspector."},
+            {"s": "ortega", "t": "Cianuro. Tomado con brandy, justo antes de morir. El veneno actúa en pocos minutos."},
+            {"s": "detective", "t": "¿Puede fijar la hora?"},
+            {"s": "ortega", "t": "El forense no se compromete. Seguimos teniendo sólo el reloj."}
+          ],
+          "effects": {"clues": ["informe_forense"]}
+        },
+        {"lines": [{"s": "ortega", "t": "Todavía no. El correo de la capital no llega hasta mediodía."}], "effects": {"minutes": 0}}
+      ]
+    },
+    {
+      "id": "hora_real",
+      "label": "El reloj es falso. Valdés seguía vivo a las 22:50.",
+      "if": {"deductions": ["d_hora_falsa"]},
+      "lines": [
+        {"s": "ortega", "t": "¿Vivo a las once menos diez? Entonces todas las coartadas que he apuntado no valen nada."},
+        {"s": "detective", "t": "Valen para una hora en la que no pasó nada. Alguien quería que mirásemos hacia ahí."},
+        {"s": "ortega", "t": "Vuelva a preguntarles dónde estaban a las once, inspector. A todos."}
+      ]
+    },
+    {
+      "id": "pruebas",
+      "label": "¿Qué necesita un juez para acusar a alguien?",
+      "lines": [
+        {"s": "ortega", "t": "Tres cosas, como siempre: un motivo, la oportunidad de hacerlo y el modo en que se hizo."},
+        {"s": "ortega", "t": "Si falta una sola, un abogado de la capital se comerá el caso con patatas."}
+      ]
+    },
+    {
+      "id": "acusar",
+      "label": "Reúna a los sospechosos. Sé quién lo hizo.",
+      "if": {"day_min": 3, "deductions": ["d_hora_falsa"]},
+      "lines": [
+        {"s": "ortega", "t": "Bien. Dígame a quién acusa y con qué pruebas. Un error aquí no lo arregla nadie, así que mídalo con calma."}
+      ],
+      "effects": {"minutes": 0, "action": "open_accusation"}
+    }
+  ]
+}

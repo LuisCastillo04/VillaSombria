@@ -1,0 +1,65 @@
+{
+  "intro": [
+    {
+      "if": {"not_flags": ["irene_conocida"]},
+      "lines": [
+        {"s": "irene", "t": "Ah, el inspector de la capital. Empezaba a aburrirme."},
+        {"s": "irene", "t": "Irene Vidal. Sé lo que piensa: la forastera siempre parece culpable."}
+      ],
+      "effects": {"flags": ["irene_conocida"]}
+    },
+    {"if": {"flags": ["irene_revelada"]}, "lines": [{"s": "irene", "t": "Ya no hace falta que disimulemos, inspector. ¿Qué ha encontrado?"}]},
+    {"lines": [{"s": "irene", "t": "Inspector. Siempre es un placer que sospechen de una."}]}
+  ],
+  "topics": [
+    {
+      "id": "quien",
+      "label": "¿Quién es usted y qué hacía en la cena?",
+      "lines": [
+        {"s": "irene", "t": "Una vieja amiga de la familia. Conozco a los Valdés desde hace años."},
+        {"s": "irene", "t": "Julián tuvo la amabilidad de invitarme. Lo demás son chismes de pueblo."}
+      ],
+      "effects": {"flags": ["hablo_irene"], "testimonies": ["t_irene_amiga"]}
+    },
+    {
+      "id": "despacho",
+      "label": "Dicen que se reunió a solas con Julián en su despacho.",
+      "lines": [
+        {"s": "irene", "t": "De diez a diez y diez. Asuntos privados."},
+        {"s": "irene", "t": "Cuando salí estaba vivo y muy alterado. Y la verdad, inspector, eso es todo lo que va a sacarme."}
+      ],
+      "effects": {"testimonies": ["t_irene_despacho"]}
+    },
+    {
+      "id": "regreso",
+      "label": "¿Adónde fue después de la reunión?",
+      "lines": [
+        {"s": "irene", "t": "Me despedí sin ceremonias y volví a la pensión del café antes de las once."},
+        {"s": "irene", "t": "Rosa me subió la cena. Pregúntele a ella, le encanta que le pregunten cosas."}
+      ],
+      "effects": {"testimonies": ["t_irene_pension"]}
+    },
+    {
+      "id": "identidad",
+      "label": "Elena no la había visto nunca. Usted no es amiga de la familia.",
+      "if": {"deductions": ["d_irene_mentira"]},
+      "lines": [
+        {"s": "irene", "t": "Vaya. Es usted mejor de lo que dicen."},
+        {"s": "irene", "t": "Me llamo Irene Sanz. Hace tres años mi hermana apareció muerta en su piso de la capital. Accidente, dijeron. A su lado había un reloj parado."},
+        {"s": "irene", "t": "Desde entonces sigo un rastro de dinero. Me llevó hasta una sociedad que operaba a través del Banco Valdés, y fui a contárselo a Julián."},
+        {"s": "irene", "t": "Él investigó por su cuenta. El sábado me citó en el despacho porque ya casi lo tenía. Por eso le escribió a usted."}
+      ],
+      "effects": {"flags": ["irene_revelada"], "testimonies": ["t_irene_verdad"]}
+    },
+    {
+      "id": "cormoran",
+      "label": "¿Qué sabe de la Compañía Cormorán?",
+      "if": {"flags": ["irene_revelada"], "clues": ["transferencia"]},
+      "lines": [
+        {"s": "irene", "t": "Que no existe. Es un buzón. Paga, y al poco tiempo muere alguien, en ciudades distintas y sin relación entre sí."},
+        {"s": "irene", "t": "Julián guardó recortes de prensa en el archivo. Pídaselos a don Hilario. Mire qué tienen en común."}
+      ],
+      "effects": {"flags": ["recortes_disponibles"]}
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "intro": [
+    {
+      "if": {"not_flags": ["anselmo_conocido"]},
+      "lines": [
+        {"s": "anselmo", "t": "Anselmo Roca, para servirle. Mayordomo de esta casa desde hace treinta años."},
+        {"s": "anselmo", "t": "Responderé a cuanto el señor inspector desee saber."}
+      ],
+      "effects": {"flags": ["anselmo_conocido"]}
+    },
+    {"lines": [{"s": "anselmo", "t": "Señor inspector."}]}
+  ],
+  "topics": [
+    {
+      "id": "coartada",
+      "label": "¿Dónde estaba a las 22:15?",
+      "lines": [
+        {"s": "anselmo", "t": "Sirviendo el cava en el salón, señor. Delante del notario, del doctor y de una veintena de invitados."},
+        {"s": "anselmo", "t": "Si el señor murió a esa hora, ninguna persona de esta casa tiene mejor coartada que yo. Lo digo sin orgullo."}
+      ],
+      "effects": {"flags": ["hablo_anselmo"], "testimonies": ["t_anselmo_brindis"]}
+    },
+    {
+      "id": "despues",
+      "label": "¿Y después del brindis, hasta que se descubrió el cuerpo?",
+      "if": {"testimonies": ["t_anselmo_brindis"]},
+      "lines": [
+        {"s": "anselmo", "t": "A las once bajé a la bodega a hacer inventario de lo consumido."},
+        {"s": "anselmo", "t": "Allí estuve hasta oír el grito de Lucía, a las 23:40."}
+      ],
+      "effects": {"testimonies": ["t_anselmo_bodega"]}
+    },
+    {
+      "id": "brandy",
+      "label": "¿Le subió el brandy de las once esa noche?",
+      "if": {"testimonies": ["t_elena_brandy"]},
+      "lines": [
+        {"s": "anselmo", "t": "No, señor. Esa noche el señor me pidió que no le subiera nada."},
+        {"s": "anselmo", "t": "No entré en el despacho. Quería estar solo, según me dijo."}
+      ],
+      "effects": {"testimonies": ["t_anselmo_sin_brandy"]}
+    },
+    {
+      "id": "relojes",
+      "label": "Esta llave abre la esfera del reloj del despacho.",
+      "if": {"clues": ["llave_reloj"]},
+      "lines": [
+        {"s": "anselmo", "t": "Naturalmente. Doy cuerda a todos los relojes de la casa desde hace treinta años, cada domingo."},
+        {"s": "anselmo", "t": "Nadie más tiene las llaves. El señor era muy exigente con la exactitud."}
+      ],
+      "effects": {"testimonies": ["t_anselmo_relojes"]}
+    },
+    {
+      "id": "clara",
+      "label": "¿Quién es la muchacha de esta fotografía?",
+      "if": {"clues": ["foto_clara"]},
+      "lines": [
+        {"s": "anselmo", "t": "..."},
+        {"s": "anselmo", "t": "Mi hija, señor. Clara. Está en el sanatorio desde hace dos años."},
+        {"s": "anselmo", "t": "Le ruego que la deje al margen. Eso no tiene relación con su investigación."}
+      ],
+      "effects": {"testimonies": ["t_anselmo_clara"]}
+    },
+    {
+      "id": "hora_real",
+      "label": "Valdés murió después de las once, Anselmo. No a las 22:15.",
+      "if": {"deductions": ["d_hora_falsa"]},
+      "lines": [
+        {"s": "anselmo", "t": "Si el señor inspector lo afirma."},
+        {"s": "narrador", "t": "Por primera vez, el mayordomo tarda en contestar. Se ajusta un guante que no necesita ajuste."},
+        {"s": "anselmo", "t": "¿Desea algo más?"}
+      ]
+    },
+    {
+      "id": "dinero",
+      "label": "¿Quién paga el sanatorio de su hija?",
+      "if": {"deductions": ["d_dinero"]},
+      "lines": [
+        {"s": "anselmo", "t": "Una ayuda benéfica, señor. Una institución muy generosa."},
+        {"s": "detective", "t": "¿Cómo se llama esa institución?"},
+        {"s": "anselmo", "t": "No lo recuerdo. Si me disculpa, tengo plata que limpiar."}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "detective": {
+    "name": "Inspector Mateo Ibarra",
+    "short": "Ibarra",
+    "role": "Detective",
+    "suspect": false,
+    "portrait": "res://assets/siluetas/detective.svg",
+    "personality": "Paciente, seco y metódico. Desconfía de las coartadas demasiado limpias.",
+    "bio": "Inspector de la capital. Julián Valdés le escribió pidiéndole ayuda."
+  },
+  "elena": {
+    "name": "Elena Valdés",
+    "short": "Elena",
+    "role": "Esposa de la víctima",
+    "suspect": true,
+    "portrait": "res://assets/siluetas/elena.svg",
+    "personality": "Fría, elegante y cansada. Mide cada palabra.",
+    "bio": "Veinticinco años casada con Julián. Discreta en público, harta en privado.",
+    "model": {"coat": "3a2230", "dress": true, "hair": "2a1c18", "hair_style": "bun", "accent": "c9a24d", "extras": ["pearls"], "height": 0.96}
+  },
+  "marcos": {
+    "name": "Marcos Valdés",
+    "short": "Marcos",
+    "role": "Hijo de la víctima",
+    "suspect": true,
+    "portrait": "res://assets/siluetas/marcos.svg",
+    "personality": "Impulsivo, encantador y endeudado. Miente mal.",
+    "bio": "Heredero de un banco que su padre no pensaba cederle. Debe dinero en la trastienda del café.",
+    "model": {"coat": "39424f", "pants": "2b3039", "hair": "3a2a1c", "hair_style": "slick", "accent": "7a2a2a", "extras": ["tie", "cigarette"]}
+  },
+  "lucia": {
+    "name": "Lucía Ferrer",
+    "short": "Lucía",
+    "role": "Doncella",
+    "suspect": true,
+    "portrait": "res://assets/siluetas/lucia.svg",
+    "personality": "Nerviosa y observadora. Ve mucho más de lo que dice.",
+    "bio": "Doncella de la casa desde hace cuatro años. Fue quien encontró el cuerpo.",
+    "model": {"coat": "1f2430", "dress": true, "hair": "4a3020", "hair_style": "braid", "hat": "maid_cap", "extras": ["apron"], "height": 0.93}
+  },
+  "anselmo": {
+    "name": "Anselmo Roca",
+    "short": "Anselmo",
+    "role": "Mayordomo",
+    "suspect": true,
+    "portrait": "res://assets/siluetas/anselmo.svg",
+    "personality": "Impecable y distante. Treinta años de obediencia silenciosa.",
+    "bio": "Mayordomo de los Valdés desde hace tres décadas. Da cuerda a todos los relojes de la casa.",
+    "model": {"coat": "14161c", "pants": "14161c", "skin": "bfa58c", "hair": "8f8f8f", "hair_style": "bald", "coat_length": "tails", "extras": ["bowtie", "tray"]}
+  },
+  "irene": {
+    "name": "Irene Vidal",
+    "short": "Irene",
+    "role": "Invitada",
+    "suspect": true,
+    "portrait": "res://assets/siluetas/irene.svg",
+    "personality": "Enigmática, irónica y muy segura de sí misma.",
+    "bio": "Asistió a la cena como invitada personal de Julián. Nadie más la conocía.",
+    "model": {"coat": "2a2438", "dress": true, "hair": "1a1416", "hair_style": "long", "hat": "wide_brim", "hat_color": "16141c", "accent": "7a2a2a", "height": 0.98}
+  },
+  "ortega": {
+    "name": "Sargento Bruno Ortega",
+    "short": "Ortega",
+    "role": "Policía local",
+    "suspect": false,
+    "portrait": "res://assets/siluetas/ortega.svg",
+    "personality": "Honrado, lento y leal. Conoce a todo el mundo en el pueblo.",
+    "bio": "Veinte años al frente del cuartelillo de Villa Sombría.",
+    "model": {"coat": "27354d", "pants": "1b2536", "hair": "3a3028", "hair_style": "short", "hat": "kepi", "hat_color": "1f2b40", "accent": "c9a24d", "extras": ["mustache", "badge"], "height": 1.04}
+  },
+  "rosa": {
+    "name": "Rosa Mena",
+    "short": "Rosa",
+    "role": "Dueña del Café La Luna",
+    "suspect": false,
+    "portrait": "res://assets/siluetas/rosa.svg",
+    "personality": "Directa y socarrona. Nada ocurre en el pueblo sin que ella lo sepa.",
+    "bio": "Regenta el café y las tres habitaciones de la pensión del piso superior.",
+    "model": {"coat": "5a3a2e", "dress": true, "hair": "2e2018", "hair_style": "curly", "extras": ["apron"], "height": 0.94}
+  },
+  "eusebio": {
+    "name": "Eusebio Pardo",
+    "short": "Eusebio",
+    "role": "Jefe de estación",
+    "suspect": false,
+    "portrait": "res://assets/siluetas/eusebio.svg",
+    "personality": "Puntilloso y parlanchín. Vive por el horario.",
+    "bio": "Atiende él solo la taquilla y el telégrafo de la estación.",
+    "model": {"coat": "2f3a33", "pants": "20261f", "hair": "9a9a9a", "hair_style": "short", "hat": "cap", "hat_color": "1f2a24", "accent": "c9a24d", "extras": ["mustache", "glasses"]}
+  },
+  "hilario": {
+    "name": "Don Hilario Luna",
+    "short": "Hilario",
+    "role": "Archivero municipal",
+    "suspect": false,
+    "portrait": "res://assets/siluetas/hilario.svg",
+    "personality": "Erudito, tímido y exacto. Prefiere los legajos a las personas.",
+    "bio": "Custodia el archivo municipal desde antes de que existiera el banco.",
+    "model": {"coat": "4a4034", "pants": "2e2822", "hair": "b0aca4", "hair_style": "bald", "accent": "7a2a2a", "extras": ["bowtie", "glasses"], "height": 0.95}
+  }
+}

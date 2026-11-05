@@ -1,0 +1,42 @@
+{
+  "intro": [
+    {
+      "if": {"not_flags": ["eusebio_conocido"]},
+      "lines": [{"s": "eusebio", "t": "Buenos días, caballero. Bienvenido a Villa Sombría. El tren ha llegado con dos minutos de retraso, cosa que lamento profundamente."}],
+      "effects": {"flags": ["eusebio_conocido"]}
+    },
+    {"lines": [{"s": "eusebio", "t": "A su servicio, inspector. Los trenes no perdonan, pero yo sí."}]}
+  ],
+  "topics": [
+    {
+      "id": "camino",
+      "label": "¿Por dónde se va al pueblo?",
+      "lines": [
+        {"s": "eusebio", "t": "Por la calle Mayor, siempre recto hasta la plaza. Si quiere un café, el de Rosa Mena es el único que hay."},
+        {"s": "eusebio", "t": "Y si no lo quiere, también."}
+      ]
+    },
+    {
+      "id": "telegrama",
+      "label": "¿Hay algo a mi nombre?",
+      "if": {"day_min": 2, "not_clues": ["copia_telegrama"]},
+      "lines": [
+        {"s": "eusebio", "t": "Pues ahora que lo dice, sí. Me lo han devuelto esta mañana desde la capital: «destinatario ausente»."},
+        {"s": "eusebio", "t": "Don Julián me lo dictó por teléfono el sábado, a las 22:50. Lo anoté yo mismo. Conozco su voz desde hace treinta años."},
+        {"s": "detective", "t": "¿A las 22:50? ¿Está seguro?"},
+        {"s": "eusebio", "t": "Inspector. Soy jefe de estación."}
+      ],
+      "effects": {"clues": ["copia_telegrama"], "testimonies": ["t_eusebio_telegrama"]}
+    },
+    {
+      "id": "elena",
+      "label": "¿Vendió usted este billete a la señora Valdés?",
+      "if": {"clues": ["billete_tren"]},
+      "lines": [
+        {"s": "eusebio", "t": "Déjeme ver... Sí, es uno de los míos. Y no hace días: se lo vendí el mismo sábado."},
+        {"s": "eusebio", "t": "Vino sola a la taquilla a las once y cinco, empapada. Consta en la hoja de ventas, que es lo único que no miente en este pueblo."}
+      ],
+      "effects": {"clues": ["registro_billetes"], "testimonies": ["t_eusebio_elena"]}
+    }
+  ]
+}

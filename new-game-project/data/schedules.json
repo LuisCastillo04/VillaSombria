@@ -1,0 +1,60 @@
+{
+  "ortega": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "vestibulo", "activity": "Custodia la mansión"},
+    {"day": 2, "from": "08:00", "to": "14:00", "location": "plaza", "marker": "banco_fuente", "activity": "Hace la ronda por la plaza"},
+    {"day": 2, "from": "14:00", "to": "24:00", "location": "mansion", "marker": "vestibulo", "activity": "Custodia la mansión"},
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "vestibulo", "activity": "Espera sus órdenes en la mansión"}
+  ],
+  "elena": [
+    {"day": 1, "from": "08:00", "to": "14:00", "location": "mansion", "marker": "salon_sofa", "activity": "En el salón de la mansión"},
+    {"day": 1, "from": "14:00", "to": "24:00", "location": "mansion", "marker": "alcoba_elena", "activity": "Encerrada en su alcoba"},
+    {"day": 2, "from": "08:00", "to": "12:00", "location": "mansion", "marker": "alcoba_elena", "activity": "En su alcoba"},
+    {"day": 2, "from": "12:00", "to": "18:00", "location": "mansion", "marker": "salon_sofa", "activity": "Recibe pésames en el salón"},
+    {"day": 2, "from": "18:00", "to": "21:00", "location": "estacion", "marker": "banco_anden", "activity": "Sentada en el andén de la estación"},
+    {"day": 2, "from": "21:00", "to": "24:00", "location": "mansion", "marker": "alcoba_elena", "activity": "En su alcoba"},
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "salon_sofa", "activity": "En el salón de la mansión"}
+  ],
+  "marcos": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "salon_chimenea", "activity": "Bebiendo junto a la chimenea"},
+    {"day": 2, "from": "08:00", "to": "12:00", "location": "mansion", "marker": "pasillo", "activity": "Dando vueltas por la mansión", "patrol": ["pasillo", "vestibulo"]},
+    {"day": 2, "from": "12:00", "to": "24:00", "location": "cafe", "marker": "mesa_fondo", "activity": "En el Café La Luna"},
+    {"day": 3, "from": "08:00", "to": "14:00", "location": "cafe", "marker": "mesa_fondo", "activity": "En el Café La Luna"},
+    {"day": 3, "from": "14:00", "to": "24:00", "location": "mansion", "marker": "salon_chimenea", "activity": "Junto a la chimenea de la mansión"}
+  ],
+  "lucia": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "pasillo", "activity": "Trabajando en la mansión", "patrol": ["pasillo", "salon_ventana"]},
+    {"day": 2, "from": "08:00", "to": "12:00", "location": "plaza", "marker": "kiosco", "activity": "Hace recados en la plaza"},
+    {"day": 2, "from": "12:00", "to": "24:00", "location": "mansion", "marker": "cuarto_lucia", "activity": "En su cuarto de la mansión"},
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "pasillo", "activity": "Trabajando en la mansión", "patrol": ["pasillo", "salon_ventana"]}
+  ],
+  "anselmo": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "office", "activity": "En el office de la mansión"},
+    {"day": 2, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "office", "activity": "En el office de la mansión", "patrol": ["office", "pasillo"]},
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "office", "activity": "En el office de la mansión"}
+  ],
+  "irene": [
+    {"day": 1, "from": "08:00", "to": "16:00", "location": "mansion", "marker": "salon_ventana", "activity": "Retenida en la mansión"},
+    {"day": 1, "from": "16:00", "to": "24:00", "location": "cafe", "marker": "mesa_ventana", "activity": "En el Café La Luna"},
+    {"day": 2, "from": "08:00", "to": "14:00", "location": "cafe", "marker": "mesa_ventana", "activity": "En el Café La Luna"},
+    {"day": 2, "from": "14:00", "to": "19:00", "location": "archivo", "marker": "sala_lectura", "activity": "Consultando el archivo municipal"},
+    {"day": 2, "from": "19:00", "to": "24:00", "location": "cafe", "marker": "mesa_ventana", "activity": "En el Café La Luna"},
+    {"day": 3, "from": "08:00", "to": "14:00", "location": "archivo", "marker": "sala_lectura", "activity": "Consultando el archivo municipal"},
+    {"day": 3, "from": "14:00", "to": "24:00", "location": "cafe", "marker": "mesa_ventana", "activity": "En el Café La Luna"}
+  ],
+  "rosa": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "barra", "activity": "Detrás de la barra"},
+    {"day": 2, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "barra", "activity": "Detrás de la barra"},
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "barra", "activity": "Detrás de la barra"}
+  ],
+  "eusebio": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "estacion", "marker": "taquilla", "activity": "En la taquilla de la estación"},
+    {"day": 2, "from": "08:00", "to": "24:00", "location": "estacion", "marker": "taquilla", "activity": "En la taquilla de la estación"},
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "estacion", "marker": "taquilla", "activity": "En la taquilla de la estación"}
+  ],
+  "hilario": [
+    {"day": 1, "from": "08:00", "to": "20:00", "location": "plaza", "marker": "fuente_este", "activity": "Paseando por la plaza: es domingo"},
+    {"day": 1, "from": "20:00", "to": "24:00", "location": "none", "marker": "", "activity": "En su casa"},
+    {"day": 2, "from": "08:00", "to": "24:00", "location": "archivo", "marker": "mostrador", "activity": "En el archivo municipal"},
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "archivo", "marker": "mostrador", "activity": "En el archivo municipal"}
+  ]
+}

@@ -20,6 +20,13 @@ static var _typewriter: SystemFont
 static var _serif: SystemFont
 
 
+## Libera las cachés al cerrar el juego.
+static func clear() -> void:
+	_theme = null
+	_typewriter = null
+	_serif = null
+
+
 static func typewriter() -> Font:
 	if _typewriter == null:
 		_typewriter = SystemFont.new()

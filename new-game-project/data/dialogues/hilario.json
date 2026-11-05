@@ -1,0 +1,53 @@
+{
+  "intro": [
+    {"if": {"day_max": 1}, "lines": [{"s": "hilario", "t": "Oh. Inspector. Hoy es domingo: el archivo abre mañana a las ocho. Los legajos también descansan."}]},
+    {
+      "if": {"not_flags": ["hilario_conocido"]},
+      "lines": [{"s": "hilario", "t": "Pase, pase. Pero no toque nada, por favor. Lo tengo todo ordenado desde 1911."}],
+      "effects": {"flags": ["hilario_conocido"]}
+    },
+    {"lines": [{"s": "hilario", "t": "¿Qué legajo desea consultar, inspector?"}]}
+  ],
+  "topics": [
+    {
+      "id": "domingo",
+      "label": "¿Conocía bien a don Julián?",
+      "if": {"day_max": 1},
+      "lines": [
+        {"s": "hilario", "t": "Muy bien. Y últimamente lo vi más de lo que hubiera imaginado. Venga mañana y se lo explicaré con los papeles delante."}
+      ]
+    },
+    {
+      "id": "valdes",
+      "label": "¿Qué buscaba Julián Valdés en el archivo?",
+      "if": {"day_min": 2},
+      "lines": [
+        {"s": "hilario", "t": "Venía cada martes desde agosto y consultaba el registro de sociedades mercantiles. Nunca me dijo por qué."},
+        {"s": "hilario", "t": "Hace dos semanas me dejó una carpeta a mi cuidado. «Si me pasa algo, Hilario, désela sólo a la policía de la capital.»"},
+        {"s": "narrador", "t": "Dentro hay una copia de una orden bancaria, subrayada en rojo."}
+      ],
+      "effects": {"clues": ["transferencia"], "testimonies": ["t_hilario_valdes"]}
+    },
+    {
+      "id": "cormoran",
+      "label": "Busque la inscripción de la Compañía Cormorán.",
+      "if": {"clues": ["transferencia"]},
+      "lines": [
+        {"s": "hilario", "t": "Cormorán, Cormorán... Aquí está. Qué curioso."},
+        {"s": "hilario", "t": "El domicilio social es un solar vacío, y el administrador murió en 1937. Esta compañía no existe más que en el papel."}
+      ],
+      "effects": {"clues": ["sociedad_cormoran"]}
+    },
+    {
+      "id": "recortes",
+      "label": "Irene Sanz dice que Julián guardó unos recortes de prensa.",
+      "if": {"flags": ["recortes_disponibles"]},
+      "lines": [
+        {"s": "hilario", "t": "Sí, también están aquí. Seis noticias de once años, de seis ciudades. Yo no les vi ninguna relación."},
+        {"s": "detective", "t": "Él sí. Mire las notas al margen. Un reloj parado a las 22:15. En todas."},
+        {"s": "hilario", "t": "Dios mío. La misma hora que en la mansión."}
+      ],
+      "effects": {"clues": ["recortes_prensa"]}
+    }
+  ]
+}

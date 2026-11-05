@@ -1,0 +1,66 @@
+{
+  "intro": [
+    {
+      "if": {"not_flags": ["marcos_conocido"]},
+      "lines": [
+        {"s": "marcos", "t": "Inspector. Le ofrecería una copa, pero parece que ya no es buena idea beber en esta casa."},
+        {"s": "marcos", "t": "Pregunte. Todo el mundo sabe que mi padre y yo no nos hablábamos."}
+      ],
+      "effects": {"flags": ["marcos_conocido"]}
+    },
+    {"lines": [{"s": "marcos", "t": "¿Qué quiere ahora?"}]}
+  ],
+  "topics": [
+    {
+      "id": "coartada",
+      "label": "¿Dónde estaba la noche del sábado?",
+      "lines": [
+        {"s": "marcos", "t": "Tuve una discusión con mi padre, subí a mi cuarto y me quedé allí toda la noche. Solo."},
+        {"s": "detective", "t": "¿Nadie puede confirmarlo?"},
+        {"s": "marcos", "t": "En eso consiste estar solo, inspector."}
+      ],
+      "effects": {"flags": ["hablo_marcos"], "testimonies": ["t_marcos_habitacion"]}
+    },
+    {
+      "id": "discusion",
+      "label": "¿Por qué discutieron?",
+      "lines": [
+        {"s": "marcos", "t": "A las nueve y media le pedí dinero en el vestíbulo. Una cantidad razonable para un hombre que tiene un banco."},
+        {"s": "marcos", "t": "Se negó delante del servicio. Dijo cosas que no voy a repetir."}
+      ],
+      "effects": {"testimonies": ["t_marcos_discusion"]}
+    },
+    {
+      "id": "pagare",
+      "label": "Usted firmó un pagaré en el café a las once de esa noche.",
+      "if": {"deductions": ["d_marcos_mentira"]},
+      "lines": [
+        {"s": "marcos", "t": "Maldita sea, Rosa."},
+        {"s": "marcos", "t": "De acuerdo. Me marché antes de las diez y media. Pasé la noche en la trastienda perdiendo un dinero que no tengo."},
+        {"s": "marcos", "t": "Si mi padre se hubiera enterado de que debía otros ochocientos pesos... Ya no importa. Por eso mentí."}
+      ],
+      "effects": {"testimonies": ["t_marcos_cafe"]}
+    },
+    {
+      "id": "lucia",
+      "label": "¿Qué relación tiene con Lucía Ferrer?",
+      "if": {"clues": ["carta_amor"]},
+      "lines": [
+        {"s": "marcos", "t": "¿Quién le ha dado...? Déjela en paz. Ella no tiene nada que ver."},
+        {"s": "marcos", "t": "Nos queremos. Mi padre lo descubrió la semana pasada e iba a echarla."},
+        {"s": "marcos", "t": "Quedamos en vernos en la ropería después de la cena, pero salí de la casa hecho una furia y la dejé esperando. Eso también es culpa mía."}
+      ],
+      "effects": {"testimonies": ["t_marcos_lucia"]}
+    },
+    {
+      "id": "relojes",
+      "label": "¿Quién se ocupa de los relojes de esta casa?",
+      "if": {"clues": ["reloj_despacho"]},
+      "lines": [
+        {"s": "marcos", "t": "Qué pregunta tan rara. Anselmo, claro."},
+        {"s": "marcos", "t": "De niño me castigaron por tocar el reloj del despacho. «Los relojes de esta casa sólo los toco yo, señorito», decía."}
+      ],
+      "effects": {"testimonies": ["t_marcos_relojes"]}
+    }
+  ]
+}

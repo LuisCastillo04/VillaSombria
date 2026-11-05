@@ -9,6 +9,14 @@ static var _marker: StandardMaterial3D
 static var _cobblestone: ShaderMaterial
 
 
+## Libera las cachés al cerrar el juego.
+static func clear() -> void:
+	_vertex_lit = null
+	_glow = null
+	_marker = null
+	_cobblestone = null
+
+
 static func vertex_lit() -> StandardMaterial3D:
 	if _vertex_lit == null:
 		_vertex_lit = StandardMaterial3D.new()

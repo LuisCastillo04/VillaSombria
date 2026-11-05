@@ -1,0 +1,119 @@
+{
+  "carta_valdes": {
+    "name": "Carta de Julián Valdés",
+    "category": "cartas",
+    "where": "Bolsillo del inspector",
+    "description": "«Inspector Ibarra: he encontrado algo que no puedo confiar al correo ni a la policía de este pueblo. Venga cuanto antes. Tengo miedo de lo que estoy a punto de confirmar. J. Valdés.»"
+  },
+  "lista_invitados": {
+    "name": "Lista de invitados",
+    "category": "documentos",
+    "where": "Vestíbulo de la mansión",
+    "description": "Lista de la cena del sábado 16 de octubre: la familia, el notario, el doctor y varios socios del banco. Al final, añadido a mano por Julián: «Srta. Irene Vidal, invitada personal».",
+    "prompt": "Examinar la lista de invitados"
+  },
+  "reloj_despacho": {
+    "name": "Reloj de sobremesa parado",
+    "category": "relojes",
+    "where": "Despacho de Julián Valdés",
+    "description": "Reloj de bronce caído junto al sillón, con la esfera rota. Las agujas marcan las 22:15. Parece que Julián lo arrastró al desplomarse, lo que fijaría la hora de la muerte. Curiosamente, no hay ni un cristal fuera de la alfombra.",
+    "prompt": "Examinar el reloj roto"
+  },
+  "copa_lavada": {
+    "name": "Copa de brandy recién lavada",
+    "category": "objetos",
+    "where": "Despacho de Julián Valdés",
+    "description": "Una copa balón sobre el escritorio. Está limpia y huele a jabón, aunque la licorera de al lado se usó hace poco. Alguien lavó esa copa y volvió a dejarla aquí.",
+    "prompt": "Examinar la copa"
+  },
+  "huellas_betun": {
+    "name": "Huellas de betún",
+    "category": "huellas",
+    "where": "Despacho de Julián Valdés",
+    "description": "Marcas tenues de betún negro sobre la alfombra. Van y vuelven entre el escritorio y la puerta de servicio. Quien las dejó llevaba zapatos recién lustrados y conocía esa entrada.",
+    "prompt": "Examinar las marcas de la alfombra"
+  },
+  "billete_tren": {
+    "name": "Billete de tren de Elena",
+    "category": "objetos",
+    "where": "Alcoba de Elena Valdés",
+    "description": "Billete de ida a la capital para el tren del domingo 17 a las 07:40, escondido en el tocador. Elena pensaba marcharse sola la misma mañana en que su marido apareció muerto.",
+    "prompt": "Registrar el tocador"
+  },
+  "carta_amor": {
+    "name": "Carta de amor de Marcos",
+    "category": "cartas",
+    "where": "Cuarto de Lucía",
+    "description": "«Lucía: el sábado, cuando acabe la cena, te espero en la ropería de arriba. Mi padre lo sabe y va a echarte. Tengo que hablar contigo. M.» Está doblada dentro de un misal.",
+    "prompt": "Examinar el misal de la mesilla"
+  },
+  "foto_clara": {
+    "name": "Fotografía de Clara",
+    "category": "fotografias",
+    "where": "Office del mayordomo",
+    "description": "Retrato de una muchacha pálida en el jardín de un edificio blanco. Al dorso: «A papá, con todo mi cariño. Clara. Sanatorio de Santa Clara, 1948».",
+    "prompt": "Examinar la fotografía"
+  },
+  "libro_bodega": {
+    "name": "Libro de bodega",
+    "category": "documentos",
+    "where": "Office del mayordomo",
+    "description": "Registro de la bodega, llevado con letra pulcra. La última anotación del sábado es de las 22:40: las botellas de cava consumidas. Después de esa hora no consta ningún inventario.",
+    "prompt": "Leer el libro de bodega"
+  },
+  "llave_reloj": {
+    "name": "Llave del reloj del despacho",
+    "category": "objetos",
+    "where": "Office del mayordomo",
+    "description": "Llave de latón colgada en el tablero del office, con una etiqueta: «Despacho». Es la única que permite abrir la esfera del reloj y mover sus agujas sin forzarlas.",
+    "prompt": "Examinar el tablero de llaves"
+  },
+  "pagare_marcos": {
+    "name": "Pagaré de Marcos",
+    "category": "documentos",
+    "where": "Café La Luna",
+    "description": "Pagaré por ochocientos pesos firmado por Marcos Valdés en la trastienda del café. Fechado el sábado 16 de octubre a las 23:00, con Rosa Mena como testigo."
+  },
+  "registro_pension": {
+    "name": "Registro de la pensión",
+    "category": "documentos",
+    "where": "Café La Luna",
+    "description": "Libro de la pensión. Habitación 3, señorita Vidal: «Regresó a las 22:40. Cena fría servida a las 23:00». Lleva la firma de Rosa Mena."
+  },
+  "copia_telegrama": {
+    "name": "Telegrama devuelto",
+    "category": "documentos",
+    "where": "Estación de tren",
+    "description": "«INSPECTOR IBARRA. TOME PRIMER TREN. TENGO EL NOMBRE. VALDÉS.» Dictado por teléfono desde la mansión el sábado a las 22:50. Devuelto el lunes porque el destinatario ya había salido de la capital."
+  },
+  "registro_billetes": {
+    "name": "Registro de taquilla",
+    "category": "documentos",
+    "where": "Estación de tren",
+    "description": "Hoja de ventas del sábado 16. Última venta: un billete de ida a la capital, a las 23:05, a nombre de la señora Valdés. La estación está a veinte minutos de la mansión."
+  },
+  "transferencia": {
+    "name": "Transferencia de la Compañía Cormorán",
+    "category": "documentos",
+    "where": "Archivo municipal",
+    "description": "Copia de una orden del Banco Valdés fechada el 2 de octubre: 40.000 pesos de la Compañía Cormorán al Sanatorio de Santa Clara, por cuenta de la paciente «C. R.». Julián la subrayó con lápiz rojo."
+  },
+  "sociedad_cormoran": {
+    "name": "Registro de la Compañía Cormorán",
+    "category": "documentos",
+    "where": "Archivo municipal",
+    "description": "Inscripción mercantil de la Compañía Cormorán: un domicilio en un solar vacío y un administrador que murió hace años. Es una sociedad fantasma que sólo existe para mover dinero."
+  },
+  "informe_forense": {
+    "name": "Informe del forense",
+    "category": "documentos",
+    "where": "Sargento Ortega",
+    "description": "Julián Valdés murió por cianuro, ingerido con brandy. El veneno actúa en minutos, y el estómago contenía brandy tomado inmediatamente antes de la muerte. El forense no puede precisar la hora con exactitud."
+  },
+  "recortes_prensa": {
+    "name": "Recortes de prensa",
+    "category": "fotografias",
+    "where": "Archivo municipal",
+    "description": "Julián reunió seis noticias de once años: muertes en ciudades distintas, sin relación aparente. En los márgenes anotó lo que todas comparten: un reloj parado a las 22:15."
+  }
+}

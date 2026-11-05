@@ -1,0 +1,45 @@
+{
+  "days": {
+    "1": {"title": "Domingo 17 de octubre de 1948", "rest_requires": {"flags": ["llamada_atendida", "ortega_briefing", "hablo_elena", "hablo_marcos", "hablo_lucia", "hablo_anselmo", "hablo_irene"], "clues": ["reloj_despacho"]}, "rest_blocked": "Todavía no. Debo examinar el despacho e interrogar a los cinco sospechosos antes de acostarme."},
+    "2": {"title": "Lunes 18 de octubre de 1948", "rest_requires": {"clues": ["copia_telegrama", "transferencia", "informe_forense"]}, "rest_blocked": "Aún no. Necesito el informe del forense y revisar lo que hay en la estación y en el archivo."},
+    "3": {"title": "Martes 19 de octubre de 1948", "rest_requires": {"flags": ["caso_resuelto"]}, "rest_blocked": "Hoy no hay descanso. El caso se cierra esta noche: reúne las pruebas y habla con Ortega."}
+  },
+  "objectives": [
+    {"id": "o_cafe", "day": 1, "text": "Entra en el Café La Luna, en la plaza", "done": {"flags": ["llamada_atendida"]}},
+    {"id": "o_mansion", "day": 1, "text": "Ve a la mansión Valdés y habla con el sargento Ortega", "visible": {"flags": ["llamada_atendida"]}, "done": {"flags": ["ortega_briefing"]}},
+    {"id": "o_despacho", "day": 1, "text": "Examina el despacho de Julián Valdés", "visible": {"flags": ["ortega_briefing"]}, "done": {"clues": ["reloj_despacho"]}},
+    {"id": "o_sospechosos", "day": 1, "text": "Interroga a los cinco sospechosos", "visible": {"flags": ["ortega_briefing"]}, "done": {"flags": ["hablo_elena", "hablo_marcos", "hablo_lucia", "hablo_anselmo", "hablo_irene"]}},
+    {"id": "o_dormir1", "day": 1, "text": "Descansa en tu habitación, en la pensión del Café La Luna", "visible": {"flags": ["hablo_elena", "hablo_marcos", "hablo_lucia", "hablo_anselmo", "hablo_irene"], "clues": ["reloj_despacho"]}, "done": {"flags": ["dia_2_iniciado"]}},
+    {"id": "o_forense", "day": 2, "text": "Recoge el informe del forense: Ortega lo espera hacia mediodía", "done": {"clues": ["informe_forense"]}},
+    {"id": "o_estacion", "day": 2, "text": "Pregunta en la estación si hay algo a tu nombre", "done": {"clues": ["copia_telegrama"]}},
+    {"id": "o_archivo", "day": 2, "text": "Investiga en el archivo municipal qué buscaba Julián Valdés", "done": {"clues": ["transferencia"]}},
+    {"id": "o_tablero", "day": 2, "text": "Abre el tablero (B) y compara pruebas y testimonios en busca de contradicciones", "visible": {"clues": ["copia_telegrama"]}, "done": {"deductions": ["d_hora_falsa"]}},
+    {"id": "o_dormir2", "day": 2, "text": "Descansa en tu habitación de la pensión", "visible": {"clues": ["copia_telegrama", "transferencia", "informe_forense"]}, "done": {"flags": ["dia_3_iniciado"]}},
+    {"id": "o_reconstruir", "day": 3, "text": "Reconstruye lo ocurrido a la hora real de la muerte", "visible": {"deductions": ["d_hora_falsa"]}, "done": {"deductions": ["d_bodega"]}},
+    {"id": "o_hora", "day": 3, "text": "Demuestra en el tablero que el reloj miente", "done": {"deductions": ["d_hora_falsa"]}},
+    {"id": "o_motivo", "day": 3, "text": "Descubre quién recibió el dinero de la Compañía Cormorán", "done": {"deductions": ["d_dinero"]}},
+    {"id": "o_acusar", "day": 3, "text": "Cuando lo tengas claro, pide a Ortega que reúna a los sospechosos", "visible": {"deductions": ["d_hora_falsa"]}, "done": {"flags": ["caso_resuelto"]}}
+  ],
+  "events": [
+    {"id": "ev_forense", "day": 2, "time": "12:00", "effects": {"flags": ["informe_llegado"], "notify": {"title": "Ha llegado el correo", "body": "El informe del forense ya está en manos del sargento Ortega."}}},
+    {"id": "ev_elena_estacion", "day": 2, "time": "18:00", "effects": {"notify": {"title": "Rumores en el pueblo", "body": "Dicen que la señora Valdés se ha sentado a esperar en el andén de la estación."}}},
+    {"id": "ev_ultimatum", "day": 3, "time": "09:00", "effects": {"notify": {"title": "Nota de la jueza", "body": "Los sospechosos sólo pueden retenerse hasta hoy. El caso debe cerrarse."}}}
+  ],
+  "accusation": {
+    "culprit": "anselmo",
+    "motive": ["transferencia", "d_dinero", "t_elena_clara"],
+    "opportunity": ["d_bodega", "t_lucia_escalera", "libro_bodega", "d_coartada_cae"],
+    "means": ["d_brandy", "informe_forense", "copa_lavada", "d_reloj_llave"],
+    "rejections": {
+      "elena": "A las 23:05 la señora Valdés estaba en la taquilla de la estación, a veinte minutos de la mansión. Mintió para esconder que huía, no un crimen.",
+      "marcos": "A las 23:00 Marcos firmaba un pagaré en la trastienda del café, y Rosa lo confirma. Es un mentiroso, pero no estaba en la casa.",
+      "lucia": "Lucía no tenía acceso a las llaves del reloj, y nadie la sitúa en el despacho antes de las 23:40. Algo tan frío no encaja con ella.",
+      "irene": "Rosa Mena le sirvió la cena en la pensión a las 23:00. Cuando Valdés murió, la señorita estaba al otro lado del pueblo."
+    },
+    "weak": {
+      "motive": "Eso no explica por qué iba a matarlo. Necesito un motivo que un juez pueda seguir: dinero, una deuda, una razón.",
+      "opportunity": "Eso no lo pone en el despacho. Necesito demostrar que pudo estar allí a la hora real de la muerte.",
+      "means": "Eso no explica cómo lo hizo. Necesito demostrar el método: el veneno y cómo llegó hasta Valdés."
+    }
+  }
+}

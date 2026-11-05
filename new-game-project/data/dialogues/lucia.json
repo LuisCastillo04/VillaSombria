@@ -1,0 +1,49 @@
+{
+  "intro": [
+    {
+      "if": {"not_flags": ["lucia_conocida"]},
+      "lines": [
+        {"s": "lucia", "t": "S-sí, señor. Soy Lucía. Ya se lo conté todo al sargento."},
+        {"s": "lucia", "t": "Perdone. No consigo dejar de verlo."}
+      ],
+      "effects": {"flags": ["lucia_conocida"]}
+    },
+    {"if": {"flags": ["lucia_confeso"]}, "lines": [{"s": "lucia", "t": "Le he dicho todo lo que vi, inspector. Se lo juro."}]},
+    {"lines": [{"s": "lucia", "t": "¿Señor?"}]}
+  ],
+  "topics": [
+    {
+      "id": "hallazgo",
+      "label": "Cuénteme cómo encontró a don Julián.",
+      "lines": [
+        {"s": "lucia", "t": "A las 23:40 subí por la escalera de servicio a recoger la bandeja del brandy, como todas las noches."},
+        {"s": "lucia", "t": "Pero no había bandeja, señor. Ni bandeja ni nada. Sólo él en el sillón, y aquel reloj en el suelo."},
+        {"s": "lucia", "t": "Entonces grité."}
+      ],
+      "effects": {"flags": ["hablo_lucia"], "testimonies": ["t_lucia_hallazgo"]}
+    },
+    {
+      "id": "coartada",
+      "label": "¿Dónde estuvo el resto de la noche?",
+      "lines": [
+        {"s": "lucia", "t": "En la cocina, hasta que terminó el servicio. Y después doblando ropa."},
+        {"s": "lucia", "t": "No vi nada. Nada de nada."},
+        {"s": "detective", "t": "No le he preguntado si vio algo."}
+      ],
+      "effects": {"testimonies": ["t_lucia_cocina"]}
+    },
+    {
+      "id": "carta",
+      "label": "He encontrado esta carta de Marcos en su cuarto.",
+      "if": {"clues": ["carta_amor"]},
+      "lines": [
+        {"s": "lucia", "t": "¡Eso es mío! Por favor, señor, si la señora se entera...", "mood": "alterada"},
+        {"s": "detective", "t": "No me importa con quién se ve, Lucía. Me importa dónde estaba usted. ¿Fue a la ropería?"},
+        {"s": "lucia", "t": "Sí. Lo esperé allí. Él no llegó."},
+        {"s": "lucia", "t": "Desde la ropería se ve la escalera de servicio. Al dar las once, vi subir a don Anselmo hacia el despacho, con la bandeja de plata."},
+        {"s": "lucia", "t": "No lo dije porque tendría que haber explicado qué hacía yo allí."}
+      ],
+      "effects": {"flags": ["lucia_confeso"], "testimonies": ["t_lucia_escalera"]}
+    }
+  ]
+}

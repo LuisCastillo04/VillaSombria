@@ -1,0 +1,89 @@
+{
+  "intro": {
+    "lines": [
+      {"s": "narrador", "t": "Domingo, 17 de octubre de 1948. Villa Sombría."},
+      {"s": "narrador", "t": "El tren de la mañana me dejó en un andén mojado, en un pueblo que parecía haber dejado de esperar a nadie."},
+      {"s": "detective", "t": "Llevo en el bolsillo una carta de Julián Valdés, el banquero que paga media comarca. Me pide ayuda y no me dice para qué."},
+      {"s": "detective", "t": "Antes de presentarme en su casa necesito un café. La plaza está siguiendo la calle Mayor."}
+    ],
+    "effects": {"clues": ["carta_valdes"], "flags": ["juego_iniciado"], "minutes": 0}
+  },
+  "llamada": {
+    "lines": [
+      {"s": "rosa", "t": "¿Es usted el inspector Ibarra? Entonces esto es para usted. Llevan toda la mañana llamando a cada teléfono del pueblo."},
+      {"s": "narrador", "t": "La mujer de la barra me tiende el auricular."},
+      {"s": "ortega", "t": "¿Inspector? Soy el sargento Ortega. Hemos encontrado su nombre en un borrador, sobre el escritorio de don Julián Valdés."},
+      {"s": "ortega", "t": "Está muerto, inspector. Anoche, en su despacho, en plena celebración. Venga a la mansión, se lo ruego."},
+      {"s": "detective", "t": "He llegado tarde. Una sola noche tarde."}
+    ],
+    "effects": {"flags": ["llamada_atendida"], "minutes": 10}
+  },
+  "dia_2": {
+    "lines": [
+      {"s": "narrador", "t": "Lunes, 18 de octubre. Sigue lloviendo."},
+      {"s": "detective", "t": "Cinco personas y cinco versiones. Hoy abren las oficinas y llega el correo: es hora de comprobarlas."},
+      {"s": "detective", "t": "El forense, la estación y el archivo. Julián estaba buscando algo, y algo le encontró a él."}
+    ],
+    "effects": {"flags": ["dia_2_iniciado"], "minutes": 0}
+  },
+  "dia_3": {
+    "lines": [
+      {"s": "narrador", "t": "Martes, 19 de octubre."},
+      {"s": "detective", "t": "Si el reloj miente, ya no importa quién estaba dónde a las diez y cuarto. Importa quién estaba dónde a las once."},
+      {"s": "detective", "t": "Hoy se acaba. Motivo, oportunidad y medios. Con los tres, Ortega reunirá a todos."}
+    ],
+    "effects": {"flags": ["dia_3_iniciado"], "minutes": 0}
+  },
+  "confrontacion": {
+    "lines": [
+      {"s": "narrador", "t": "Ortega reúne a todos en el salón. La lluvia golpea los ventanales. Nadie se sienta."},
+      {"s": "detective", "t": "El reloj marcaba las 22:15 porque alguien quiso que lo marcara. A las 22:50, Julián Valdés dictaba un telegrama."},
+      {"s": "detective", "t": "A esa hora falsa sólo un hombre tenía veinte testigos. Usted, Anselmo."},
+      {"s": "anselmo", "t": "Treinta años en esta casa, señor inspector. ¿Eso me convierte en un asesino?"},
+      {"s": "detective", "t": "A las once subió el brandy, como todas las noches. Lucía lo vio. Esa noche llevaba cianuro."},
+      {"s": "detective", "t": "Esperó, lavó la copa, abrió la esfera con su llave y atrasó las agujas. Después rompió el cristal y se fue por la puerta de servicio."},
+      {"s": "detective", "t": "Su inventario de la bodega se detiene a las 22:40. Y cuarenta mil pesos de una sociedad fantasma están pagando el sanatorio de Clara."},
+      {"s": "narrador", "t": "El mayordomo deja la bandeja sobre la mesa con la misma precisión de siempre."},
+      {"s": "anselmo", "t": "Se estaba muriendo, señor. Le pedí ayuda a don Julián. Treinta años, y me negó un adelanto."},
+      {"s": "anselmo", "t": "Después llegó una carta sin firma. Sabía lo de Clara. Sabía lo del brandy de las once. El veneno vino en el mismo paquete."}
+    ],
+    "choices": [
+      {
+        "label": "¿Quién le escribió?",
+        "lines": [
+          {"s": "anselmo", "t": "Nunca lo supe. Sólo había instrucciones, señor. Muy precisas, como una receta."},
+          {"s": "anselmo", "t": "Y una exigencia: el reloj debía quedar parado a las 22:15. Exactamente. Decía que me daría coartada."}
+        ]
+      },
+      {
+        "label": "¿Por qué las 22:15?",
+        "lines": [
+          {"s": "anselmo", "t": "La carta lo exigía. Exactamente esa hora, ni un minuto más. Decía que me daría coartada."},
+          {"s": "anselmo", "t": "Quien la escribió no firmó. Sólo había instrucciones, señor. Muy precisas, como una receta."}
+        ]
+      }
+    ],
+    "after": {
+      "lines": [
+        {"s": "detective", "t": "Esa hora no era su coartada, Anselmo. Era la firma de otro."}
+      ],
+      "effects": {"flags": ["caso_resuelto"], "minutes": 30, "action": "start_epilogue"}
+    }
+  },
+  "epilogo": {
+    "lines": [
+      {"s": "narrador", "t": "Anselmo Roca firmó su confesión esa misma noche. La cuenta del sanatorio ya está pagada; Clara nunca sabrá con qué."},
+      {"s": "narrador", "t": "Elena Valdés tomó por fin su tren. Marcos heredó el banco y las deudas, y Lucía no se marchó del pueblo."},
+      {"s": "irene", "t": "Seis muertes en once años, inspector, y Julián es la séptima. Un reloj parado en cada una."},
+      {"s": "irene", "t": "Cormorán paga, otros ejecutan, y él firma. La prensa nunca vio el patrón. Yo lo llamo el Relojero."},
+      {"s": "detective", "t": "Julián dijo que tenía un nombre."},
+      {"s": "irene", "t": "Lo tenía. Por eso está muerto. Y el Relojero sabe ahora que usted lo busca."},
+      {"s": "narrador", "t": "El miércoles, mientras esperaba el tren de regreso, el jefe de estación me salió al encuentro."},
+      {"s": "eusebio", "t": "Ha llegado esto a su nombre, inspector. Sin remite. Nadie vio quién lo dejó, y le aseguro que eso aquí no había pasado nunca."},
+      {"s": "narrador", "t": "Dentro había un reloj de bolsillo parado a las 22:15, y una tarjeta escrita con letra muy pulcra."},
+      {"s": "narrador", "t": "«Buen trabajo, inspector. Ahora ya sabe a qué hora pensar en mí.»"},
+      {"s": "detective", "t": "El caso Valdés estaba cerrado. El otro acababa de empezar."}
+    ],
+    "effects": {"minutes": 0, "action": "case_closed"}
+  }
+}

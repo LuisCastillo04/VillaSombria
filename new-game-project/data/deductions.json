@@ -1,0 +1,72 @@
+{
+  "d_hora_falsa": {
+    "title": "El reloj miente",
+    "kind": "contradiccion",
+    "pairs": [["reloj_despacho", "copia_telegrama"], ["reloj_despacho", "t_eusebio_telegrama"]],
+    "text": "El reloj se paró a las 22:15, pero Julián dictó un telegrama a las 22:50. Seguía vivo después de esa hora: alguien atrasó las agujas y rompió la esfera para fijar una hora falsa.",
+    "effects": {"flags": ["hora_real_conocida"]}
+  },
+  "d_coartada_cae": {
+    "title": "Una coartada para la hora equivocada",
+    "kind": "contradiccion",
+    "pairs": [["d_hora_falsa", "t_anselmo_brindis"]],
+    "text": "Anselmo tiene el mejor testigo posible para las 22:15: toda la sala. Pero Julián no murió a esa hora. Su coartada cubre sólo el momento que señalaba el reloj falso.",
+    "effects": {"flags": ["coartada_anselmo_caida"]}
+  },
+  "d_marcos_mentira": {
+    "title": "Marcos no estaba en su cuarto",
+    "kind": "contradiccion",
+    "pairs": [["t_marcos_habitacion", "pagare_marcos"], ["t_marcos_habitacion", "t_rosa_marcos"]],
+    "text": "Marcos juró que pasó la noche en su cuarto, pero a las 23:00 firmó un pagaré en la trastienda del café. Mintió para ocultar sus deudas.",
+    "effects": {"flags": ["marcos_descubierto"]}
+  },
+  "d_elena_mentira": {
+    "title": "La jaqueca de Elena",
+    "kind": "contradiccion",
+    "pairs": [["t_elena_jaqueca", "registro_billetes"], ["t_elena_jaqueca", "t_eusebio_elena"]],
+    "text": "Elena dijo que no salió de su alcoba, pero a las 23:05 compraba un billete en la estación, a veinte minutos de la mansión. Mintió, aunque eso la sitúa lejos del despacho.",
+    "effects": {"flags": ["elena_descubierta"]}
+  },
+  "d_irene_mentira": {
+    "title": "Una amiga que nadie conoce",
+    "kind": "contradiccion",
+    "pairs": [["t_irene_amiga", "t_elena_irene"]],
+    "text": "Irene se presenta como vieja amiga de la familia, pero Elena jamás la había visto. Ha venido al pueblo con otro propósito.",
+    "effects": {"flags": ["irene_descubierta"]}
+  },
+  "d_servicio": {
+    "title": "La entrada de servicio",
+    "kind": "conexion",
+    "pairs": [["huellas_betun", "t_ortega_escena"], ["huellas_betun", "t_ortega_servicio"]],
+    "text": "La puerta principal estaba cerrada por dentro y las huellas de betún llevan a la puerta de servicio. El asesino entró y salió por ahí: conoce la casa desde dentro.",
+    "effects": {"flags": ["entrada_servicio_conocida"]}
+  },
+  "d_reloj_llave": {
+    "title": "Una sola mano en el reloj",
+    "kind": "conexion",
+    "pairs": [["reloj_despacho", "llave_reloj"], ["reloj_despacho", "t_anselmo_relojes"], ["reloj_despacho", "t_marcos_relojes"]],
+    "text": "Las agujas se movieron sin forzarlas, y eso exige la llave que cuelga en el office. Anselmo es el único que maneja los relojes de la casa.",
+    "effects": {"flags": ["reloj_anselmo_conocido"]}
+  },
+  "d_brandy": {
+    "title": "El brandy que nunca se sirvió",
+    "kind": "contradiccion",
+    "pairs": [["t_anselmo_sin_brandy", "informe_forense"], ["t_anselmo_sin_brandy", "copa_lavada"]],
+    "text": "Anselmo afirma que esa noche no subió el brandy, pero Julián murió envenenado con brandy tomado justo antes de morir, y su copa apareció lavada. El brandy se sirvió, y Anselmo lo niega.",
+    "effects": {"flags": ["brandy_conocido"]}
+  },
+  "d_bodega": {
+    "title": "Nadie estaba en la bodega",
+    "kind": "contradiccion",
+    "pairs": [["t_anselmo_bodega", "t_lucia_escalera"], ["t_anselmo_bodega", "libro_bodega"]],
+    "text": "Anselmo dice que hizo inventario en la bodega de 23:00 a 23:40, pero el libro no registra nada después de las 22:40 y Lucía lo vio subir al despacho al dar las once.",
+    "effects": {"flags": ["bodega_conocida"]}
+  },
+  "d_dinero": {
+    "title": "Cuarenta mil razones",
+    "kind": "conexion",
+    "pairs": [["transferencia", "foto_clara"], ["transferencia", "t_anselmo_clara"], ["transferencia", "t_elena_clara"]],
+    "text": "La paciente «C. R.» es Clara Roca, la hija de Anselmo. Dos semanas antes del crimen, una sociedad fantasma pagó 40.000 pesos por su tratamiento. Alguien compró al mayordomo.",
+    "effects": {"flags": ["pago_conocido"]}
+  }
+}

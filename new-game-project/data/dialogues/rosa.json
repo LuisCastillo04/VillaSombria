@@ -1,0 +1,46 @@
+{
+  "intro": [
+    {"if": {"flags": ["llamada_atendida"]}, "lines": [{"s": "rosa", "t": "¿Café solo, inspector? Aquí todo lo demás se paga con chismes."}]},
+    {"lines": [{"s": "rosa", "t": "Pase y séquese, que nos va a inundar el local."}]}
+  ],
+  "topics": [
+    {
+      "id": "pueblo",
+      "label": "Hábleme de Villa Sombría.",
+      "lines": [
+        {"s": "rosa", "t": "Mil doscientas almas, y más de la mitad le debe dinero al Banco Valdés. O le debía."},
+        {"s": "rosa", "t": "Don Julián pagó la fuente, la escuela y el tejado del ayuntamiento. Por eso aquí nadie le dijo nunca que no."}
+      ]
+    },
+    {
+      "id": "pension",
+      "label": "¿Tiene una habitación libre?",
+      "lines": [
+        {"s": "rosa", "t": "La número uno. Ya le he subido la maleta: la escalera está al fondo, junto a la trastienda."},
+        {"s": "rosa", "t": "Cuando quiera acabar el día, sólo tiene que subir a acostarse."}
+      ],
+      "effects": {"flags": ["habitacion_conocida"], "minutes": 5}
+    },
+    {
+      "id": "marcos",
+      "label": "¿Vino Marcos Valdés por aquí el sábado por la noche?",
+      "if": {"flags": ["hablo_marcos"]},
+      "lines": [
+        {"s": "rosa", "t": "¿El señorito? Llegó a las diez y media, mojado y de mal humor, y se metió en la trastienda con los de siempre."},
+        {"s": "rosa", "t": "A las once firmó esto. No se fue hasta pasadas las doce."},
+        {"s": "narrador", "t": "Rosa saca de la caja un papel doblado y lo deja sobre la barra."}
+      ],
+      "effects": {"clues": ["pagare_marcos"], "testimonies": ["t_rosa_marcos"]}
+    },
+    {
+      "id": "irene",
+      "label": "¿Qué sabe de la señorita Vidal?",
+      "if": {"flags": ["hablo_irene"]},
+      "lines": [
+        {"s": "rosa", "t": "Habitación tres, paga por adelantado y escribe mucho. Llegó hace una semana."},
+        {"s": "rosa", "t": "El sábado volvió de la cena a las 22:40. Se lo apunté en el libro, y a las once yo misma le subí una cena fría."}
+      ],
+      "effects": {"clues": ["registro_pension"], "testimonies": ["t_rosa_irene"]}
+    }
+  ]
+}

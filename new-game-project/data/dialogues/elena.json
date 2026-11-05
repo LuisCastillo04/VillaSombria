@@ -1,0 +1,78 @@
+{
+  "intro": [
+    {
+      "if": {"not_flags": ["elena_conocida"]},
+      "lines": [
+        {"s": "elena", "t": "Usted debe de ser el inspector de la carta. Mi marido no me habló de usted. No me hablaba de casi nada."},
+        {"s": "elena", "t": "Pregunte lo que tenga que preguntar. Quiero que esto termine."}
+      ],
+      "effects": {"flags": ["elena_conocida"]}
+    },
+    {"if": {"flags": ["elena_confeso"]}, "lines": [{"s": "elena", "t": "Ya le he dicho la verdad, inspector. No esperaba que sonara tan pobre."}]},
+    {"lines": [{"s": "elena", "t": "¿Otra vez usted?"}]}
+  ],
+  "topics": [
+    {
+      "id": "coartada",
+      "label": "¿Dónde estaba durante la noche del sábado?",
+      "lines": [
+        {"s": "elena", "t": "A las diez dejé la cena. Tenía jaqueca y subí a mi alcoba."},
+        {"s": "elena", "t": "No volví a salir hasta que oí gritar a Lucía. Eso fue todo."}
+      ],
+      "effects": {"flags": ["hablo_elena"], "testimonies": ["t_elena_jaqueca"]}
+    },
+    {
+      "id": "marido",
+      "label": "Hábleme de las costumbres de su marido.",
+      "lines": [
+        {"s": "elena", "t": "Julián era un hombre de horarios. Se podían poner en hora los relojes con él."},
+        {"s": "elena", "t": "Cada noche, a las once en punto, Anselmo le subía una copa de brandy al despacho. Treinta años sin faltar una sola noche."}
+      ],
+      "effects": {"testimonies": ["t_elena_brandy"]}
+    },
+    {
+      "id": "invitada",
+      "label": "¿Quién es la señorita Vidal?",
+      "if": {"any": [{"clues": ["lista_invitados"]}, {"flags": ["hablo_irene"]}]},
+      "lines": [
+        {"s": "elena", "t": "No lo sé. No la había visto en mi vida."},
+        {"s": "elena", "t": "Julián escribió su nombre en la lista él mismo, sin darme una explicación. Supuse lo que cualquiera supondría."}
+      ],
+      "effects": {"testimonies": ["t_elena_irene"]}
+    },
+    {
+      "id": "billete",
+      "label": "He encontrado este billete en su tocador.",
+      "if": {"clues": ["billete_tren"]},
+      "lines": [
+        {"s": "elena", "t": "Registra usted a las viudas con mucha soltura, inspector."},
+        {"s": "elena", "t": "Lo compré hace días. Pensaba visitar a mi hermana en la capital. No veo qué tiene de extraño."},
+        {"s": "detective", "t": "Un billete de ida, señora."},
+        {"s": "elena", "t": "Hable con mi abogado si le preocupa la vuelta."}
+      ]
+    },
+    {
+      "id": "huida",
+      "label": "A las 23:05 estaba comprando ese billete en la estación.",
+      "if": {"deductions": ["d_elena_mentira"]},
+      "lines": [
+        {"s": "elena", "t": "..."},
+        {"s": "elena", "t": "Está bien. No hubo ninguna jaqueca. A las diez y media salí por el jardín y bajé andando a la estación, bajo la lluvia."},
+        {"s": "elena", "t": "Iba a dejarlo. Veinticinco años, y lo decidí durante la sopa."},
+        {"s": "elena", "t": "Volví a recoger mi equipaje y encontré la casa llena de policías. Por eso mentí: una esposa que huye la noche del crimen es una culpable perfecta."}
+      ],
+      "effects": {"flags": ["elena_confeso"], "testimonies": ["t_elena_estacion"]}
+    },
+    {
+      "id": "hija_anselmo",
+      "label": "¿Sabe algo de una muchacha llamada Clara?",
+      "if": {"clues": ["foto_clara"]},
+      "lines": [
+        {"s": "elena", "t": "Clara Roca, la hija de Anselmo. La pobre lleva dos años en un sanatorio, por los pulmones."},
+        {"s": "elena", "t": "En primavera él le pidió a Julián un adelanto para el tratamiento. Treinta años de servicio, inspector, y mi marido se lo negó."},
+        {"s": "elena", "t": "Anselmo no dijo una palabra. Volvió a servir la mesa como si nada."}
+      ],
+      "effects": {"testimonies": ["t_elena_clara"]}
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "plaza": {"name": "Plaza Mayor", "scene": "res://scenes/world/locations/plaza.tscn", "outdoor": true},
+  "cafe": {"name": "Café La Luna", "scene": "res://scenes/world/locations/cafe.tscn", "outdoor": false},
+  "mansion": {"name": "Mansión Valdés", "scene": "res://scenes/world/locations/mansion.tscn", "outdoor": false},
+  "archivo": {"name": "Archivo municipal", "scene": "res://scenes/world/locations/archivo.tscn", "outdoor": false},
+  "estacion": {"name": "Estación de tren", "scene": "res://scenes/world/locations/estacion.tscn", "outdoor": true},
+  "test_ground": {"name": "Campo de pruebas", "scene": "res://scenes/world/locations/test_ground.tscn", "outdoor": true}
+}
