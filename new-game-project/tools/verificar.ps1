@@ -19,8 +19,8 @@ function Invoke-Paso([string]$titulo, [string[]]$argumentos) {
     Write-Host "== $titulo =="
     $salida = & $godot @argumentos 2>&1 | Out-String
     $codigo = $LASTEXITCODE
-    $errores = $salida -split "`n" | Where-Object { $_ -match 'SCRIPT ERROR|Parse Error|ERROR:|Failed to load|FALLO' }
-    $salida -split "`n" | Where-Object { $_ -match '^\s*(OK|PRUEBAS|RESUMEN|FALLO)' } | ForEach-Object { Write-Host $_ }
+    $errores = $salida -split "`n" | Where-Object { $_ -cmatch 'SCRIPT ERROR|Parse Error|ERROR:|Failed to load|^FALLO' }
+    $salida -split "`n" | Where-Object { $_ -cmatch '^RESUMEN' } | ForEach-Object { Write-Host $_ }
     if ($errores) { $errores | ForEach-Object { Write-Host $_ } }
     if ($codigo -ne 0 -or $errores) {
         Write-Host "   -> FALLÓ (código $codigo)"
