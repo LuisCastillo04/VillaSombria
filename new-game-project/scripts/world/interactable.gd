@@ -47,6 +47,12 @@ func set_focused(value: bool) -> void:
 		_marker.set_focused(value)
 
 
+func set_marker_height(height: float) -> void:
+	marker_height = height
+	if _marker != null:
+		_marker.position = Vector3.UP * height
+
+
 ## Indica si el marcador debe seguir visible cuando el jugador no está cerca.
 func wants_attention() -> bool:
 	return false

@@ -38,6 +38,12 @@ func teleport(where: Vector3, facing_yaw: float = 0.0) -> void:
 	model.rotation.y = facing_yaw
 
 
+func look_towards(point: Vector3) -> void:
+	var direction := point - global_position
+	if Vector2(direction.x, direction.z).length_squared() > 0.001:
+		model.rotation.y = atan2(-direction.x, -direction.z)
+
+
 func _physics_process(delta: float) -> void:
 	var input := Vector2.ZERO
 	if not GameState.is_player_locked():

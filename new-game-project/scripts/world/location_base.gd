@@ -4,6 +4,8 @@ extends Node3D
 ## `build()` con las utilidades de aquí; la clase agrupa las mallas en una sola y
 ## registra los puntos de aparición y los marcadores que usan los NPC.
 
+const NPC_SCENE := "res://scenes/actors/npc.tscn"
+
 @export var location_id := ""
 
 ## Límites XZ del punto que enfoca la cámara.
@@ -13,6 +15,7 @@ var batch := MeshBatcher.new()
 var _spawns: Dictionary = {}
 var _markers: Dictionary = {}
 var _body: StaticBody3D
+var _npcs: Dictionary = {}
 
 
 func _ready() -> void:
@@ -21,11 +24,61 @@ func _ready() -> void:
 	add_child(_body)
 	build()
 	batch.attach_to(self)
+	EventBus.time_changed.connect(_on_time_changed)
+	DialogueManager.closed.connect(_on_dialogue_closed)
+	refresh_npcs()
 
 
 ## Sobrescribir para construir el escenario.
 func build() -> void:
 	pass
+
+
+func get_npc(npc_id: String) -> Npc:
+	return _npcs.get(npc_id)
+
+
+## Sincroniza los NPC presentes con sus rutinas para la hora actual.
+func refresh_npcs() -> void:
+	if DialogueManager.active:
+		return
+	var expected := NpcSchedule.get_npcs_at(location_id, GameClock.day, GameClock.minutes)
+	for npc_id: String in _npcs.keys():
+		if not expected.has(npc_id):
+			(_npcs[npc_id] as Npc).queue_free()
+			_npcs.erase(npc_id)
+	for npc_id in expected:
+		var slot := NpcSchedule.get_slot(npc_id, GameClock.day, GameClock.minutes)
+		if not _npcs.has(npc_id):
+			_spawn_npc(npc_id, slot)
+		elif (_npcs[npc_id] as Npc).current_slot != slot:
+			_assign_slot(_npcs[npc_id], slot)
+		(_npcs[npc_id] as Npc).interaction.refresh_marker()
+
+
+func _spawn_npc(npc_id: String, slot: Dictionary) -> void:
+	var npc: Npc = (load(NPC_SCENE) as PackedScene).instantiate()
+	add_child(npc)
+	npc.setup(npc_id)
+	npc.global_position = get_marker(slot["marker"]) + Vector3.UP * 0.05
+	_npcs[npc_id] = npc
+	_assign_slot(npc, slot)
+
+
+func _assign_slot(npc: Npc, slot: Dictionary) -> void:
+	npc.current_slot = slot
+	var points: Array[Vector3] = []
+	for marker_id: String in slot.get("patrol", [slot["marker"]]):
+		points.append(get_marker(marker_id))
+	npc.set_route(points)
+
+
+func _on_time_changed(_day: int, _minutes: int) -> void:
+	refresh_npcs()
+
+
+func _on_dialogue_closed(_npc_id: String) -> void:
+	refresh_npcs()
 
 
 ## Caja visible con colisión.
