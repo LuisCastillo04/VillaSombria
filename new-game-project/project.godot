@@ -25,6 +25,7 @@ GameClock="*res://scripts/autoload/game_clock.gd"
 Investigation="*res://scripts/autoload/investigation.gd"
 DialogueManager="*res://scripts/autoload/dialogue_manager.gd"
 StoryDirector="*res://scripts/autoload/story_director.gd"
+SaveSystem="*res://scripts/autoload/save_system.gd"
 
 [display]
 
