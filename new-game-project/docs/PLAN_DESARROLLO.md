@@ -1,15 +1,8 @@
 # Plan de desarrollo
 
-Las fases se ejecutan en orden. El detalle de lo terminado y lo pendiente está en
-[ESTADO_PROYECTO.md](ESTADO_PROYECTO.md).
+El detalle de lo terminado y de lo pendiente está en [ESTADO_PROYECTO.md](ESTADO_PROYECTO.md).
 
-## Primera meta: vertical slice
-
-Plaza 2.5D, detective controlable, NPC interactivo, interrogatorio con silueta, objeto que
-descubre una pista, pregunta desbloqueada por esa pista, expediente que la registra e
-interfaz funcional, en un proyecto que abra sin errores conocidos.
-
-## Fases
+## Fases completadas
 
 | Fase | Contenido |
 | --- | --- |
@@ -24,3 +17,26 @@ interfaz funcional, en un proyecto que abra sin errores conocidos.
 | 8 | Mansión Valdés, cafetería, archivo municipal y estación de tren |
 | 9 | Historia jugable de los tres días y epílogo |
 | 10 | Menús, pausa, volumen, créditos, cierre del caso, guardado y carga |
+
+La vertical slice se completó al terminar la fase 5.
+
+## Prioridades siguientes
+
+### Prioridad alta
+
+1. Partida completa de prueba, hecha por una persona, con notas sobre ritmo y claridad.
+2. Ajustes de dificultad: pistas para quien se atasque en el tablero.
+3. Generar el `.exe` tras instalar las plantillas de exportación.
+
+### Prioridad media
+
+1. Sustituir o ajustar el audio procedural después de escucharlo.
+2. NPC que caminen hasta la puerta al cambiar de escenario.
+3. Bodega y piso superior de la mansión como espacios recorribles.
+4. Filtros en el tablero para cuando haya muchas tarjetas.
+
+### Prioridad baja
+
+1. Modelos y arte propios: los retratos y personajes ya se pueden sustituir por datos.
+2. Más acciones de ambiente en el pueblo.
+3. DLC del Relojero: ver el gancho en [HISTORIA.md](HISTORIA.md).
