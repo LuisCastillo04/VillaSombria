@@ -40,17 +40,16 @@ func collider(center: Vector3, size: Vector3, yaw: float = 0.0) -> void:
 	var box := BoxShape3D.new()
 	box.size = size
 	shape.shape = box
-	shape.position = center
-	shape.rotation.y = yaw
+	shape.transform = batch.xform * Transform3D(Basis(Vector3.UP, yaw), center)
 	_body.add_child(shape)
 
 
 func add_spawn(spawn_id: String, where: Vector3, yaw_degrees: float = 0.0) -> void:
-	_spawns[spawn_id] = {"position": where, "yaw": deg_to_rad(yaw_degrees)}
+	_spawns[spawn_id] = {"position": batch.xform * where, "yaw": deg_to_rad(yaw_degrees)}
 
 
 func add_marker(marker_id: String, where: Vector3) -> void:
-	_markers[marker_id] = where
+	_markers[marker_id] = batch.xform * where
 
 
 func has_marker(marker_id: String) -> bool:
@@ -82,7 +81,7 @@ func add_point_light(
 	where: Vector3, color: Color, energy: float, light_range: float, shadows: bool = false
 ) -> OmniLight3D:
 	var light := OmniLight3D.new()
-	light.position = where
+	light.position = batch.xform * where
 	light.light_color = color
 	light.light_energy = energy
 	light.omni_range = light_range
@@ -93,6 +92,22 @@ func add_point_light(
 
 
 func add_interactable(node: Interactable, where: Vector3) -> Interactable:
-	node.position = where
+	node.position = batch.xform * where
 	add_child(node)
 	return node
+
+
+## Rótulo sobre una pared. El texto mira hacia el eje +Z local.
+func add_sign(text: String, where: Vector3, height: float, color: Color, yaw: float = 0.0) -> Label3D:
+	var label := Label3D.new()
+	label.text = text
+	label.font = UiTheme.serif()
+	label.font_size = 96
+	label.outline_size = 0
+	label.pixel_size = height / 96.0
+	label.modulate = color
+	label.shaded = false
+	label.double_sided = false
+	label.transform = batch.xform * Transform3D(Basis(Vector3.UP, yaw), where)
+	add_child(label)
+	return label

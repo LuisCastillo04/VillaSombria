@@ -4,7 +4,7 @@ extends Node3D
 
 @export var yaw_degrees := 45.0
 @export var pitch_degrees := -36.0
-@export var view_size := 15.0
+@export var view_size := 13.0
 @export var distance := 40.0
 @export var smoothing := 6.0
 

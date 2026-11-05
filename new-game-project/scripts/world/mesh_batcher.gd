@@ -4,7 +4,7 @@ extends RefCounted
 ## Un escenario entero termina en dos mallas, lo que mantiene bajas las llamadas de
 ## dibujado sin necesidad de modelos externos.
 
-enum Layer { OPAQUE, GLOW }
+enum Layer { OPAQUE, GLOW, GROUND }
 
 
 class Buffers:
@@ -74,6 +74,17 @@ func box(center: Vector3, size: Vector3, color: Color, yaw: float = 0.0, layer: 
 		for signs: Array in side[1]:
 			points.append(center + rotation * Vector3(half.x * signs[0], half.y * signs[1], half.z * signs[2]))
 		face(points, color, rotation * (side[0] as Vector3), layer)
+
+
+## Rectángulo horizontal de suelo empedrado. `tint` aclara u oscurece la piedra.
+func ground(from_corner: Vector2, to_corner: Vector2, tint: Color, height: float = 0.0) -> void:
+	var points := PackedVector3Array([
+		Vector3(from_corner.x, height, from_corner.y),
+		Vector3(to_corner.x, height, from_corner.y),
+		Vector3(to_corner.x, height, to_corner.y),
+		Vector3(from_corner.x, height, to_corner.y),
+	])
+	face(points, tint, Vector3.UP, Layer.GROUND)
 
 
 ## Cilindro o tronco de cono con caras planas. `base` es el centro inferior.
@@ -194,23 +205,31 @@ func build_mesh(layer: Layer = Layer.OPAQUE) -> ArrayMesh:
 	arrays[Mesh.ARRAY_COLOR] = buffers.colors
 	var mesh := ArrayMesh.new()
 	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	var material: Material = MaterialLibrary.vertex_lit() if layer == Layer.OPAQUE else MaterialLibrary.glow()
-	mesh.surface_set_material(0, material)
+	mesh.surface_set_material(0, _material_for(layer))
 	return mesh
 
 
 ## Crea un MeshInstance3D por capa con contenido y lo añade a `parent`.
 func attach_to(parent: Node3D, node_name: String = "Geometria") -> void:
-	for layer: Layer in [Layer.OPAQUE, Layer.GLOW]:
+	for layer: Layer in [Layer.GROUND, Layer.OPAQUE, Layer.GLOW]:
 		var mesh := build_mesh(layer)
 		if mesh == null:
 			continue
 		var instance := MeshInstance3D.new()
-		instance.name = node_name + ("Luz" if layer == Layer.GLOW else "")
+		instance.name = node_name + str(Layer.keys()[layer]).capitalize()
 		instance.mesh = mesh
-		if layer == Layer.GLOW:
+		if layer != Layer.OPAQUE:
 			instance.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		parent.add_child(instance)
+
+
+func _material_for(layer: Layer) -> Material:
+	match layer:
+		Layer.GLOW:
+			return MaterialLibrary.glow()
+		Layer.GROUND:
+			return MaterialLibrary.cobblestone()
+	return MaterialLibrary.vertex_lit()
 
 
 func _sphere_point(

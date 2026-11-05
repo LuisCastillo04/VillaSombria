@@ -5,15 +5,19 @@ extends Node
 
 const LOCATION_SCENES := {
 	"test_ground": "res://scenes/world/locations/test_ground.tscn",
+	"plaza": "res://scenes/world/locations/plaza.tscn",
 }
-const START_LOCATION := "test_ground"
+const OUTDOOR_LOCATIONS: Array[String] = ["test_ground", "plaza", "estacion"]
+const START_LOCATION := "plaza"
 const START_SPAWN := "inicio"
 
 var current_location: LocationBase
 var _changing := false
+var _rain: RainEffect
 
 @onready var _world_root: Node3D = $WorldRoot
 @onready var _fade: ScreenFade = $ScreenFade
+@onready var _post_fx: PostFx = $PostFx
 @onready var player: PlayerController = $Player
 @onready var camera: ExplorationCamera = $CameraRig
 
@@ -29,6 +33,9 @@ func _ready() -> void:
 ## Cambia de escenario con un fundido. Ignora peticiones durante otra transición.
 func go_to(location_id: String, spawn_id: String) -> void:
 	if _changing:
+		return
+	if not LOCATION_SCENES.has(location_id):
+		EventBus.notification_requested.emit("Cerrado", "Este lugar aún no está disponible.", "info")
 		return
 	_changing = true
 	GameState.lock_player("transicion")
@@ -50,4 +57,16 @@ func _load_location(location_id: String, spawn_id: String) -> void:
 	player.teleport(spawn["position"], spawn["yaw"])
 	camera.limits = current_location.camera_limits
 	camera.snap()
+	_apply_weather(OUTDOOR_LOCATIONS.has(location_id))
 	EventBus.location_changed.emit(location_id)
+
+
+func _apply_weather(outdoor: bool) -> void:
+	_post_fx.set_outdoor(outdoor)
+	if outdoor and _rain == null:
+		_rain = RainEffect.new()
+		_rain.target = player
+		add_child(_rain)
+	elif not outdoor and _rain != null:
+		_rain.queue_free()
+		_rain = null

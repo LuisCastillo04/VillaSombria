@@ -6,6 +6,7 @@ extends RefCounted
 static var _vertex_lit: StandardMaterial3D
 static var _glow: ShaderMaterial
 static var _marker: StandardMaterial3D
+static var _cobblestone: ShaderMaterial
 
 
 static func vertex_lit() -> StandardMaterial3D:
@@ -24,6 +25,14 @@ static func glow() -> ShaderMaterial:
 		_glow = ShaderMaterial.new()
 		_glow.shader = load("res://assets/shaders/glow_vertex.gdshader")
 	return _glow
+
+
+## Empedrado procedural con charcos. El color de vértice tiñe cada zona del suelo.
+static func cobblestone() -> ShaderMaterial:
+	if _cobblestone == null:
+		_cobblestone = ShaderMaterial.new()
+		_cobblestone.shader = load("res://assets/shaders/cobblestone.gdshader")
+	return _cobblestone
 
 
 static func marker() -> StandardMaterial3D:

@@ -5,6 +5,7 @@
 [ext_resource type="Script" path="res://scripts/player/exploration_camera.gd" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://scenes/world/post_fx.tscn" id="6"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1")
@@ -17,6 +18,8 @@ script = ExtResource("1")
 script = ExtResource("3")
 
 [node name="Camera3D" type="Camera3D" parent="CameraRig"]
+
+[node name="PostFx" parent="." instance=ExtResource("6")]
 
 [node name="Hud" parent="." instance=ExtResource("4")]
 
