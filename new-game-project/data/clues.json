@@ -5,6 +5,13 @@
     "where": "Bolsillo del inspector",
     "description": "«Inspector Ibarra: he encontrado algo que no puedo confiar al correo ni a la policía de este pueblo. Venga cuanto antes. Tengo miedo de lo que estoy a punto de confirmar. J. Valdés.»"
   },
+  "periodico_aniversario": {
+    "name": "Crónica del aniversario",
+    "category": "documentos",
+    "where": "Quiosco de la plaza",
+    "description": "El Eco de Villa Sombría del sábado: «Treinta años del Banco Valdés. Esta noche, cena privada en la mansión». Una nota al pie añade que don Julián lleva semanas consultando documentos en el archivo municipal.",
+    "prompt": "Leer el periódico"
+  },
   "lista_invitados": {
     "name": "Lista de invitados",
     "category": "documentos",

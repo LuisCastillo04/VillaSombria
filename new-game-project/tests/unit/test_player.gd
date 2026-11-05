@@ -10,6 +10,7 @@ func before_each() -> void:
 	await wait_physics_frames(3)
 	await game.go_to("test_ground", "inicio")
 	await wait_physics_frames(3)
+	GameState.clear_player_locks()
 
 
 func after_each() -> void:

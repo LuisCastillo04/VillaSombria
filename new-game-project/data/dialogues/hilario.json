@@ -10,6 +10,15 @@
   ],
   "topics": [
     {
+      "id": "periodico",
+      "label": "El periódico dice que Julián Valdés frecuentaba el archivo.",
+      "if": {"clues": ["periodico_aniversario"]},
+      "lines": [
+        {"s": "hilario", "t": "Ah, eso. Sí, desde agosto venía todos los martes. Se sentaba al fondo y no hablaba con nadie."},
+        {"s": "hilario", "t": "Un hombre que tiene un banco no necesita leer legajos viejos, inspector. Salvo que busque algo que su banco no le quiere contar."}
+      ]
+    },
+    {
       "id": "domingo",
       "label": "¿Conocía bien a don Julián?",
       "if": {"day_max": 1},

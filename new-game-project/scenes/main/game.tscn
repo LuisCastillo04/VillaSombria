@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="5"]
 [ext_resource type="PackedScene" path="res://scenes/world/post_fx.tscn" id="6"]
 [ext_resource type="PackedScene" path="res://scenes/ui/dialogue_ui.tscn" id="7"]
+[ext_resource type="PackedScene" path="res://scenes/ui/clue_inspector.tscn" id="8"]
+[ext_resource type="PackedScene" path="res://scenes/ui/journal_ui.tscn" id="9"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1")
@@ -25,5 +27,9 @@ script = ExtResource("3")
 [node name="Hud" parent="." instance=ExtResource("4")]
 
 [node name="DialogueUi" parent="." instance=ExtResource("7")]
+
+[node name="ClueInspector" parent="." instance=ExtResource("8")]
+
+[node name="JournalUi" parent="." instance=ExtResource("9")]
 
 [node name="ScreenFade" parent="." instance=ExtResource("5")]

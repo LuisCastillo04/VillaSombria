@@ -82,6 +82,10 @@ static func get_theme() -> Theme:
 
 	theme.set_color("default_color", "RichTextLabel", INK)
 	theme.set_font("normal_font", "RichTextLabel", typewriter())
+	theme.set_font("bold_font", "RichTextLabel", serif())
+	theme.set_font("italics_font", "RichTextLabel", typewriter())
+	theme.set_font_size("bold_font_size", "RichTextLabel", 26)
+	theme.set_font_size("italics_font_size", "RichTextLabel", 19)
 	theme.set_font_size("normal_font_size", "RichTextLabel", 22)
 	_theme = theme
 	return theme

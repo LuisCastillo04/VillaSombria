@@ -20,3 +20,4 @@ signal objectives_changed
 ## Acción narrativa pedida desde los datos, como abrir la acusación o cerrar el caso.
 signal story_action(action: String)
 signal clue_inspection_requested(clue_id: String)
+signal rest_requested

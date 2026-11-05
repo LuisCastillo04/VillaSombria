@@ -12,7 +12,13 @@
 ## Fases
 
 - [x] Fase 0: estructura, configuración, entradas, verificación por terminal y documentos.
-- [ ] Fase 1 en adelante: pendientes.
+- [x] Fase 1: detective, cámara ortográfica, colisiones e interacción. Probado con entradas simuladas.
+- [x] Fase 2: plaza. Revisada con capturas renderizadas.
+- [x] Fase 3: NPC con rutinas. Se usan directamente los personajes reales, sin NPC de prueba.
+- [x] Fase 4: interrogatorios con siluetas. Revisados con capturas de los personajes.
+- [x] Fase 5: pistas, notificaciones y expediente.
+- [x] Vertical slice: periódico del quiosco, pregunta desbloqueada a Don Hilario y registro en el expediente.
+- [ ] Fases 6 a 10: pendientes.
 
 ## Bloqueos
 
