@@ -3,6 +3,8 @@ extends Node
 ## Uso:  godot --path . --resolution 1280x720 res://tests/visual/captura.tscn -- --out=C:/ruta/img.png
 ## Argumentos: --out=ruta  --pos=x,y,z  --frames=N  --location=id  --spawn=id
 ##             --shots=x,y,z;x,y,z  guarda una imagen numerada por cada posición.
+##             --dialogue=npc  --dialogue-shots=A,B  abre una conversación con cada NPC
+##             indicado, avanza hasta el menú de preguntas y guarda una imagen.
 
 const GAME_SCENE := "res://scenes/main/game.tscn"
 
@@ -16,7 +18,13 @@ func _ready() -> void:
 		await game.go_to(args["location"], args.get("spawn", ""))
 	var out: String = args.get("out", "user://captura.png")
 	var frames := int(args.get("frames", "60"))
-	if args.has("shots"):
+	if args.has("dialogue-shots"):
+		for npc_id: String in (args["dialogue-shots"] as String).split(","):
+			DialogueManager.start(npc_id)
+			await _save_frame(out.get_basename() + "_%s.png" % npc_id, frames)
+			DialogueManager.close()
+			await _wait_seconds(0.4)
+	elif args.has("shots"):
 		var index := 1
 		for shot: String in (args["shots"] as String).split(";"):
 			_place_player(game, shot)
@@ -27,6 +35,10 @@ func _ready() -> void:
 			_place_player(game, args["pos"])
 		await _save_frame(out, frames)
 	get_tree().quit()
+
+
+func _wait_seconds(seconds: float) -> void:
+	await get_tree().create_timer(seconds).timeout
 
 
 func _place_player(game: Game, text: String) -> void:

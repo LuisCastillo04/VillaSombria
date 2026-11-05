@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 1100" width="800" height="1100">
+<defs><g id="f"><path d="M60,1100 C76,880 130,740 262,680 L340,640 L340,500 L462,500 L462,640 L540,680 C672,740 726,880 742,1100 Z"/>
+<ellipse cx="402" cy="410" rx="96" ry="124"/>
+<path d="M300,380 C270,226 396,150 520,214 C572,242 548,286 512,316 C490,262 400,262 344,304 C322,320 310,350 300,380 Z"/>
+<path d="M500,206 C560,196 600,232 572,270 C556,240 530,224 500,206 Z"/>
+<path d="M304,470 L194,508 L198,524 L312,496 Z"/>
+<path d="M60,1100 L150,820 L232,760 L290,590 L330,600 L262,810 L190,1100 Z"/></g></defs>
+<use xlink:href="#f" fill="#e8a33d" fill-opacity="0.75" transform="translate(9,-6)"/>
+<use xlink:href="#f" fill="#090b10"/>
+<path d="M340,640 L402,740 L462,640 L438,1100 L364,1100 Z" fill="#24272f"/>
+<path d="M384,690 L422,690 L436,960 L404,1000 L372,960 Z" fill="#7a2a2a"/>
+<path d="M210,508 L306,476" stroke="#e8dcc0" stroke-width="9"/>
+<circle cx="204" cy="512" r="9" fill="#e8a33d"/>
+<path d="M198,496 C170,440 226,410 190,350 C170,312 206,280 186,232" stroke="#9aa3b0" stroke-opacity="0.55" stroke-width="8" fill="none"/>
+</svg>

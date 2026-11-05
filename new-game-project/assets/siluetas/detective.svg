@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 800 1100" width="800" height="1100">
+<defs><g id="f"><path d="M40,1100 C50,860 110,730 245,668 L330,625 L330,540 L470,540 L470,625 L555,668 C690,730 750,860 760,1100 Z"/>
+<path d="M322,640 L232,508 L350,566 L402,716 Z"/>
+<path d="M478,640 L568,508 L450,566 L398,716 Z"/>
+<ellipse cx="400" cy="415" rx="98" ry="125"/>
+<path d="M292,430 L270,462 L300,470 Z"/>
+<path d="M118,345 C230,292 560,284 688,322 C640,372 240,392 118,345 Z"/>
+<path d="M258,328 C252,226 286,160 352,168 C372,186 420,186 446,166 C520,158 548,226 544,318 Z"/></g></defs>
+<use xlink:href="#f" fill="#e8a33d" fill-opacity="0.75" transform="translate(9,-6)"/>
+<use xlink:href="#f" fill="#090b10"/>
+<path d="M258,312 C350,288 460,284 544,298 L544,322 C460,306 350,312 258,338 Z" fill="#c0862c"/>
+<path d="M336,716 L330,1100 M470,716 L476,1100" stroke="#1d2129" stroke-width="10" fill="none"/>
+</svg>
