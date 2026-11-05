@@ -2,7 +2,8 @@ class_name InteractionDetector
 extends Area3D
 ## Elige el elemento interactivo más cercano y lo anuncia a la interfaz.
 
-var _nearby: Array[Interactable] = []
+## Sin tipar a propósito: puede contener nodos ya liberados hasta la siguiente limpieza.
+var _nearby: Array = []
 var _focused: Interactable
 
 
@@ -23,11 +24,12 @@ func trigger(actor: Node) -> bool:
 
 
 func _physics_process(_delta: float) -> void:
+	_forget_freed_nodes()
 	var best: Interactable = null
 	var best_distance := INF
 	if not GameState.is_player_locked():
-		for candidate in _nearby:
-			if not is_instance_valid(candidate) or not candidate.can_interact():
+		for candidate: Interactable in _nearby:
+			if not candidate.can_interact():
 				continue
 			var distance := global_position.distance_squared_to(candidate.global_position)
 			if distance < best_distance:
@@ -36,10 +38,18 @@ func _physics_process(_delta: float) -> void:
 	_set_focused(best)
 
 
+func _forget_freed_nodes() -> void:
+	for index in range(_nearby.size() - 1, -1, -1):
+		if not is_instance_valid(_nearby[index]):
+			_nearby.remove_at(index)
+	if not is_instance_valid(_focused):
+		_focused = null
+
+
 func _set_focused(next: Interactable) -> void:
 	if next == _focused:
 		return
-	if is_instance_valid(_focused):
+	if _focused != null:
 		_focused.set_focused(false)
 	_focused = next
 	if _focused != null:
