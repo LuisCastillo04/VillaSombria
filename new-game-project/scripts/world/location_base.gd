@@ -73,7 +73,8 @@ func _assign_slot(npc: Npc, slot: Dictionary) -> void:
 	npc.set_route(points)
 
 
-func _on_time_changed(_day: int, _minutes: int) -> void:
+func _on_time_changed(_day: int, minutes: int) -> void:
+	Atmosphere.apply_time_of_day(self, minutes)
 	refresh_npcs()
 
 

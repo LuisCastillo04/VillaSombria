@@ -1,9 +1,17 @@
 class_name Atmosphere
 extends RefCounted
-## Crea el ambiente visual de los escenarios: entorno, luz lunar y tonos noir.
+## Crea el ambiente visual de los escenarios: entorno, luz exterior y tonos noir.
 
 const EXTERIOR_BACKGROUND := Color("0a0e16")
 const INTERIOR_BACKGROUND := Color("07080c")
+
+## Tramos del día en exteriores: hora de inicio, energía ambiental y luz principal.
+const DAYLIGHT := [
+	{"from": 8 * 60, "ambient": 0.95, "sky": 0.62, "color": Color("a9b6c9")},
+	{"from": 13 * 60, "ambient": 0.78, "sky": 0.5, "color": Color("9fabc0")},
+	{"from": 18 * 60, "ambient": 0.62, "sky": 0.45, "color": Color("9aa3c4")},
+	{"from": 20 * 60, "ambient": 0.55, "sky": 0.42, "color": Color("8fa6cf")},
+]
 
 
 static func add_exterior(parent: Node3D) -> DirectionalLight3D:
@@ -20,14 +28,13 @@ static func add_exterior(parent: Node3D) -> DirectionalLight3D:
 	_attach_environment(parent, environment)
 
 	var moon := DirectionalLight3D.new()
-	moon.name = "Luna"
+	moon.name = "LuzExterior"
 	moon.rotation_degrees = Vector3(-52.0, 25.0, 0.0)
-	moon.light_color = Color("8fa6cf")
-	moon.light_energy = 0.42
 	moon.shadow_enabled = true
 	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	moon.directional_shadow_max_distance = 90.0
 	parent.add_child(moon)
+	apply_time_of_day(parent, GameClock.minutes)
 	return moon
 
 
@@ -36,6 +43,21 @@ static func add_interior(parent: Node3D) -> void:
 	environment.ambient_light_color = Color("6f5a48")
 	environment.ambient_light_energy = 0.42
 	_attach_environment(parent, environment)
+
+
+## Ajusta la luz exterior a la hora: amanece gris y anochece hacia el azul.
+static func apply_time_of_day(parent: Node3D, minutes: int) -> void:
+	var moon := parent.get_node_or_null("LuzExterior") as DirectionalLight3D
+	var ambience := parent.get_node_or_null("Ambiente") as WorldEnvironment
+	if moon == null or ambience == null:
+		return
+	var current: Dictionary = DAYLIGHT[0]
+	for stage: Dictionary in DAYLIGHT:
+		if minutes >= int(stage["from"]):
+			current = stage
+	ambience.environment.ambient_light_energy = current["ambient"]
+	moon.light_energy = current["sky"]
+	moon.light_color = current["color"]
 
 
 static func _base_environment(background: Color) -> Environment:

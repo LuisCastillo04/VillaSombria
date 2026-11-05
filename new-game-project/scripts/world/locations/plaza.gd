@@ -107,7 +107,9 @@ func _build_archive() -> void:
 	batch.pyramid(tower + Vector3.UP * 9.3, Vector3(2.9, 1.9, 2.9), Palette.ROOF)
 	_add_clock_face(tower + Vector3(0.0, 7.7, 1.33))
 	add_point_light(Vector3(0.0, 3.6, 2.4), Palette.AMBER_SOFT, 2.0, 6.5)
-	add_interactable(LocationExit.new("archivo", "desde_plaza", "Entrar en el archivo"), Vector3(0.0, 0.0, 1.2))
+	var archive_door := LocationExit.new("archivo", "desde_plaza", "Entrar en el archivo")
+	archive_door.with_lock({"day_min": 2}, "Hoy es domingo: el archivo municipal abre mañana a las ocho.")
+	add_interactable(archive_door, Vector3(0.0, 0.0, 1.2))
 	BuildingKit.end(self)
 
 
@@ -150,7 +152,9 @@ func _build_mansion_gate() -> void:
 	batch.box(Vector3(0.0, 2.15, 0.0), Vector3(3.8, 0.08, 0.06), Palette.IRON)
 	collider(Vector3(0.0, 1.5, 0.0), Vector3(3.9, 3.0, 0.3))
 	add_sign("MANSIÓN VALDÉS", Vector3(0.0, 3.42, 0.08), 0.3, Palette.AMBER_SOFT)
-	add_interactable(LocationExit.new("mansion", "desde_plaza", "Entrar en la mansión Valdés"), Vector3(0.0, 0.0, 0.9))
+	var gate := LocationExit.new("mansion", "desde_plaza", "Entrar en la mansión Valdés")
+	gate.with_lock({"flags": ["llamada_atendida"]}, "La verja está cerrada y nadie responde. Primero, el café.")
+	add_interactable(gate, Vector3(0.0, 0.0, 0.9))
 	BuildingKit.end(self)
 
 
@@ -213,7 +217,9 @@ func _build_edges() -> void:
 	collider(Vector3(8.0, 2.0, -14.5), Vector3(50.0, 4.0, 1.0))
 	collider(Vector3(-14.5, 2.0, 0.0), Vector3(1.0, 4.0, 30.0))
 	collider(Vector3(3.0, 2.0, 14.0), Vector3(36.0, 4.0, 1.0))
-	add_interactable(LocationExit.new("estacion", "desde_plaza", "Ir a la estación de tren"), Vector3(28.4, 0.0, -10.0))
+	var station_road := LocationExit.new("estacion", "desde_plaza", "Ir a la estación de tren")
+	station_road.travel_minutes = 20
+	add_interactable(station_road, Vector3(28.4, 0.0, -10.0))
 
 
 func _register_points() -> void:
