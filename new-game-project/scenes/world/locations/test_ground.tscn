@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/locations/test_ground.gd" id="1"]
+
+[node name="CampoPruebas" type="Node3D"]
+script = ExtResource("1")
+location_id = "test_ground"
