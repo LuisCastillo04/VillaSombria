@@ -113,10 +113,10 @@ func test_rest_is_blocked_until_day_goals_done() -> void:
 
 ## Recorrido de la vertical slice con entradas reales en la plaza.
 func test_vertical_slice_flow() -> void:
-	game = (load("res://scenes/main/game.tscn") as PackedScene).instantiate()
-	add_child(game)
+	game = await make_game()
+	await game.go_to("plaza", "inicio")
 	await wait_physics_frames(3)
-	check_equal(game.current_location.location_id, "plaza", "arranca en la plaza")
+	check_equal(game.current_location.location_id, "plaza", "el detective llega a la plaza")
 	var hilario := game.current_location.get_npc("hilario")
 	check(hilario != null, "hay un NPC interactivo en la plaza")
 	check(not _available("hilario", "periodico"), "la pregunta empieza bloqueada")

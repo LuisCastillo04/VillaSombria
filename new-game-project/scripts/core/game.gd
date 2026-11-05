@@ -3,9 +3,14 @@ extends Node
 ## Escena de juego: mantiene al detective, la cámara y la interfaz, sustituye el
 ## escenario activo y atiende las acciones globales de la partida.
 
-const START_LOCATION := "plaza"
-const START_SPAWN := "inicio"
+const NEW_GAME_LOCATION := "estacion"
+const NEW_GAME_SPAWN := "anden"
+const REST_LOCATION := "cafe"
+const REST_SPAWN := "cama"
 const WAIT_MINUTES := 60
+
+## Las pruebas lo desactivan para arrancar sin la escena de introducción.
+static var play_intro := true
 
 var current_location: LocationBase
 var _changing := false
@@ -17,6 +22,8 @@ var _rain: RainEffect
 @onready var _journal: JournalUi = $JournalUi
 @onready var _board: BoardUi = $BoardUi
 @onready var _accusation: AccusationUi = $AccusationUi
+@onready var _pause: PauseMenu = $PauseMenu
+@onready var _case_closed: CaseClosedUi = $CaseClosedUi
 @onready var player: PlayerController = $Player
 @onready var camera: ExplorationCamera = $CameraRig
 
@@ -27,11 +34,15 @@ func _ready() -> void:
 	EventBus.location_change_requested.connect(go_to)
 	EventBus.rest_requested.connect(_on_rest_requested)
 	EventBus.story_action.connect(_on_story_action)
-	GameState.reset()
-	GameClock.reset()
-	Investigation.discover_clue("carta_valdes")
-	_load_location(START_LOCATION, START_SPAWN)
-	_fade.fade_in()
+	if SaveSystem.load_requested and SaveSystem.load_game():
+		SaveSystem.load_requested = false
+		_load_location(GameState.location_id, GameState.spawn_id)
+		_notify_state()
+		await _fade.fade_in()
+		StoryDirector.on_location_entered(GameState.location_id)
+	else:
+		SaveSystem.load_requested = false
+		_start_new_game()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -46,6 +57,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("wait_time"):
 		get_viewport().set_input_as_handled()
 		_wait_an_hour()
+	elif event.is_action_pressed("pause"):
+		get_viewport().set_input_as_handled()
+		_pause.open()
 
 
 ## Cambia de escenario con un fundido. Ignora peticiones durante otra transición.
@@ -53,7 +67,7 @@ func go_to(location_id: String, spawn_id: String) -> void:
 	if _changing:
 		return
 	if not ResourceLoader.exists(_scene_path(location_id)):
-		EventBus.notification_requested.emit("Cerrado", "Este lugar aún no está disponible.", "info")
+		push_error("Escenario desconocido: %s" % location_id)
 		return
 	_changing = true
 	GameState.lock_player("transicion")
@@ -62,6 +76,24 @@ func go_to(location_id: String, spawn_id: String) -> void:
 	await _fade.fade_in()
 	GameState.unlock_player("transicion")
 	_changing = false
+	SaveSystem.autosave()
+	StoryDirector.on_location_entered(location_id)
+
+
+func _start_new_game() -> void:
+	GameState.reset()
+	GameClock.reset()
+	_load_location(NEW_GAME_LOCATION, NEW_GAME_SPAWN)
+	_notify_state()
+	await _fade.fade_in()
+	if play_intro:
+		DialogueManager.play_scene("intro")
+
+
+## La interfaz se crea antes de que el estado esté listo: aquí se pone al día.
+func _notify_state() -> void:
+	EventBus.time_changed.emit(GameClock.day, GameClock.minutes)
+	EventBus.objectives_changed.emit()
 
 
 func _scene_path(location_id: String) -> String:
@@ -87,6 +119,7 @@ func _load_location(location_id: String, spawn_id: String) -> void:
 
 func _apply_weather(outdoor: bool) -> void:
 	_post_fx.set_outdoor(outdoor)
+	AudioManager.set_rain(outdoor)
 	if outdoor and _rain == null:
 		_rain = RainEffect.new()
 		_rain.target = player
@@ -110,6 +143,8 @@ func _on_story_action(action: String) -> void:
 			_accusation.open()
 		"start_epilogue":
 			DialogueManager.play_scene("epilogo")
+		"case_closed":
+			_case_closed.open()
 
 
 func _on_rest_requested() -> void:
@@ -119,9 +154,10 @@ func _on_rest_requested() -> void:
 	GameState.lock_player("transicion")
 	await _fade.fade_out(0.8)
 	var rested := StoryDirector.rest()
-	_load_location(GameState.location_id, GameState.spawn_id)
+	_load_location(REST_LOCATION, REST_SPAWN)
 	await _fade.fade_in(0.8)
 	GameState.unlock_player("transicion")
 	_changing = false
+	SaveSystem.autosave()
 	if rested:
 		DialogueManager.play_scene("dia_%d" % GameClock.day)

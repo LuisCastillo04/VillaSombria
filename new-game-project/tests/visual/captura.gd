@@ -11,12 +11,23 @@ extends Node
 ##   --seed=todo           concede todas las pistas y testimonios
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
 ##   --open=clue:id | journal:n | board | accusation | pause | closed
+##   --menu                captura el menú principal en lugar de la partida
+##   --intro               reproduce la introducción narrativa
+##   --stats               mide fotogramas por segundo y llamadas de dibujado
 
 const GAME_SCENE := "res://scenes/main/game.tscn"
+const MENU_SCENE := "res://scenes/main/main_menu.tscn"
 
 
 func _ready() -> void:
 	var args := _parse_args()
+	SaveSystem.autosave_enabled = false
+	if args.has("menu"):
+		add_child((load(MENU_SCENE) as PackedScene).instantiate())
+		await _save_frame(args.get("out", "user://menu.png"), int(args.get("frames", "120")))
+		get_tree().quit()
+		return
+	Game.play_intro = args.has("intro")
 	var game: Game = (load(GAME_SCENE) as PackedScene).instantiate()
 	add_child(game)
 	await get_tree().process_frame
@@ -75,6 +86,11 @@ func _grant_everything() -> void:
 		Investigation.discover_clue(clue_id)
 	for testimony_id: String in GameData.testimonies:
 		Investigation.record_testimony(testimony_id)
+	# Dos pasadas: algunas deducciones dependen de otras.
+	for pass_index in 2:
+		for deduction_id: String in GameData.deductions:
+			var pair: Array = GameData.deductions[deduction_id]["pairs"][0]
+			Investigation.try_link(pair[0], pair[1])
 
 
 func _wait_seconds(seconds: float) -> void:
@@ -91,6 +107,10 @@ func _save_frame(path: String, frames: int) -> void:
 	for frame in frames:
 		await get_tree().process_frame
 	await RenderingServer.frame_post_draw
+	if OS.get_cmdline_user_args().has("--stats"):
+		var draws := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_DRAW_CALLS_IN_FRAME)
+		var primitives := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
+		print("ESTADISTICAS fps=%d dibujados=%d primitivas=%d" % [Engine.get_frames_per_second(), draws, primitives])
 	var image := get_viewport().get_texture().get_image()
 	print("Captura ", path, " código ", image.save_png(path))
 

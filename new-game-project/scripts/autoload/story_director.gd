@@ -52,6 +52,14 @@ func describe_whereabouts(npc_id: String) -> String:
 	return slot.get("activity", "Paradero desconocido")
 
 
+## Reproduce la escena narrativa asociada a entrar en un lugar, si la hay.
+func on_location_entered(location_id: String) -> void:
+	for trigger: Dictionary in GameData.story["on_enter"]:
+		if trigger["location"] == location_id and Conditions.check(trigger.get("if", {})):
+			DialogueManager.play_scene(trigger["scene"])
+			return
+
+
 func fire_due_events() -> void:
 	for event: Dictionary in GameData.story["events"]:
 		var flag := "evento_%s" % event["id"]

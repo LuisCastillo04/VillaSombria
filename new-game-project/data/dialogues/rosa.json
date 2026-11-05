@@ -16,8 +16,8 @@
       "id": "pension",
       "label": "¿Tiene una habitación libre?",
       "lines": [
-        {"s": "rosa", "t": "La número uno. Ya le he subido la maleta: la escalera está al fondo, junto a la trastienda."},
-        {"s": "rosa", "t": "Cuando quiera acabar el día, sólo tiene que subir a acostarse."}
+        {"s": "rosa", "t": "La número uno. Ya le he subido la maleta: la puerta de la pensión queda a la izquierda de la barra."},
+        {"s": "rosa", "t": "Cuando quiera acabar el día, sólo tiene que ir a acostarse."}
       ],
       "effects": {"flags": ["habitacion_conocida"], "minutes": 5}
     },

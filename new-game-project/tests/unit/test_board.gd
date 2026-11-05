@@ -7,9 +7,7 @@ var accusation: AccusationUi
 
 
 func before_each() -> void:
-	game = (load("res://scenes/main/game.tscn") as PackedScene).instantiate()
-	add_child(game)
-	await wait_physics_frames(2)
+	game = await make_game()
 	board = game.get_node("BoardUi")
 	accusation = game.get_node("AccusationUi")
 

@@ -5,9 +5,7 @@ var game: Game
 
 
 func before_each() -> void:
-	game = (load("res://scenes/main/game.tscn") as PackedScene).instantiate()
-	add_child(game)
-	await wait_physics_frames(3)
+	game = await make_game()
 	await game.go_to("test_ground", "inicio")
 	await wait_physics_frames(3)
 	GameState.clear_player_locks()

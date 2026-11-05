@@ -11,6 +11,8 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/journal_ui.tscn" id="9"]
 [ext_resource type="PackedScene" path="res://scenes/ui/board_ui.tscn" id="10"]
 [ext_resource type="PackedScene" path="res://scenes/ui/accusation_ui.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://scenes/ui/case_closed_ui.tscn" id="13"]
 
 [node name="Game" type="Node"]
 script = ExtResource("1")
@@ -37,5 +39,9 @@ script = ExtResource("3")
 [node name="BoardUi" parent="." instance=ExtResource("10")]
 
 [node name="AccusationUi" parent="." instance=ExtResource("11")]
+
+[node name="PauseMenu" parent="." instance=ExtResource("12")]
+
+[node name="CaseClosedUi" parent="." instance=ExtResource("13")]
 
 [node name="ScreenFade" parent="." instance=ExtResource("5")]

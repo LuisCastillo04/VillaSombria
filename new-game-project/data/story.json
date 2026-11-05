@@ -4,8 +4,11 @@
     "2": {"title": "Lunes 18 de octubre de 1948", "rest_requires": {"clues": ["copia_telegrama", "transferencia", "informe_forense"]}, "rest_blocked": "Aún no. Necesito el informe del forense y revisar lo que hay en la estación y en el archivo."},
     "3": {"title": "Martes 19 de octubre de 1948", "rest_requires": {"flags": ["caso_resuelto"]}, "rest_blocked": "Hoy no hay descanso. El caso se cierra esta noche: reúne las pruebas y habla con Ortega."}
   },
+  "on_enter": [
+    {"location": "cafe", "if": {"not_flags": ["llamada_atendida"]}, "scene": "llamada"}
+  ],
   "objectives": [
-    {"id": "o_cafe", "day": 1, "text": "Entra en el Café La Luna, en la plaza", "done": {"flags": ["llamada_atendida"]}},
+    {"id": "o_cafe", "day": 1, "text": "Sigue la calle Mayor hasta la plaza y entra en el Café La Luna", "done": {"flags": ["llamada_atendida"]}},
     {"id": "o_mansion", "day": 1, "text": "Ve a la mansión Valdés y habla con el sargento Ortega", "visible": {"flags": ["llamada_atendida"]}, "done": {"flags": ["ortega_briefing"]}},
     {"id": "o_despacho", "day": 1, "text": "Examina el despacho de Julián Valdés", "visible": {"flags": ["ortega_briefing"]}, "done": {"clues": ["reloj_despacho"]}},
     {"id": "o_sospechosos", "day": 1, "text": "Interroga a los cinco sospechosos", "visible": {"flags": ["ortega_briefing"]}, "done": {"flags": ["hablo_elena", "hablo_marcos", "hablo_lucia", "hablo_anselmo", "hablo_irene"]}},
