@@ -7,8 +7,8 @@ const CREDITS_TEXT := """[b]VILLA SOMBRÍA[/b]
 Proyecto final de Diseño de Videojuegos
 
 [b]Creado y desarrollado por[/b]
-Luis Castillo
 Juan Camilo Miño Castillo
+Luis Eduardo Miño Castillo
 
 Diseño, programación, narrativa y dirección: trabajo conjunto de ambos autores.
 

@@ -8,7 +8,7 @@ interrogar a cinco sospechosos y encontrar las contradicciones que señalan al c
 
 ## Autores
 
-Creado y desarrollado por **Luis Castillo** y **Juan Camilo Miño Castillo**, con la misma
+Creado y desarrollado por **Juan Camilo Miño Castillo** y **Luis Eduardo Miño Castillo**, con la misma
 participación en diseño, programación, narrativa y dirección.
 
 ## Características

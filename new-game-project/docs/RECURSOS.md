@@ -60,7 +60,7 @@ Añade una fila por recurso o lote de recursos.
 Cuando los recursos entren en el juego, los créditos del menú (`scripts/ui/main_menu.gd`) y el
 README deberán indicarlo, por ejemplo:
 
-- «Retratos generados con IA (ChatGPT, OpenAI) bajo la dirección de Luis Castillo y Juan Camilo Miño Castillo.»
+- «Retratos generados con IA (ChatGPT, OpenAI) bajo la dirección de Juan Camilo Miño Castillo y Luis Eduardo Miño Castillo.»
 - «Voces sintéticas generadas con ElevenLabs.»
 
 Al mismo tiempo habrá que retirar la frase «El juego no incluye recursos de terceros» de los
