@@ -121,6 +121,9 @@ Una pregunta puede llevar `variants` para responder según el estado, y una esce
 ## Añadir contenido
 
 - **Retrato propio:** cambia `portrait` en `data/characters.json` por una ruta a un PNG o SVG.
+  Así se integrarán los retratos generados con IA; ver [RECURSOS.md](RECURSOS.md).
+- **Voces:** aún no hay soporte. El diseño previsto es un campo opcional por línea de diálogo
+  con la ruta del audio, que se ignora si el archivo no existe.
 - **Pista:** añádela a `data/clues.json` y colócala con `add_interactable(ClueObject.new("id"), posición)`
   o concédela desde un diálogo.
 - **NPC:** añade su entrada en `characters.json`, su rutina en `schedules.json` y su archivo en

@@ -28,6 +28,12 @@ La vertical slice se completó al terminar la fase 5.
 2. Ajustes de dificultad: pistas para quien se atasque en el tablero.
 3. Generar el `.exe` tras instalar las plantillas de exportación.
 
+### Recursos generados con IA
+
+1. Retratos generados con ChatGPT para los interrogatorios (confirmado).
+2. Soporte opcional de voces por línea de diálogo, y voces de ElevenLabs si hay créditos.
+3. Actualizar créditos y README al incorporarlos. Detalle en [RECURSOS.md](RECURSOS.md).
+
 ### Prioridad media
 
 1. Sustituir o ajustar el audio procedural después de escucharlo.
@@ -37,6 +43,6 @@ La vertical slice se completó al terminar la fase 5.
 
 ### Prioridad baja
 
-1. Modelos y arte propios: los retratos y personajes ya se pueden sustituir por datos.
+1. Modelos 3D propios para los personajes.
 2. Más acciones de ambiente en el pueblo.
 3. DLC del Relojero: ver el gancho en [HISTORIA.md](HISTORIA.md).

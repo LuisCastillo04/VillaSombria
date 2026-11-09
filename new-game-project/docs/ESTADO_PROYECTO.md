@@ -100,6 +100,12 @@ La plaza tiene unas 91 llamadas de dibujado y 134.000 primitivas por fotograma.
 - Mientras el editor siga abierto desde antes de crear los autoloads, su analizador marca
   errores falsos. Se resuelve con **Proyecto > Recargar proyecto actual**.
 
+## Recursos previstos
+
+Se usarán retratos generados con ChatGPT y, si alcanzan los créditos, voces de ElevenLabs. Nada
+de esto está integrado todavía y el juego aún no reproduce voces. Antes de la entrega hay que
+confirmar con el profesor que se permite contenido generado con IA. Ver [RECURSOS.md](RECURSOS.md).
+
 ## Bloqueos
 
 Ninguno.

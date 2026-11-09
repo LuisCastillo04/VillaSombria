@@ -27,8 +27,10 @@ participación en diseño, programación, narrativa y dirección.
 - Godot Engine 4.7 (probado con 4.7.2 stable, renderizador Forward+).
 - Windows 10/11 con una GPU compatible con Direct3D 12 o Vulkan.
 
-El juego no necesita recursos externos: la geometría, los materiales, las siluetas y el sonido
-se generan con primitivas, shaders, SVG y síntesis incluidos en el repositorio.
+Por ahora el juego no necesita recursos externos: la geometría, los materiales, las siluetas y
+el sonido se generan con primitivas, shaders, SVG y síntesis incluidos en el repositorio. Está
+previsto incorporar retratos generados con IA y, si hay créditos, voces sintéticas; ver
+[Recursos](new-game-project/docs/RECURSOS.md).
 
 ## Instalación y ejecución
 
@@ -81,7 +83,11 @@ Si Godot no está en la ruta de Steam por defecto, define antes la variable `GOD
 - [Plan de desarrollo](new-game-project/docs/PLAN_DESARROLLO.md)
 - [Arquitectura](new-game-project/docs/ARQUITECTURA.md)
 - [Historia](new-game-project/docs/HISTORIA.md) (contiene la solución del caso)
+- [Recursos](new-game-project/docs/RECURSOS.md): origen y condiciones de los recursos
 
-## Licencia de terceros
+## Licencias y recursos
 
-Godot Engine se distribuye bajo licencia MIT. El proyecto no incluye recursos de terceros.
+Godot Engine se distribuye bajo licencia MIT. Hoy el proyecto no incluye recursos de terceros.
+Los recursos generados con IA que se añadan (retratos de ChatGPT y, posiblemente, voces de
+ElevenLabs) se registrarán con su origen y condiciones en
+[RECURSOS.md](new-game-project/docs/RECURSOS.md).
