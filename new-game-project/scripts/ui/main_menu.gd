@@ -6,8 +6,11 @@ const PLAZA_SCENE := "res://scenes/world/locations/plaza.tscn"
 const CREDITS_TEXT := """[b]VILLA SOMBRÍA[/b]
 Proyecto final de Diseño de Videojuegos
 
-[b]Dirección del proyecto[/b]
+[b]Creado y desarrollado por[/b]
 Luis Castillo
+Juan Camilo Miño Castillo
+
+Diseño, programación, narrativa y dirección: trabajo conjunto de ambos autores.
 
 [b]Motor[/b]
 Godot Engine 4.7, © sus colaboradores, licencia MIT

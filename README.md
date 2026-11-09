@@ -6,6 +6,11 @@ Octubre de 1948. Julián Valdés, el hombre más influyente de Villa Sombría, a
 durante una celebración privada. Tienes tres días para explorar el pueblo, examinar pruebas,
 interrogar a cinco sospechosos y encontrar las contradicciones que señalan al culpable.
 
+## Autores
+
+Creado y desarrollado por **Luis Castillo** y **Juan Camilo Miño Castillo**, con la misma
+participación en diseño, programación, narrativa y dirección.
+
 ## Características
 
 - Cinco escenarios: plaza, mansión Valdés, Café La Luna, archivo municipal y estación de tren.
