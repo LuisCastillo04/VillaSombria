@@ -11,6 +11,7 @@ const MEASURED_FRAMES := 120
 func _ready() -> void:
 	var args := _parse_args()
 	SaveSystem.autosave_enabled = false
+	SaveSystem.use_storage("user://pruebas_guardado/capturas")
 	Game.play_intro = false
 	var game: Game = (load(GAME_SCENE) as PackedScene).instantiate()
 	add_child(game)

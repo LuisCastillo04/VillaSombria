@@ -22,6 +22,7 @@ const MENU_SCENE := "res://scenes/main/main_menu.tscn"
 func _ready() -> void:
 	var args := _parse_args()
 	SaveSystem.autosave_enabled = false
+	SaveSystem.use_storage("user://pruebas_guardado/capturas")
 	if args.has("menu"):
 		add_child((load(MENU_SCENE) as PackedScene).instantiate())
 		await _save_frame(args.get("out", "user://menu.png"), int(args.get("frames", "120")))

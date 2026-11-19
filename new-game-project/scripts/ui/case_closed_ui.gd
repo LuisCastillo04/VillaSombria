@@ -60,5 +60,4 @@ func build_summary() -> String:
 func _on_menu_pressed() -> void:
 	AudioManager.play("click")
 	GameState.clear_player_locks()
-	SaveSystem.delete_save()
 	get_tree().change_scene_to_file(MAIN_MENU)

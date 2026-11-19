@@ -47,9 +47,7 @@ func _ready() -> void:
 	_title.add_theme_color_override("font_color", UiTheme.PAPER_LIGHT)
 	_subtitle.add_theme_color_override("font_color", UiTheme.AMBER)
 	_build_backdrop()
-	_continue.disabled = not SaveSystem.has_save()
-	if SaveSystem.has_save():
-		_continue.text = "Continuar partida (%s)" % SaveSystem.describe_save()
+	_refresh_continue()
 	_new_game.pressed.connect(_on_new_game)
 	_continue.pressed.connect(_on_continue)
 	_settings_button.pressed.connect(_show_panel.bind(_settings))
@@ -100,16 +98,30 @@ func _show_menu() -> void:
 	_new_game.grab_focus()
 
 
+## «Continuar» retoma la partida válida más reciente, manual o automática.
+func _refresh_continue() -> void:
+	var latest := SaveSystem.find_latest_slot()
+	_continue.disabled = latest.is_empty()
+	_continue.text = "Continuar partida"
+	if not latest.is_empty():
+		var summary: Dictionary = SaveSystem.get_slot_info(latest)["summary"]
+		var minutes := int(summary["minutes"])
+		_continue.text = "Continuar partida (Día %d · %02d:%02d)" % [int(summary["day"]), minutes / 60, minutes % 60]
+
+
 func _on_new_game() -> void:
 	AudioManager.play("click")
-	SaveSystem.load_requested = false
+	SaveSystem.take_pending_load()
 	await _fade.fade_out(0.6)
 	get_tree().change_scene_to_file(GAME_SCENE)
 
 
 func _on_continue() -> void:
 	AudioManager.play("click")
-	SaveSystem.load_requested = true
+	var result := SaveSystem.request_load(SaveSystem.find_latest_slot())
+	if not result["ok"]:
+		_refresh_continue()
+		return
 	await _fade.fade_out(0.6)
 	get_tree().change_scene_to_file(GAME_SCENE)
 

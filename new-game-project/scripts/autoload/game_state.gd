@@ -59,6 +59,12 @@ func is_player_locked() -> bool:
 	return not _player_locks.is_empty()
 
 
+func get_player_lock_reasons() -> Array[String]:
+	var reasons: Array[String] = []
+	reasons.assign(_player_locks.keys())
+	return reasons
+
+
 func clear_player_locks() -> void:
 	_player_locks.clear()
 

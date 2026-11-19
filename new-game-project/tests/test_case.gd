@@ -37,3 +37,33 @@ func make_game() -> Game:
 func wait_physics_frames(count: int) -> void:
 	for frame in count:
 		await get_tree().physics_frame
+
+
+## Vacía la carpeta de partidas de las pruebas, incluidas las marcas y los temporales.
+static func clear_save_storage() -> void:
+	var directory := SaveSystem.get_storage_dir()
+	if not directory.begins_with("user://pruebas"):
+		push_error("Las pruebas sólo pueden vaciar su propia carpeta de partidas.")
+		return
+	if DirAccess.dir_exists_absolute(directory):
+		for file_name in DirAccess.get_files_at(directory):
+			DirAccess.remove_absolute(directory.path_join(file_name))
+	SaveSystem.use_storage(directory)
+
+
+## Guarda en una ranura y espera a que termine la escritura. Devuelve si salió bien.
+func save_and_wait(slot_id: String, reason: String = "manual") -> bool:
+	var started := SaveSystem.save_to_slot(slot_id, reason)
+	if not started["ok"]:
+		failures.append("no se pudo iniciar el guardado en %s: %s" % [slot_id, started["error"]])
+		return false
+	var outcome: Array = await SaveSystem.save_finished
+	return outcome[0] == slot_id and outcome[1]
+
+
+## Escribe un contenido cualquiera en el archivo de una ranura, sin validarlo.
+func write_slot_file(slot_id: String, text: String) -> void:
+	DirAccess.make_dir_recursive_absolute(SaveSystem.get_storage_dir())
+	var file := FileAccess.open(SaveSystem.get_slot_path(slot_id), FileAccess.WRITE)
+	file.store_string(text)
+	file.close()

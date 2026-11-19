@@ -5,20 +5,24 @@ extends TestCase
 func before_each() -> void:
 	GameState.reset()
 	GameClock.reset()
-	SaveSystem.delete_save()
+	TestCase.clear_save_storage()
+	SaveSystem.begin_session(self)
 
 
 func after_each() -> void:
-	SaveSystem.delete_save()
-	SaveSystem.load_requested = false
+	SaveSystem.end_session(self)
+	SaveSystem.take_pending_load()
+	TestCase.clear_save_storage()
 	GameState.reset()
 	GameClock.reset()
 
 
-func _write_raw(text: String) -> void:
-	var file := FileAccess.open(SaveSystem.save_path, FileAccess.WRITE)
-	file.store_string(text)
-	file.close()
+func _load(slot_id: String) -> bool:
+	var result := SaveSystem.read_slot(slot_id)
+	if result["status"] != SaveFormat.Status.OK:
+		return false
+	SaveSystem.apply_sections(result["document"]["sections"])
+	return true
 
 
 func test_round_trip_preserves_the_whole_case() -> void:
@@ -33,11 +37,11 @@ func test_round_trip_preserves_the_whole_case() -> void:
 	GameState.accusation_attempts = 2
 	GameClock.day = 2
 	GameClock.minutes = 14 * 60 + 30
-	check(SaveSystem.save_game(), "debe poder guardarse")
+	check(await save_and_wait("manual_1"), "debe poder guardarse")
 
 	GameState.reset()
 	GameClock.reset()
-	check(SaveSystem.load_game(), "debe poder cargarse")
+	check(_load("manual_1"), "debe poder cargarse")
 	check(GameState.has_flag("ortega_briefing"), "marcas")
 	check(GameState.clues.has("reloj_despacho"), "pistas")
 	check(GameState.testimonies.has("t_elena_jaqueca"), "testimonios")
@@ -53,36 +57,42 @@ func test_round_trip_preserves_the_whole_case() -> void:
 func test_loaded_clues_are_not_duplicated_or_renotified() -> void:
 	GameState.location_id = "plaza"
 	Investigation.discover_clue("foto_clara")
-	check(SaveSystem.save_game(), "se guarda")
-	check(SaveSystem.load_game(), "se carga")
+	check(await save_and_wait("manual_1"), "se guarda")
+	check(_load("manual_1"), "se carga")
 	check(not Investigation.discover_clue("foto_clara"), "tras cargar la pista sigue registrada")
 	check_equal(GameState.clues.count("foto_clara"), 1, "sin duplicados")
 
 
 func test_missing_file_is_handled() -> void:
-	check(not SaveSystem.has_save(), "no hay partida")
-	check(not SaveSystem.load_game(), "cargar sin partida falla limpiamente")
-	check(SaveSystem.describe_save().is_empty(), "sin descripción")
+	check_equal(SaveSystem.read_slot("manual_1")["status"], SaveFormat.Status.EMPTY, "la ranura está vacía")
+	check(not SaveSystem.request_load("manual_1")["ok"], "cargar una ranura vacía falla limpiamente")
+	check(not SaveSystem.has_pending_load(), "no queda ninguna carga pendiente")
+	check(SaveSystem.find_latest_slot().is_empty(), "no hay partida que continuar")
 
 
 func test_corrupted_file_leaves_state_untouched() -> void:
 	GameState.set_flag("intacta")
-	_write_raw("esto no es json {{{")
-	check(not SaveSystem.load_game(), "un archivo corrupto se rechaza")
+	write_slot_file("manual_1", "esto no es json {{{")
+	check(not SaveSystem.request_load("manual_1")["ok"], "un archivo corrupto se rechaza")
+	check_equal(SaveSystem.get_slot_info("manual_1")["status"], SaveFormat.Status.CORRUPT, "se marca como dañado")
 	check(GameState.has_flag("intacta"), "el estado actual no se altera")
 
 
 func test_incompatible_version_is_rejected() -> void:
-	_write_raw(JSON.stringify({"version": 999, "state": {}, "clock": {}}))
-	check(not SaveSystem.load_game(), "una versión desconocida se rechaza")
+	write_slot_file("manual_1", JSON.stringify({"version": 999, "state": {}, "clock": {}}))
+	check(not SaveSystem.request_load("manual_1")["ok"], "una versión desconocida se rechaza")
+	check_equal(SaveSystem.get_slot_info("manual_1")["status"], SaveFormat.Status.INCOMPATIBLE, "se marca como incompatible")
 
 
-func test_description_for_menu() -> void:
+func test_summary_for_menu() -> void:
 	GameState.location_id = "plaza"
 	GameClock.day = 3
 	GameClock.minutes = 9 * 60 + 5
-	SaveSystem.save_game()
-	check_equal(SaveSystem.describe_save(), "Día 3 · 09:05", "descripción de la partida")
+	await save_and_wait("manual_2")
+	var summary: Dictionary = SaveSystem.get_slot_info("manual_2")["summary"]
+	check_equal(summary["day"], 3, "día")
+	check_equal(summary["minutes"], 9 * 60 + 5, "hora")
+	check_equal(summary["location_name"], "Plaza Mayor", "lugar")
 
 
 func test_game_resumes_at_saved_location() -> void:
@@ -91,15 +101,16 @@ func test_game_resumes_at_saved_location() -> void:
 	GameState.set_flag("llamada_atendida")
 	Investigation.discover_clue("reloj_despacho")
 	GameClock.day = 2
-	SaveSystem.save_game()
+	await save_and_wait("manual_1")
+	SaveSystem.end_session(self)
 	GameState.reset()
 	GameClock.reset()
-	SaveSystem.load_requested = true
+	check(SaveSystem.request_load("manual_1")["ok"], "la carga se prepara")
 	var game := await make_game()
 	check_equal(game.current_location.location_id, "cafe", "reanuda en el lugar guardado")
 	check_equal(GameClock.day, 2, "reanuda en el día guardado")
 	check(GameState.clues.has("reloj_despacho"), "conserva las pistas")
-	check(not SaveSystem.load_requested, "la petición de carga se consume")
+	check(not SaveSystem.has_pending_load(), "la petición de carga se consume")
 	game.queue_free()
 	await get_tree().process_frame
 
@@ -153,7 +164,7 @@ func test_menu_offers_continue_only_with_a_save() -> void:
 	await get_tree().process_frame
 	GameState.location_id = "plaza"
 	GameClock.day = 2
-	SaveSystem.save_game()
+	await save_and_wait("manual_3")
 	var menu := scene.instantiate()
 	add_child(menu)
 	await get_tree().process_frame

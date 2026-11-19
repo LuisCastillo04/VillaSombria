@@ -37,19 +37,21 @@ func _ready() -> void:
 	EventBus.rest_requested.connect(_on_rest_requested)
 	EventBus.story_action.connect(_on_story_action)
 	SaveSystem.register_section("player", _capture_player, _restore_player)
-	if SaveSystem.load_requested and SaveSystem.load_game():
-		SaveSystem.load_requested = false
-		_load_location(GameState.location_id, GameState.spawn_id)
-		_apply_saved_pose()
-		_notify_state()
-		await _fade.fade_in()
-		StoryDirector.on_location_entered(GameState.location_id)
-	else:
-		SaveSystem.load_requested = false
+	var snapshot := SaveSystem.take_pending_load()
+	if snapshot.is_empty():
 		_start_new_game()
+		return
+	SaveSystem.apply_sections(snapshot["sections"])
+	_load_location(GameState.location_id, GameState.spawn_id)
+	_apply_saved_pose()
+	_notify_state()
+	SaveSystem.begin_session(self)
+	await _fade.fade_in()
+	StoryDirector.on_location_entered(GameState.location_id)
 
 
 func _exit_tree() -> void:
+	SaveSystem.end_session(self)
 	SaveSystem.unregister_section("player", self)
 
 
@@ -88,7 +90,7 @@ func go_to(location_id: String, spawn_id: String) -> void:
 	await _fade.fade_in()
 	GameState.unlock_player("transicion")
 	_changing = false
-	SaveSystem.autosave()
+	SaveSystem.autosave("lugar")
 	StoryDirector.on_location_entered(location_id)
 
 
@@ -97,6 +99,7 @@ func _start_new_game() -> void:
 	GameClock.reset()
 	_load_location(NEW_GAME_LOCATION, NEW_GAME_SPAWN)
 	_notify_state()
+	SaveSystem.begin_session(self)
 	await _fade.fade_in()
 	if play_intro:
 		DialogueManager.play_scene("intro")
@@ -195,6 +198,6 @@ func _on_rest_requested() -> void:
 	await _fade.fade_in(0.8)
 	GameState.unlock_player("transicion")
 	_changing = false
-	SaveSystem.autosave()
+	SaveSystem.autosave("nuevo_dia" if rested else "lugar")
 	if rested:
 		DialogueManager.play_scene("dia_%d" % GameClock.day)

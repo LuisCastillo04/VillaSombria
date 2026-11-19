@@ -120,9 +120,10 @@ static func _validate_meta(meta: Dictionary) -> String:
 	if not (kind is String and KINDS.has(kind)):
 		return "El tipo de partida no es válido."
 	var saved_at: Variant = meta.get("saved_at")
-	if not _is_number(saved_at) or float(saved_at) < 0.0:
+	if not _is_number(saved_at) or not is_finite(float(saved_at)) or float(saved_at) < 0.0:
 		return "La fecha de guardado no es válida."
-	meta["saved_at"] = int(saved_at)
+	# Se conservan las fracciones de segundo: la rotación de autoguardados las necesita.
+	meta["saved_at"] = float(saved_at)
 	if not meta.get("reason", "") is String:
 		meta["reason"] = ""
 	return ""

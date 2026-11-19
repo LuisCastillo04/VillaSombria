@@ -62,7 +62,14 @@ func _input(event: InputEvent) -> void:
 
 func _on_save_pressed() -> void:
 	AudioManager.play("click")
-	_status.text = "Partida guardada." if SaveSystem.save_game() else "No se pudo guardar la partida."
+	var slot_id: String = SaveSystem.get_manual_slots()[0]
+	var result := SaveSystem.save_to_slot(slot_id)
+	if not result["ok"]:
+		_status.text = result["error"]
+		return
+	_status.text = "Guardando la partida…"
+	var outcome: Array = await SaveSystem.save_finished
+	_status.text = "Partida guardada." if outcome[1] else outcome[2]
 
 
 func _on_settings_pressed() -> void:
@@ -78,7 +85,9 @@ func _on_controls_pressed() -> void:
 
 func _on_quit_pressed() -> void:
 	AudioManager.play("click")
-	SaveSystem.autosave()
+	_quit.disabled = true
+	if SaveSystem.autosave("salida")["ok"]:
+		await SaveSystem.save_finished
 	get_tree().paused = false
 	GameState.clear_player_locks()
 	get_tree().change_scene_to_file(MAIN_MENU)
