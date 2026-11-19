@@ -1,10 +1,12 @@
 class_name PauseMenu
 extends CanvasLayer
-## Menú de pausa con guardado manual, ajustes, controles y salida al menú principal.
+## Menú de pausa con guardado y carga de partidas, ajustes, controles y salida al menú principal.
 
 const MAIN_MENU := "res://scenes/main/main_menu.tscn"
+const GAME_SCENE := "res://scenes/main/game.tscn"
 const CONTROLS_TEXT := "WASD o flechas: moverse\nMayús: correr\nE: interactuar y avanzar el diálogo\nJ o Tab: expediente\nB: tablero de deducción\nT: dejar pasar una hora\nEsc: pausa"
 const QUIT_TEXT := "Guardar y volver al menú"
+const UNSAVED_WARNING := "Lo que hayas avanzado desde el último guardado se perderá. ¿Cargar esta partida?"
 
 var is_open := false
 ## Tras un guardado fallido, la siguiente pulsación sale sin guardar.
@@ -14,6 +16,7 @@ var _quit_without_saving := false
 @onready var _menu: VBoxContainer = $Root/Center/Panel/Box
 @onready var _resume: Button = $Root/Center/Panel/Box/Resume
 @onready var _save: Button = $Root/Center/Panel/Box/Save
+@onready var _load: Button = $Root/Center/Panel/Box/Load
 @onready var _settings_button: Button = $Root/Center/Panel/Box/Settings
 @onready var _controls_button: Button = $Root/Center/Panel/Box/Controls
 @onready var _quit: Button = $Root/Center/Panel/Box/Quit
@@ -31,11 +34,13 @@ func _ready() -> void:
 	_slots.hide()
 	_resume.pressed.connect(close)
 	_save.pressed.connect(_on_save_pressed)
+	_load.pressed.connect(_on_load_pressed)
 	_settings_button.pressed.connect(_on_settings_pressed)
 	_controls_button.pressed.connect(_on_controls_pressed)
 	_quit.pressed.connect(_on_quit_pressed)
 	_settings.closed.connect(func() -> void: _panel.show())
 	_slots.closed.connect(_on_slots_closed)
+	_slots.load_ready.connect(_on_load_ready)
 
 
 func open() -> void:
@@ -76,12 +81,28 @@ func _on_save_pressed() -> void:
 	AudioManager.play("click")
 	_status.text = ""
 	_panel.hide()
-	_slots.open()
+	_slots.open(SaveSlotsMenu.Mode.SAVE)
+
+
+## Cargar sustituye la partida en curso: si ha avanzado desde el último guardado, se avisa.
+func _on_load_pressed() -> void:
+	AudioManager.play("click")
+	_status.text = ""
+	_panel.hide()
+	_slots.load_warning = UNSAVED_WARNING if SaveSystem.has_unsaved_progress() else ""
+	_slots.open(SaveSlotsMenu.Mode.LOAD)
 
 
 func _on_slots_closed() -> void:
 	_panel.show()
-	_save.grab_focus()
+	(_load if _slots.mode == SaveSlotsMenu.Mode.LOAD else _save).grab_focus()
+
+
+## La escena de juego se vuelve a crear y recoge la partida pendiente al arrancar.
+func _on_load_ready(_slot_id: String) -> void:
+	get_tree().paused = false
+	GameState.clear_player_locks()
+	get_tree().change_scene_to_file(GAME_SCENE)
 
 
 func _on_settings_pressed() -> void:

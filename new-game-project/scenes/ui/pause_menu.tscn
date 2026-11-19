@@ -54,6 +54,10 @@ text = "Continuar"
 layout_mode = 2
 text = "Guardar partida"
 
+[node name="Load" type="Button" parent="Root/Center/Panel/Box"]
+layout_mode = 2
+text = "Cargar partida"
+
 [node name="Settings" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
 text = "Configuración"

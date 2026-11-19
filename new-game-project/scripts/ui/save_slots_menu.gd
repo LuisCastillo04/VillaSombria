@@ -1,9 +1,15 @@
 class_name SaveSlotsMenu
 extends PanelContainer
-## Lista de ranuras para guardar la partida. Sobrescribir o eliminar una partida pide
-## confirmación, y el resultado de cada operación se muestra en la propia lista.
+## Lista de ranuras compartida por la pausa y el menú principal. Para guardar muestra las
+## cinco ranuras manuales; para cargar, también las automáticas. Sobrescribir, eliminar o
+## cargar encima de un progreso sin guardar piden confirmación, y el resultado de cada
+## operación se muestra en la propia lista.
 
 signal closed
+## La carga quedó preparada: quien abrió el menú debe pasar a la escena de juego.
+signal load_ready(slot_id: String)
+
+enum Mode { SAVE, LOAD }
 
 const ROW_HEIGHT := 100.0
 const REASON_LABELS := {
@@ -28,7 +34,12 @@ const TAG_COLORS := {
 ## Altura mínima de la lista de ranuras.
 @export var list_height := 440.0
 
+var mode := Mode.SAVE
+## Si no está vacío, se pide confirmación con este texto antes de cargar.
+var load_warning := ""
+
 var _selected := ""
+var _loading := false
 var _infos: Dictionary = {}
 var _rows: Dictionary = {}
 var _saving_slot := ""
@@ -64,15 +75,15 @@ func _ready() -> void:
 	SaveSystem.slots_changed.connect(_on_slots_changed)
 
 
-func open() -> void:
-	_title.text = "GUARDAR PARTIDA"
-	_hint.text = "Elige una ranura. Los autoguardados van aparte y nunca ocupan estas cinco."
+func open(new_mode: Mode = Mode.SAVE) -> void:
+	mode = new_mode
+	_loading = false
+	_title.text = "GUARDAR PARTIDA" if mode == Mode.SAVE else "CARGAR PARTIDA"
 	_selected = ""
 	_hide_confirm()
 	show()
 	refresh()
-	var blocker := SaveSystem.get_save_blocker()
-	_set_status(blocker, true)
+	_set_status(SaveSystem.get_save_blocker() if mode == Mode.SAVE else "", true)
 	_focus_default()
 
 
@@ -108,6 +119,14 @@ func get_status_text() -> String:
 	return _status.text
 
 
+func get_hint_text() -> String:
+	return _hint.text
+
+
+func show_message(text: String, is_error: bool = false) -> void:
+	_set_status(text, is_error)
+
+
 ## Vuelve a leer las ranuras y reconstruye la lista conservando la selección.
 func refresh() -> void:
 	var focused_slot := _focused_slot()
@@ -117,19 +136,22 @@ func refresh() -> void:
 	_rows.clear()
 	_infos.clear()
 	var group := ButtonGroup.new()
-	for info in SaveSystem.list_slots("manual"):
+	var has_saves := false
+	for info in SaveSystem.list_slots("manual" if mode == Mode.SAVE else ""):
 		var slot_id: String = info["id"]
 		_infos[slot_id] = info
+		has_saves = has_saves or info["status"] != SaveFormat.Status.EMPTY
 		var row := _make_row(info, group)
 		_slots.add_child(row)
 		_rows[slot_id] = row
+	_hint.text = _hint_text(has_saves)
 	if _rows.has(_selected):
 		(_rows[_selected] as Button).set_pressed_no_signal(true)
 	else:
 		_selected = ""
-	if _rows.has(focused_slot):
-		(_rows[focused_slot] as Button).grab_focus()
 	_update_buttons()
+	if _rows.has(focused_slot) and (_rows[focused_slot] as Button).focus_mode != Control.FOCUS_NONE:
+		(_rows[focused_slot] as Button).grab_focus()
 
 
 ## Textos de una ranura para la lista. Sólo usa lo que el archivo registró.
@@ -195,6 +217,11 @@ func _make_row(info: Dictionary, group: ButtonGroup) -> Button:
 		tone = "busy"
 	var row := Button.new()
 	row.name = slot_id
+	# Al cargar, una ranura vacía no ofrece nada: se muestra, pero no se puede elegir.
+	var selectable: bool = mode == Mode.SAVE or info["status"] != SaveFormat.Status.EMPTY
+	row.set_meta("selectable", selectable)
+	if not selectable:
+		row.focus_mode = Control.FOCUS_NONE
 	row.toggle_mode = true
 	row.button_group = group
 	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
@@ -237,22 +264,37 @@ func _make_label(text: String, font_size: int, color: Color) -> Label:
 func _update_buttons() -> void:
 	var info: Dictionary = _infos.get(_selected, {})
 	var occupied: bool = not info.is_empty() and info["status"] != SaveFormat.Status.EMPTY
-	var locked := _confirm.visible or not _saving_slot.is_empty()
-	_action.text = "Sobrescribir" if occupied else "Guardar aquí"
-	_action.disabled = info.is_empty() or locked or not SaveSystem.get_save_blocker().is_empty()
+	var locked := _confirm.visible or not _saving_slot.is_empty() or _loading
+	if mode == Mode.SAVE:
+		_action.text = "Sobrescribir" if occupied else "Guardar aquí"
+		_action.disabled = info.is_empty() or locked or not SaveSystem.get_save_blocker().is_empty()
+	else:
+		_action.text = "Cargar"
+		_action.disabled = info.is_empty() or locked or info["status"] != SaveFormat.Status.OK
 	_delete.disabled = not occupied or locked or SaveSystem.is_busy()
-	_back.disabled = _confirm.visible
+	_back.disabled = _confirm.visible or _loading
 	for slot_id: String in _rows:
-		(_rows[slot_id] as Button).disabled = locked
+		var row: Button = _rows[slot_id]
+		row.disabled = locked or not row.get_meta("selectable", true)
 
 
 func _focus_default() -> void:
 	if _rows.has(_selected):
 		(_rows[_selected] as Button).grab_focus()
-	elif not _rows.is_empty():
-		(_rows.values()[0] as Button).grab_focus()
-	else:
-		_back.grab_focus()
+		return
+	for slot_id: String in _rows:
+		if (_rows[slot_id] as Button).get_meta("selectable", true):
+			(_rows[slot_id] as Button).grab_focus()
+			return
+	_back.grab_focus()
+
+
+func _hint_text(has_saves: bool) -> String:
+	if mode == Mode.SAVE:
+		return "Elige una ranura. Los autoguardados van aparte y nunca ocupan estas cinco."
+	if has_saves:
+		return "Elige la partida que quieres retomar. Las automáticas se crean solas al avanzar en el caso."
+	return "Todavía no hay partidas guardadas. Empieza una nueva: el juego guardará solo al avanzar en el caso."
 
 
 func _focused_slot() -> String:
@@ -270,7 +312,7 @@ func _set_status(text: String, is_error: bool = false) -> void:
 
 func _on_row_pressed(slot_id: String) -> void:
 	_selected = slot_id
-	_set_status(SaveSystem.get_save_blocker(), true)
+	_set_status(SaveSystem.get_save_blocker() if mode == Mode.SAVE else "", true)
 	_update_buttons()
 	if not _action.disabled:
 		_action.grab_focus()
@@ -280,6 +322,12 @@ func _on_action_pressed() -> void:
 	AudioManager.play("click")
 	var info: Dictionary = _infos.get(_selected, {})
 	if info.is_empty():
+		return
+	if mode == Mode.LOAD:
+		if load_warning.is_empty():
+			_load_selected()
+		else:
+			_ask(load_warning, "Cargar", _load_selected)
 		return
 	if info["status"] == SaveFormat.Status.EMPTY:
 		_save_selected()
@@ -311,6 +359,18 @@ func _save_selected() -> void:
 	_saving_slot = slot_id
 	_set_status("Guardando en %s…" % slot_name(slot_id))
 	refresh()
+
+
+func _load_selected() -> void:
+	var result := SaveSystem.request_load(_selected)
+	if not result["ok"]:
+		_set_status("No se pudo cargar %s: %s" % [slot_name(_selected), result["error"]], true)
+		refresh()
+		return
+	_loading = true
+	_set_status("Cargando la partida…")
+	_update_buttons()
+	load_ready.emit(_selected)
 
 
 func _delete_selected() -> void:
