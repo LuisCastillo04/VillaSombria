@@ -10,8 +10,12 @@ uniform float corner_radius = 18.0;
 uniform float edge_width = 70.0;
 uniform float seed = 3.7;
 
+// Hash sin `sin()`: con fract(sin(x) * 43758.5) la GPU pierde precisión en argumentos grandes y
+// el ruido se vuelve escalonado, con bloques de bordes rectos sobre el pergamino.
 float hash(vec2 p) {
-	return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
 }
 
 float noise(vec2 p) {
