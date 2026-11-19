@@ -1,22 +1,20 @@
 class_name MenuOptionButton
 extends Button
-## Opción del menú principal: tarjeta de pergamino con un icono, un filete que lo separa del
-## texto y tinta del expediente. La opción señalada, con el ratón, el teclado o el mando, toma un
-## borde burdeos con un brillo exterior suave, y el cambio se anima para que no sea brusco.
+## Opción de los menús: tarjeta de pergamino con un icono, un filete que lo separa del texto y
+## tinta del expediente. La opción señalada, con el ratón, el teclado o el mando, toma un borde
+## burdeos con un brillo exterior suave, y el cambio se anima para que no sea brusco.
 ## Señalar con el ratón también da el foco: así sólo hay una opción resaltada a la vez.
+## La versión compacta sirve para la pausa y los botones «Volver».
 
 const PARCHMENT_SHADER := preload("res://assets/shaders/parchment.gdshader")
 
-const HEIGHT := 68.0
 const CORNER_RADIUS := 7
-const MARGIN_LEFT := 50.0
 const MARGIN_RIGHT := 28.0
 const MARGIN_VERTICAL := 10.0
-const ICON_WIDTH := 36
-## Distancia entre el icono y el texto; el filete queda justo en medio.
-const ICON_GAP := 72
-const FONT_SIZE := 32
-const DETAIL_FONT_SIZE := 24
+## Medidas de la opción grande (menú principal) y de la compacta. `gap` es la distancia entre el
+## icono y el texto con filete, que queda justo en medio; sin filete se usa `plain_gap`.
+const LARGE := {"height": 68.0, "margin": 50.0, "icon": 36, "gap": 72, "plain_gap": 30, "font": 32, "detail": 24}
+const COMPACT := {"height": 56.0, "margin": 34.0, "icon": 30, "gap": 52, "plain_gap": 24, "font": 27, "detail": 21}
 const DETAIL_GAP := 12.0
 ## Al pulsar, el texto y el filete bajan un poco, como una tecla.
 const PRESS_SHIFT := 2.0
@@ -26,7 +24,7 @@ const PAPER := Color("eadcbd")
 const PAPER_LIT := Color("e2c398")
 const PAPER_EDGE := Color("b49b74")
 const PAPER_EDGE_LIT := Color("a2683f")
-const PAPER_STAIN := Color("b9996a")
+const PAPER_STAIN := Color("cdb48a")
 const BORDER := Color(0.42, 0.33, 0.22, 0.55)
 const BORDER_LIT := Color("8e2329")
 const SHADOW := Color(0.0, 0.0, 0.0, 0.5)
@@ -38,16 +36,25 @@ const DISABLED_TEXT := Color("4b4134")
 	set(value):
 		detail_text = value
 		queue_redraw()
+## Tamaño reducido, para la pausa y los botones «Volver».
+@export var compact := false
+## Filete vertical entre el icono y el texto.
+@export var separator := true
+## Icono y texto juntos en el centro de la tarjeta, como en «Volver».
+@export var centered := false
 
 var _highlight := 0.0
 var _tween: Tween
 ## Estilo compartido por los estados normal y señalado; el resaltado lo interpola.
 var _card: StyleBoxFlat
+var _styles: Array[StyleBoxFlat] = []
 var _paper_material: ShaderMaterial
+var _metrics: Dictionary = LARGE
 
 
 func _ready() -> void:
-	custom_minimum_size.y = maxf(custom_minimum_size.y, HEIGHT)
+	_metrics = COMPACT if compact else LARGE
+	custom_minimum_size.y = maxf(custom_minimum_size.y, _metrics["height"])
 	alignment = HORIZONTAL_ALIGNMENT_LEFT
 	icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	_build_paper()
@@ -56,6 +63,9 @@ func _ready() -> void:
 	focus_entered.connect(_refresh_highlight)
 	focus_exited.connect(_refresh_highlight)
 	mouse_entered.connect(_on_mouse_entered)
+	if centered:
+		resized.connect(_center_content)
+		_center_content()
 	_apply_highlight(0.0)
 
 
@@ -142,12 +152,13 @@ func _build_styles() -> void:
 	add_theme_stylebox_override("disabled", unavailable)
 	# El resaltado ya marca el foco; un recuadro encima lo duplicaría.
 	add_theme_stylebox_override("focus", StyleBoxEmpty.new())
+	_styles = [_card, pushed, unavailable]
 
 
 func _card_style() -> StyleBoxFlat:
 	var style := CaseFileStyle.box(Color(0.0, 0.0, 0.0, 0.0), BORDER, 2, CORNER_RADIUS)
 	style.draw_center = false
-	style.content_margin_left = MARGIN_LEFT
+	style.content_margin_left = _metrics["margin"]
 	style.content_margin_right = MARGIN_RIGHT
 	style.content_margin_top = MARGIN_VERTICAL
 	style.content_margin_bottom = MARGIN_VERTICAL
@@ -159,30 +170,50 @@ func _card_style() -> StyleBoxFlat:
 
 func _apply_text_style() -> void:
 	add_theme_font_override("font", CaseFileStyle.serif_bold())
-	add_theme_font_size_override("font_size", FONT_SIZE)
+	add_theme_font_size_override("font_size", _metrics["font"])
 	for key: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
 		add_theme_color_override(key, CaseFileStyle.INK)
 	add_theme_color_override("font_disabled_color", DISABLED_TEXT)
 	add_theme_color_override("icon_pressed_color", CaseFileStyle.BURGUNDY_DARK)
 	add_theme_color_override("icon_disabled_color", Color(DISABLED_TEXT, 0.8))
-	add_theme_constant_override("icon_max_width", ICON_WIDTH)
-	add_theme_constant_override("h_separation", ICON_GAP)
+	add_theme_constant_override("icon_max_width", _metrics["icon"])
+	add_theme_constant_override("h_separation", _icon_gap())
+
+
+func _icon_gap() -> int:
+	return _metrics["gap"] if separator and not centered else _metrics["plain_gap"]
+
+
+## Ancho del icono y su separación del texto, o cero si no hay icono.
+func _icon_span() -> float:
+	return float(_metrics["icon"] + _icon_gap()) if icon != null else 0.0
+
+
+## Con `centered`, el margen izquierdo empuja icono y texto juntos hasta el centro. Sólo cambia
+## el margen izquierdo: el ancho mínimo nunca llega al actual y no hay bucles de colocación.
+func _center_content() -> void:
+	var font := get_theme_font("font")
+	var text_width := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, get_theme_font_size("font_size")).x
+	var margin := maxf((size.x - _icon_span() - text_width) * 0.5, 12.0)
+	for style in _styles:
+		style.content_margin_left = margin
 
 
 ## El filete entre el icono y el texto, y el detalle en letra menor tras el texto.
 func _draw() -> void:
 	var shift := PRESS_SHIFT if get_draw_mode() in [DRAW_PRESSED, DRAW_HOVER_PRESSED] else 0.0
 	var ink := DISABLED_TEXT if disabled else CaseFileStyle.INK_SOFT
-	if icon != null:
-		var x := MARGIN_LEFT + ICON_WIDTH + ICON_GAP * 0.5
+	var margin_left := _card.content_margin_left
+	if icon != null and separator and not centered:
+		var x: float = margin_left + _metrics["icon"] + _metrics["gap"] * 0.5
 		draw_line(Vector2(x, size.y * 0.24 + shift), Vector2(x, size.y * 0.76 + shift), Color(ink, 0.55), 1.5, true)
 	if detail_text.is_empty():
 		return
 	var font := get_theme_font("font")
 	var font_size := get_theme_font_size("font_size")
-	var text_x := MARGIN_LEFT + (float(ICON_WIDTH + ICON_GAP) if icon != null else 0.0)
+	var text_x := margin_left + _icon_span()
 	text_x += font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + DETAIL_GAP
 	# Misma línea base que el texto principal, que el botón centra en vertical.
 	var content_height := size.y - MARGIN_VERTICAL * 2.0
 	var baseline := MARGIN_VERTICAL + shift + (content_height - font.get_height(font_size)) * 0.5 + font.get_ascent(font_size)
-	draw_string(CaseFileStyle.serif(), Vector2(text_x, baseline), detail_text, HORIZONTAL_ALIGNMENT_LEFT, -1, DETAIL_FONT_SIZE, ink)
+	draw_string(CaseFileStyle.serif(), Vector2(text_x, baseline), detail_text, HORIZONTAL_ALIGNMENT_LEFT, -1, _metrics["detail"], ink)
