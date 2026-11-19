@@ -125,7 +125,10 @@ func _on_quit_pressed() -> void:
 		var saved := await _save_before_leaving()
 		_quit.disabled = false
 		if not saved:
-			_status.text = "No se pudo guardar la partida. Pulsa otra vez para salir sin guardar."
+			if SaveSystem.has_active_slot():
+				_status.text = "No se pudo guardar la partida. Pulsa otra vez para salir sin guardar."
+			else:
+				_status.text = "Esta partida aún no tiene ranura: guárdala con «Guardar partida» o pulsa otra vez para salir sin guardar."
 			_quit.text = "Salir sin guardar"
 			_quit_without_saving = true
 			return
@@ -134,11 +137,13 @@ func _on_quit_pressed() -> void:
 	get_tree().change_scene_to_file(MAIN_MENU)
 
 
-## Devuelve false sólo si se intentó escribir y falló. Si no hay nada que guardar, como
-## con el caso ya cerrado, se puede salir igualmente.
+## Guarda en la ranura activa antes de salir. Devuelve false si había progreso que no se
+## pudo guardar: la escritura falló o la partida todavía no tiene ranura.
 func _save_before_leaving() -> bool:
 	if SaveSystem.is_busy():
 		await SaveSystem.save_finished
+	if not SaveSystem.has_active_slot():
+		return not SaveSystem.has_unsaved_progress()
 	if not SaveSystem.autosave("salida")["ok"]:
 		return true
 	var outcome: Array = await SaveSystem.save_finished

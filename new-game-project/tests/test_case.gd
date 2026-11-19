@@ -52,13 +52,26 @@ static func clear_save_storage() -> void:
 
 
 ## Guarda en una ranura y espera a que termine la escritura. Devuelve si salió bien.
-func save_and_wait(slot_id: String, reason: String = "manual") -> bool:
-	var started := SaveSystem.save_to_slot(slot_id, reason)
+func save_and_wait(slot_id: String) -> bool:
+	var started := SaveSystem.save_to_slot(slot_id)
 	if not started["ok"]:
 		failures.append("no se pudo iniciar el guardado en %s: %s" % [slot_id, started["error"]])
 		return false
 	var outcome: Array = await SaveSystem.save_finished
 	return outcome[0] == slot_id and outcome[1]
+
+
+## Autoguarda ya en la ranura activa y espera. Devuelve si salió bien.
+func autosave_and_wait(reason: String) -> bool:
+	var was_enabled := SaveSystem.autosave_enabled
+	SaveSystem.autosave_enabled = true
+	var started := SaveSystem.autosave(reason)
+	SaveSystem.autosave_enabled = was_enabled
+	if not started["ok"]:
+		failures.append("no se pudo iniciar el autoguardado: %s" % started["error"])
+		return false
+	var outcome: Array = await SaveSystem.save_finished
+	return outcome[1]
 
 
 ## Escribe un contenido cualquiera en el archivo de una ranura, sin validarlo.

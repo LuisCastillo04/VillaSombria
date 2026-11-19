@@ -137,7 +137,7 @@ func refresh() -> void:
 	_infos.clear()
 	var group := ButtonGroup.new()
 	var has_saves := false
-	for info in SaveSystem.list_slots("manual" if mode == Mode.SAVE else ""):
+	for info in SaveSystem.list_slots():
 		var slot_id: String = info["id"]
 		_infos[slot_id] = info
 		has_saves = has_saves or info["status"] != SaveFormat.Status.EMPTY
@@ -157,7 +157,7 @@ func refresh() -> void:
 ## Textos de una ranura para la lista. Sólo usa lo que el archivo registró.
 static func describe_slot(info: Dictionary) -> Dictionary:
 	var auto: bool = info["kind"] == "auto"
-	var title := ("Autoguardado %d" if auto else "Ranura %d") % int(info["number"])
+	var title := "Ranura %d" % int(info["number"])
 	match info["status"]:
 		SaveFormat.Status.EMPTY:
 			return {"title": title, "tag": "VACÍA", "detail": "Sin partida guardada.", "extra": "", "tone": "empty"}
@@ -166,7 +166,7 @@ static func describe_slot(info: Dictionary) -> Dictionary:
 		SaveFormat.Status.CORRUPT:
 			return {"title": title, "tag": "DAÑADA", "detail": info["error"], "extra": "Puedes eliminarla para liberar la ranura.", "tone": "error"}
 	var summary: Dictionary = info["summary"]
-	var tag := "AUTOMÁTICA" if auto else "MANUAL"
+	var tag := "AUTOGUARDADO" if auto else "MANUAL"
 	var reason: String = REASON_LABELS.get(summary["reason"], "")
 	if not reason.is_empty():
 		tag += " · " + reason.to_upper()
@@ -180,10 +180,9 @@ static func describe_slot(info: Dictionary) -> Dictionary:
 	return {"title": title, "tag": tag, "detail": detail, "extra": extra, "tone": "auto" if auto else "manual"}
 
 
-## Nombre de la ranura con su artículo, como «la ranura 2» o «el autoguardado 1».
+## Nombre de la ranura con su artículo, como «la ranura 2».
 static func slot_name(slot_id: String) -> String:
-	var number := SaveSystem.get_slot_number(slot_id)
-	return ("el autoguardado %d" if SaveSystem.is_auto_slot(slot_id) else "la ranura %d") % number
+	return "la ranura %d" % SaveSystem.get_slot_number(slot_id)
 
 
 static func format_clock(minutes: int) -> String:
@@ -291,10 +290,10 @@ func _focus_default() -> void:
 
 func _hint_text(has_saves: bool) -> String:
 	if mode == Mode.SAVE:
-		return "Elige una ranura. Los autoguardados van aparte y nunca ocupan estas cinco."
+		return "Elige una ranura: pasará a ser la de esta partida y los autoguardados seguirán en ella."
 	if has_saves:
-		return "Elige la partida que quieres retomar. Las automáticas se crean solas al avanzar en el caso."
-	return "Todavía no hay partidas guardadas. Empieza una nueva: el juego guardará solo al avanzar en el caso."
+		return "Elige la partida que quieres retomar: sus autoguardados seguirán en la misma ranura."
+	return "Todavía no hay partidas guardadas. Empieza una nueva y guárdala desde la pausa."
 
 
 func _focused_slot() -> String:

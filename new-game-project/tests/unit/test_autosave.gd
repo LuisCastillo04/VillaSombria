@@ -14,6 +14,8 @@ func before_each() -> void:
 	SaveSystem.autosave_min_interval = 0.0
 	GameState.location_id = "plaza"
 	SaveSystem.begin_session(self)
+	# Los autoguardados necesitan una ranura activa.
+	await save_and_wait("manual_1")
 	SaveSystem.save_finished.connect(_on_save_finished)
 
 
@@ -48,7 +50,7 @@ func test_bursts_of_events_produce_a_single_save() -> void:
 		Investigation.discover_clue(clue_id)
 	await _wait(0.4)
 	check_equal(_finished.size(), 1, "una sola escritura para tres pistas seguidas")
-	check(_finished[0]["ok"] and SaveSystem.is_auto_slot(_finished[0]["slot"]), "en una ranura automática")
+	check(_finished[0]["ok"] and _finished[0]["slot"] == "manual_1", "en la ranura activa")
 	check_equal(_last_reason(), "pista", "con su motivo")
 
 
@@ -117,6 +119,9 @@ func test_ending_the_session_cancels_pending_requests() -> void:
 func test_changing_location_autosaves_after_the_transition() -> void:
 	SaveSystem.end_session(self)
 	var game := await make_game()
+	SaveSystem.save_finished.disconnect(_on_save_finished)
+	await save_and_wait("manual_2")
+	SaveSystem.save_finished.connect(_on_save_finished)
 	await game.go_to("plaza", "desde_estacion")
 	await _wait(SaveSystem.AUTOSAVE_RETRY_SECONDS + 0.4)
 	check_equal(_finished.size(), 1, "un autoguardado al entrar en la plaza")

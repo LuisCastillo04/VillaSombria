@@ -52,7 +52,7 @@ func test_pause_save_lists_the_five_manual_slots() -> void:
 	check(slots.visible, "Guardar partida abre la lista de ranuras")
 	check(not (pause.get_node("Root/Center/Panel") as Control).visible, "el panel de pausa se oculta")
 	var rows := slots.get_node("Box/Scroll/Slots").get_children()
-	check_equal(rows.size(), SaveSystem.MANUAL_SLOTS, "sólo las ranuras manuales")
+	check_equal(rows.size(), SaveSystem.SLOT_COUNT, "las cinco ranuras")
 	check((slots.get_node("Box/Buttons/Action") as Button).disabled, "sin selección no se puede guardar")
 
 
@@ -107,13 +107,15 @@ func test_escape_closes_confirmation_then_menu() -> void:
 
 ## Se prueba el paso de guardado sin el cambio de escena, que sustituiría al ejecutor.
 func test_quit_to_menu_saves_automatically() -> void:
+	await save_and_wait("manual_2")
+	GameState.set_flag("progreso_antes_de_salir")
 	SaveSystem.autosave_enabled = true
 	pause.open()
 	var saved: bool = await pause._save_before_leaving()
 	SaveSystem.autosave_enabled = false
 	check(saved, "se guarda antes de salir")
 	var latest := SaveSystem.find_latest_slot()
-	check(SaveSystem.is_auto_slot(latest), "en una ranura automática")
+	check_equal(latest, "manual_2", "en la ranura activa")
 	check_equal(SaveSystem.get_slot_info(latest)["summary"]["reason"], "salida", "con el motivo de salida")
 	check(SaveSystem.read_slot(latest)["document"]["sections"].has("player"), "con la posición del detective")
 
@@ -130,7 +132,7 @@ func _seed_slots() -> void:
 	game.player.teleport(game.player.global_position + Vector3(1.0, 0.0, 0.5), 0.6)
 	Investigation.discover_clue("carta_valdes")
 	await save_and_wait("manual_2")
-	await save_and_wait("auto_1", "lugar")
+	await save_and_wait("manual_3")
 	write_slot_file("manual_4", "{dañado")
 
 
@@ -141,7 +143,7 @@ func test_pause_load_warns_about_unsaved_progress() -> void:
 	slots.load_ready.disconnect(pause._on_load_ready)
 	(pause.get_node("Root/Center/Panel/Box/Load") as Button).pressed.emit()
 	check(slots.visible and slots.mode == SaveSlotsMenu.Mode.LOAD, "Cargar partida abre la lista en modo carga")
-	check_equal(slots.get_node("Box/Scroll/Slots").get_child_count(), SaveSystem.MANUAL_SLOTS + SaveSystem.AUTO_SLOTS, "incluye las automáticas")
+	check_equal(slots.get_node("Box/Scroll/Slots").get_child_count(), SaveSystem.SLOT_COUNT, "las cinco ranuras")
 	var loaded: Array[String] = []
 	slots.load_ready.connect(func(slot_id: String) -> void: loaded.append(slot_id))
 	slots.select_slot("manual_2")
@@ -158,7 +160,7 @@ func test_pause_load_without_progress_does_not_ask() -> void:
 	pause.open()
 	slots.load_ready.disconnect(pause._on_load_ready)
 	(pause.get_node("Root/Center/Panel/Box/Load") as Button).pressed.emit()
-	slots.select_slot("auto_1")
+	slots.select_slot("manual_3")
 	_press("Box/Buttons/Action")
 	check(not slots.is_confirming(), "sin progreso nuevo no hay nada que perder")
 	check(SaveSystem.has_pending_load(), "carga directamente")

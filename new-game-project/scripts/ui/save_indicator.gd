@@ -81,7 +81,7 @@ func _on_save_finished(slot_id: String, ok: bool, message: String) -> void:
 		if token != _token:
 			return
 	if ok:
-		_show_result(State.SAVED, "Partida guardada", _describe(slot_id), saved_seconds)
+		_show_result(State.SAVED, "Partida guardada", _detail.text, saved_seconds)
 	else:
 		_show_result(State.FAILED, "No se pudo guardar", message, failed_seconds)
 
@@ -113,9 +113,10 @@ func _restart_tween() -> void:
 
 
 func _describe(slot_id: String) -> String:
-	if SaveSystem.is_auto_slot(slot_id):
-		return "Autoguardado"
-	return "Ranura %d" % SaveSystem.get_slot_number(slot_id)
+	var slot_text := "Ranura %d" % SaveSystem.get_slot_number(slot_id)
+	if SaveSystem.get_writing_kind() == "auto":
+		return "Autoguardado · " + slot_text.to_lower()
+	return slot_text
 
 
 ## Reloj de bolsillo: la aguja gira mientras se guarda; al terminar se marca con una señal

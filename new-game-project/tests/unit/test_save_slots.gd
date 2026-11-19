@@ -111,37 +111,44 @@ func test_deleting_a_slot_keeps_the_others() -> void:
 	check_equal(SaveSystem.get_slot_info("manual_2")["status"], SaveFormat.Status.OK, "la otra sigue intacta")
 
 
-func test_autosave_rotation_never_touches_manual_slots() -> void:
-	SaveSystem.autosave_enabled = true
+func test_autosave_writes_only_the_active_slot() -> void:
 	_prepare_state(500)
 	await save_and_wait("manual_1")
-	for minutes: int in [600, 700, 800, 900]:
-		_prepare_state(minutes)
-		var slot_id := SaveSystem.next_autosave_slot()
-		check(SaveSystem.is_auto_slot(slot_id), "la rotación sólo usa ranuras automáticas")
-		check(await save_and_wait(slot_id, "lugar"), "autoguardado a las %d" % minutes)
-	check_equal(_minutes_in("auto_1"), 900, "el cuarto sustituye al más antiguo")
-	check_equal(_minutes_in("auto_2"), 700, "los demás se conservan")
-	check_equal(_minutes_in("auto_3"), 800, "los demás se conservan")
-	check_equal(_minutes_in("manual_1"), 500, "la ranura manual no se toca")
-	check_equal(SaveSystem.next_autosave_slot(), "auto_2", "el siguiente es ahora el más antiguo")
-
-
-func test_damaged_auto_slot_is_reused_before_valid_ones() -> void:
 	_prepare_state(600)
-	await save_and_wait("auto_1", "lugar")
-	write_slot_file("auto_2", "{roto")
-	await save_and_wait("auto_3", "lugar")
-	check_equal(SaveSystem.next_autosave_slot(), "auto_2", "se reutiliza la ranura dañada")
+	await save_and_wait("manual_2")
+	_prepare_state(700)
+	check(await autosave_and_wait("lugar"), "el autoguardado escribe")
+	check_equal(_minutes_in("manual_2"), 700, "en la ranura activa")
+	check_equal(_minutes_in("manual_1"), 500, "sin tocar las demás")
+	await save_and_wait("manual_4")
+	_prepare_state(800)
+	await autosave_and_wait("pista")
+	check_equal(_minutes_in("manual_4"), 800, "tras guardar en otra ranura, los autoguardados la siguen")
+	check_equal(_minutes_in("manual_2"), 700, "y la anterior ya no cambia")
+	for slot_id: String in ["manual_3", "manual_5"]:
+		check_equal(SaveSystem.get_slot_info(slot_id)["status"], SaveFormat.Status.EMPTY, "no se crean ranuras nuevas")
+
+
+func test_autosave_refuses_a_slot_changed_outside_the_game() -> void:
+	_prepare_state(600)
+	await save_and_wait("manual_2")
+	var foreign: Dictionary = SaveSystem.read_slot("manual_2")["document"]
+	foreign["meta"]["save_id"] = "otra_partida"
+	write_slot_file("manual_2", SaveFormat.to_text(foreign))
+	SaveSystem.autosave_enabled = true
+	var result := SaveSystem.autosave("lugar")
+	check(not result["ok"], "no se sobrescribe una versión que el juego no conoce")
+	check(not SaveSystem.has_active_slot(), "y la ranura deja de ser la activa")
+	check_equal(SaveSystem.read_slot("manual_2")["document"]["meta"]["save_id"], "otra_partida", "el archivo ajeno sigue intacto")
 
 
 func test_continue_picks_the_most_recent_valid_save() -> void:
 	_prepare_state(600)
 	await save_and_wait("manual_2")
-	await save_and_wait("auto_1", "lugar")
-	check_equal(SaveSystem.find_latest_slot(), "auto_1", "un autoguardado posterior gana")
+	await save_and_wait("manual_1")
+	check_equal(SaveSystem.find_latest_slot(), "manual_1", "el guardado posterior gana")
 	await save_and_wait("manual_4")
-	check_equal(SaveSystem.find_latest_slot(), "manual_4", "y un guardado manual posterior también")
+	check_equal(SaveSystem.find_latest_slot(), "manual_4", "y otro posterior también")
 	write_slot_file("manual_5", "{roto")
 	check_equal(SaveSystem.find_latest_slot(), "manual_4", "los archivos dañados se ignoran")
 
@@ -183,13 +190,12 @@ func test_saving_is_blocked_in_unsafe_moments() -> void:
 
 func test_unknown_slot_ids_are_rejected() -> void:
 	_prepare_state(600)
-	for slot_id: String in ["../ajustes", "manual_0", "manual_6", "auto_4", ""]:
+	for slot_id: String in ["../ajustes", "manual_0", "manual_6", "auto_1", ""]:
 		check(not SaveSystem.is_valid_slot(slot_id), "«%s» no es una ranura" % slot_id)
 		check(not SaveSystem.save_to_slot(slot_id)["ok"], "no se guarda en «%s»" % slot_id)
 		check(not SaveSystem.request_load(slot_id)["ok"], "no se carga «%s»" % slot_id)
 		check(not SaveSystem.delete_slot(slot_id)["ok"], "no se borra «%s»" % slot_id)
-	check_equal(SaveSystem.get_manual_slots().size(), SaveSystem.MANUAL_SLOTS, "cinco ranuras manuales")
-	check_equal(SaveSystem.get_auto_slots().size(), SaveSystem.AUTO_SLOTS, "tres automáticas")
+	check_equal(SaveSystem.get_slots().size(), SaveSystem.SLOT_COUNT, "cinco ranuras")
 
 
 func test_backup_is_used_when_the_main_file_is_damaged() -> void:

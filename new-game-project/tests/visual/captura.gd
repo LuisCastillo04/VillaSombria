@@ -119,11 +119,13 @@ func _seed_slots() -> void:
 		for clue_id: String in ["reloj_despacho", "lista_invitados", "carta_valdes"]:
 			Investigation.discover_clue(clue_id)
 		SaveSystem.begin_session(self)
-	for slot_id: String in SaveSystem.get_all_slots():
+	for slot_id: String in SaveSystem.get_slots():
 		SaveFile.remove(SaveSystem.get_slot_path(slot_id))
-	for slot_id: String in ["manual_1", "auto_1"]:
-		if SaveSystem.save_to_slot(slot_id, "manual" if slot_id == "manual_1" else "lugar")["ok"]:
+	for slot_id: String in ["manual_1", "manual_2"]:
+		if SaveSystem.save_to_slot(slot_id)["ok"]:
 			await SaveSystem.save_finished
+	if SaveSystem.autosave("lugar")["ok"]:
+		await SaveSystem.save_finished
 	if own_session:
 		SaveSystem.end_session(self)
 	var damaged := FileAccess.open(SaveSystem.get_slot_path("manual_3"), FileAccess.WRITE)
