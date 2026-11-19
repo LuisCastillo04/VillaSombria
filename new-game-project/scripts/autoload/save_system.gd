@@ -8,11 +8,16 @@ extends Node
 ##
 ## Los autoguardados se piden con `request_autosave` desde los eventos de la partida; ver
 ## esa función para la política que evita guardados redundantes o en momentos inseguros.
+##
+## La ranura activa es la única fuente de verdad sobre a qué ranura pertenece la partida en
+## curso: la última en la que se guardó con éxito o la que se cargó. Se conserva entre
+## sesiones junto con la huella (`save_id`) de la versión del archivo que conoce el juego.
 
 signal save_started(slot_id: String)
 signal save_finished(slot_id: String, ok: bool, message: String)
 signal slot_deleted(slot_id: String)
 signal slots_changed
+signal active_slot_changed(slot_id: String)
 
 const MANUAL_SLOTS := 5
 const AUTO_SLOTS := 3
@@ -22,6 +27,8 @@ const DEFAULT_STORAGE := "user://saves"
 ## Archivo único de la versión 1, que se importa una vez a la primera ranura manual libre.
 const DEFAULT_LEGACY_PATH := "user://partida.json"
 const LEGACY_MARKER := ".importada_v1"
+## Ranura activa y huella del archivo que le corresponde, para retomarla en otra sesión.
+const ACTIVE_SLOT_FILE := "ranura_activa.cfg"
 ## Bloqueos del jugador compatibles con guardar: desde la pausa el estado es estable.
 const SAVE_SAFE_LOCKS: Array[String] = ["pausa"]
 const TRANSITION_LOCK := "transicion"
@@ -49,6 +56,10 @@ var _session_owner: Object = null
 var _pending_load: Dictionary = {}
 var _writing_slot := ""
 var _writing_digest := ""
+var _writing_save_id := ""
+var _writing_kind := ""
+var _active_slot := ""
+var _active_save_id := ""
 var _write_task := -1
 ## Huella del progreso tal como quedó en el último guardado o carga de la sesión.
 var _saved_digest := ""
@@ -115,10 +126,16 @@ func apply_sections(sections: Dictionary) -> void:
 
 # --- Sesión de juego ---------------------------------------------------------------------
 
-## La escena de juego abre la sesión cuando el estado ya es el definitivo, sea una partida
-## nueva o una cargada. Sin sesión no se puede guardar.
-func begin_session(session_owner: Object) -> void:
+## La escena de juego abre la sesión cuando el estado ya es el definitivo. Con el documento
+## de la partida cargada, su ranura pasa a ser la activa; sin él (partida nueva) no hay ranura
+## activa hasta que el jugador guarde en una.
+func begin_session(session_owner: Object, loaded_document: Dictionary = {}) -> void:
 	_session_owner = session_owner
+	if loaded_document.is_empty():
+		_clear_active_slot()
+	else:
+		var meta: Dictionary = loaded_document["meta"]
+		_bind_active_slot(meta.get("slot", ""), meta.get("save_id", ""))
 	_saved_digest = _progress_digest()
 	_last_save_msec = Time.get_ticks_msec()
 	_cancel_autosave()
@@ -141,6 +158,24 @@ func has_session() -> bool:
 
 func is_busy() -> bool:
 	return not _writing_slot.is_empty()
+
+
+## Ranura a la que pertenece la partida en curso, o "" si todavía no tiene ninguna.
+func get_active_slot() -> String:
+	_ensure_storage()
+	return _active_slot
+
+
+func has_active_slot() -> bool:
+	return not get_active_slot().is_empty()
+
+
+## Ranura que retoma «Continuar»: la activa si sigue siendo válida; si no, la más reciente.
+func get_continue_slot() -> String:
+	var active := get_active_slot()
+	if not active.is_empty() and read_slot(active)["status"] == SaveFormat.Status.OK:
+		return active
+	return find_latest_slot()
 
 
 ## Motivo por el que ahora no se puede guardar, o una cadena vacía si se puede.
@@ -307,6 +342,7 @@ func save_to_slot(slot_id: String, reason: String = "manual") -> Dictionary:
 		"kind": _kind_of(slot_id),
 		"saved_at": Time.get_unix_time_from_system(),
 		"reason": reason,
+		"save_id": _new_save_id(),
 	}
 	var document := SaveFormat.build(meta, capture_sections())
 	# Nunca se escribe una partida que después no se podría cargar.
@@ -316,6 +352,8 @@ func save_to_slot(slot_id: String, reason: String = "manual") -> Dictionary:
 		return _refuse("El estado actual de la partida no se puede guardar.")
 	_writing_slot = slot_id
 	_writing_digest = _digest_of(document["sections"])
+	_writing_save_id = meta["save_id"]
+	_writing_kind = meta["kind"]
 	save_started.emit(slot_id)
 	var text := SaveFormat.to_text(document)
 	_write_task = WorkerThreadPool.add_task(_write_in_background.bind(get_slot_path(slot_id), text), false, "Guardar partida")
@@ -356,6 +394,8 @@ func delete_slot(slot_id: String) -> Dictionary:
 	var error := SaveFile.remove(get_slot_path(slot_id))
 	if error != OK:
 		return _refuse("No se pudo eliminar la partida (%s)." % error_string(error))
+	if slot_id == _active_slot:
+		_clear_active_slot()
 	slot_deleted.emit(slot_id)
 	slots_changed.emit()
 	return {"ok": true, "error": ""}
@@ -399,6 +439,7 @@ func _ensure_storage() -> void:
 			push_error("No se pudo crear la carpeta de partidas: %s" % error_string(error))
 			return
 	_import_legacy_save()
+	_load_active_slot()
 
 
 ## Copia la partida de la versión 1 a la primera ranura manual libre. El archivo original
@@ -478,6 +519,8 @@ func _on_write_done(error: Error) -> void:
 	if error == OK:
 		_saved_digest = _writing_digest
 		_last_save_msec = Time.get_ticks_msec()
+		if _writing_kind == "manual":
+			_bind_active_slot(slot_id, _writing_save_id)
 		save_finished.emit(slot_id, true, "")
 	else:
 		# El jugador ya recibe el aviso: en la consola basta una advertencia.
@@ -562,6 +605,60 @@ func _on_day_changed(_day: int) -> void:
 ## Termina una escena narrativa (sin interlocutor) o un interrogatorio.
 func _on_dialogue_closed(npc_id: String) -> void:
 	request_autosave("escena" if npc_id.is_empty() else "interrogatorio")
+
+
+## Única forma de cambiar la ranura activa. Se guarda en disco para la próxima sesión.
+func _bind_active_slot(slot_id: String, save_id: String) -> void:
+	_ensure_storage()
+	if not is_valid_slot(slot_id):
+		_clear_active_slot()
+		return
+	var changed := slot_id != _active_slot
+	_active_slot = slot_id
+	_active_save_id = save_id
+	_store_active_slot()
+	if changed:
+		active_slot_changed.emit(slot_id)
+
+
+func _clear_active_slot() -> void:
+	_ensure_storage()
+	var changed := not _active_slot.is_empty()
+	_active_slot = ""
+	_active_save_id = ""
+	_store_active_slot()
+	if changed:
+		active_slot_changed.emit("")
+
+
+func _store_active_slot() -> void:
+	var config := ConfigFile.new()
+	config.set_value("activa", "ranura", _active_slot)
+	config.set_value("activa", "huella", _active_save_id)
+	var error := SaveFile.write_atomic(_storage_dir.path_join(ACTIVE_SLOT_FILE), config.encode_to_text())
+	if error != OK:
+		push_warning("No se pudo recordar la ranura activa: %s" % error_string(error))
+
+
+func _load_active_slot() -> void:
+	_active_slot = ""
+	_active_save_id = ""
+	var file := SaveFile.read_text(_storage_dir.path_join(ACTIVE_SLOT_FILE))
+	if file["error"] != OK:
+		return
+	var config := ConfigFile.new()
+	if config.parse(file["text"]) != OK:
+		return
+	var slot_id := str(config.get_value("activa", "ranura", ""))
+	if is_valid_slot(slot_id):
+		_active_slot = slot_id
+		_active_save_id = str(config.get_value("activa", "huella", ""))
+
+
+## Identifica cada versión escrita de una ranura: la ranura activa sólo se sobrescribe si
+## en disco sigue la versión que conoce el juego.
+func _new_save_id() -> String:
+	return Crypto.new().generate_random_bytes(8).hex_encode()
 
 
 func _kind_of(slot_id: String) -> String:

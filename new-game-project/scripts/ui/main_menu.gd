@@ -109,9 +109,9 @@ func _show_menu() -> void:
 	_new_game.grab_focus()
 
 
-## «Continuar» retoma la partida válida más reciente, manual o automática.
+## «Continuar» retoma la ranura activa de la última sesión o, si ya no es válida, la más reciente.
 func _refresh_continue() -> void:
-	var latest := SaveSystem.find_latest_slot()
+	var latest := SaveSystem.get_continue_slot()
 	_continue.disabled = latest.is_empty()
 	_continue.text = "Continuar partida"
 	if not latest.is_empty():
@@ -135,7 +135,7 @@ func _on_new_game() -> void:
 
 func _on_continue() -> void:
 	AudioManager.play("click")
-	var result := SaveSystem.request_load(SaveSystem.find_latest_slot())
+	var result := SaveSystem.request_load(SaveSystem.get_continue_slot())
 	if not result["ok"]:
 		_open_load_menu()
 		_slots.show_message("No se pudo continuar: %s" % result["error"], true)

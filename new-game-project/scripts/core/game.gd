@@ -45,7 +45,7 @@ func _ready() -> void:
 	_load_location(GameState.location_id, GameState.spawn_id)
 	_apply_saved_pose()
 	_notify_state()
-	SaveSystem.begin_session(self)
+	SaveSystem.begin_session(self, snapshot)
 	await _fade.fade_in()
 	StoryDirector.on_location_entered(GameState.location_id)
 

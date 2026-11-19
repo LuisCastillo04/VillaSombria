@@ -126,6 +126,8 @@ static func _validate_meta(meta: Dictionary) -> String:
 	meta["saved_at"] = float(saved_at)
 	if not meta.get("reason", "") is String:
 		meta["reason"] = ""
+	if meta.has("save_id") and not meta["save_id"] is String:
+		meta.erase("save_id")
 	return ""
 
 
