@@ -19,7 +19,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `data/` | Historia y reglas en JSON |
 | `assets/siluetas/` | Siluetas SVG de los interrogatorios |
 | `assets/shaders/` | Empedrado, brillo, contraluz, postproceso y pergamino |
-| `assets/ui/` | Grabado de la mansión e iconos SVG del expediente de partidas |
+| `assets/ui/` | Grabado de la mansión, silueta del pueblo e iconos SVG del menú principal y del expediente de partidas |
 | `scenes/main/` | Menú principal y escena de juego |
 | `scenes/actors/` | Detective y NPC |
 | `scenes/world/locations/` | Los cinco escenarios y el campo de pruebas |
@@ -55,7 +55,15 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 
 ## Escenas
 
-`scenes/main/main_menu.tscn` es la escena principal. `scenes/main/game.tscn` contiene:
+`scenes/main/main_menu.tscn` es la escena principal. Instancia la plaza real con su lluvia y
+una cámara propia, y pone encima la interfaz en un `CanvasLayer`: el fondo nunca es una imagen.
+El panel translúcido es `MenuFrame` y cada opción es un `MenuOptionButton`, una tarjeta de
+pergamino con icono que se resalta en burdeos al señalarla con el ratón, el teclado o el mando.
+Los dos se dibujan en código con la paleta y las tipografías de `CaseFileStyle`, y los botones
+reutilizan el shader de pergamino del expediente. «Continuar» muestra el día y la hora de la
+ranura que retomaría y, sin partidas, queda atenuado y fuera de la navegación.
+
+`scenes/main/game.tscn` contiene:
 
 ```text
 Game
