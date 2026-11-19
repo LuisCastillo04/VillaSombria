@@ -1,20 +1,25 @@
 # Sistema de guardado
 
-Cómo se guardan, validan y restauran las partidas de Villa Sombría, y cómo ampliarlo.
+Cómo se guardan, validan y restauran las partidas de Villa Sombría, cómo funciona la ranura
+activa, qué pasa al cerrar el juego y cómo ampliarlo.
 
 ## Piezas
 
 | Archivo | Responsabilidad |
 | --- | --- |
-| `scripts/autoload/save_system.gd` | Autoload `SaveSystem`: secciones, ranuras, sesión, guardado en segundo plano, autoguardado y carga |
-| `scripts/save/save_file.gd` | `SaveFile`: escritura atómica con temporal y copia, lectura y borrado |
+| `scripts/autoload/save_system.gd` | Autoload `SaveSystem`: secciones, ranuras, ranura activa, flujo único de escritura, autoguardado y carga |
+| `scripts/autoload/exit_manager.gd` | Autoload `ExitManager`: cierre controlado (X, Alt + F4, botones de salida) |
+| `scripts/save/save_file.gd` | `SaveFile`: escritura atómica de texto y de bytes, lectura, borrado y huellas SHA-256 |
 | `scripts/save/save_format.gd` | `SaveFormat`: formato, versión, validación y migraciones |
-| `scenes/ui/save_slots_menu.tscn` | `SaveSlotsMenu`: lista de ranuras para guardar y cargar, usada por la pausa y el menú principal |
+| `scripts/save/save_preview.gd` | `SavePreview`: imagen real de la escena para cada ranura |
+| `scenes/ui/save_slots_menu.tscn` | `SaveSlotsMenu`: expediente de guardar y cargar, usado por la pausa, el menú principal y la salida |
+| `scenes/ui/save_slot_row.tscn` | `SaveSlotRow`: una ranura del expediente |
+| `scripts/ui/case_file_*.gd`, `case_stamp.gd`, `title_flourish.gd` | Estilo y adornos del expediente |
 | `scenes/ui/save_indicator.tscn` | Autoload `SaveIndicator`: indicador animado de guardado |
-| `scripts/core/game.gd` | Registra la posición del detective y restaura la partida cuando la escena está construida |
+| `scripts/core/game.gd` | Registra la posición del detective y la cámara para las imágenes, y restaura la partida con la escena ya construida |
 
-`SaveSystem` no conoce la interfaz: los menús y el indicador sólo llaman a su API y escuchan sus
-señales.
+`SaveSystem` no conoce la interfaz: los menús, el indicador y `ExitManager` sólo llaman a su API
+y escuchan sus señales.
 
 ## Dónde se guardan las partidas
 
@@ -28,28 +33,72 @@ La ruta es la misma en el editor y en el juego exportado.
 
 | Archivo | Contenido |
 | --- | --- |
-| `manual_1.json` … `manual_5.json` | Ranuras manuales |
-| `auto_1.json` … `auto_3.json` | Ranuras automáticas |
-| `*.json.tmp` | Escritura en curso; sólo existe un instante |
-| `*.json.bak` | Versión anterior mientras se sustituye; sólo queda si la escritura se interrumpió |
-| `.importada_v1` | Marca de que la partida de la versión 1 ya se importó |
+| `manual_1.json` … `manual_5.json` | Las cinco ranuras |
+| `manual_N.jpg` | Imagen de la partida de esa ranura |
+| `ranura_activa.cfg` | Ranura activa y huella de su versión, para la sesión siguiente |
+| `*.tmp`, `*.bak` | Escritura en curso o interrumpida; sólo existen un instante |
+| `.importada_v1`, `.importada_auto` | Marcas de que ya se importaron partidas de versiones anteriores |
+| `auto_1.json` … `auto_3.json` | Autoguardados de la versión anterior; se conservan sin tocar |
 
-Las ranuras tienen identificadores fijos (`manual_N`, `auto_N`). Cualquier otro identificador se
-rechaza, así que no se puede leer ni escribir fuera de esa carpeta. El número de ranuras se cambia
-en `SaveSystem.MANUAL_SLOTS` y `SaveSystem.AUTO_SLOTS`.
+Las ranuras se llaman `manual_N` por compatibilidad con las partidas ya guardadas, aunque hoy
+reciben tanto guardados manuales como automáticos. Cualquier otro identificador se rechaza, así
+que no se puede leer ni escribir fuera de la carpeta. El número de ranuras está en
+`SaveSystem.SLOT_COUNT`.
 
-Las pruebas y las herramientas de captura usan `user://pruebas_guardado/` y nunca tocan las
-partidas del jugador.
+Las pruebas y las herramientas usan `user://pruebas_guardado/` y nunca tocan las partidas del
+jugador.
+
+## La ranura activa
+
+Es la única fuente de verdad sobre a qué ranura pertenece la partida en curso:
+
+- **Guardar con éxito** en una ranura (a mano, en un autoguardado o al salir) la convierte en la
+  activa.
+- **Cargar** una ranura la convierte en la activa.
+- **Empezar una partida nueva** deja la partida sin ranura activa.
+- **Eliminar** la ranura activa la libera.
+- **Seleccionar o leer** ranuras en un menú no cambia nada.
+
+Se guarda en `ranura_activa.cfg` junto con la huella (`save_id`) de la versión del archivo que
+conoce el juego. **Continuar** retoma la ranura activa si sigue siendo válida y, si no, la
+partida más reciente.
+
+Antes de sobrescribir la ranura activa sin que el jugador la haya elegido (autoguardado o
+salida), `SaveSystem.check_active_slot()` comprueba que en disco siga esa versión. Si la ranura
+está dañada o la cambió otro proceso, deja de ser la activa y no se escribe en ella. Las partidas
+anteriores a la huella no la tienen y se aceptan igualmente.
+
+## Un solo flujo de escritura
+
+El guardado manual (`save_to_slot`), el autoguardado (`autosave`) y el guardado al salir
+(`save_for_exit`) terminan en `_begin_write`. Sólo cambian la ranura de destino y el origen que
+se anota en los metadatos:
+
+1. Se toma el estado de todas las secciones y se valida con las mismas reglas que al cargar:
+   nunca se escribe una partida que no se podría reconstruir.
+2. Se marca la escritura en curso (`is_busy()`) y se emite `save_started`.
+3. Se fotografía la escena (ver [Imágenes](#imágenes-de-las-partidas)); tarda dos fotogramas.
+4. Un hilo de `WorkerThreadPool` escribe primero la imagen y después la partida, ambas de forma
+   atómica: temporal, relectura, copia de la versión anterior y sustitución.
+5. Se emite `save_finished(ranura, ok, mensaje)`. Si salió bien, la ranura pasa a ser la activa.
+
+Mientras hay una escritura, las demás se rechazan (guardado manual), se reintentan
+(autoguardado) o esperan (salida); nunca hay dos a la vez. Leer la ranura que se está escribiendo
+espera a que termine, y al cerrar el juego también se espera.
 
 ## Formato
 
-JSON legible con cuatro claves:
+JSON legible:
 
 ```json
 {
   "format": "villa_sombria.partida",
   "version": 2,
-  "meta": {"slot": "manual_2", "kind": "manual", "saved_at": 1794970477.4, "reason": "manual"},
+  "meta": {
+    "slot": "manual_2", "kind": "auto", "reason": "pista",
+    "saved_at": 1794970477.4, "save_id": "9f2c41d07a1be3c5",
+    "preview": {"file": "manual_2.jpg", "sha256": "…64 cifras hexadecimales…"}
+  },
   "sections": {
     "state": {"flags": [], "clues": [], "testimonies": [], "deductions": [], "asked_topics": [],
               "hypotheses": {}, "location_id": "mansion", "spawn_id": "desde_plaza",
@@ -60,60 +109,34 @@ JSON legible con cuatro claves:
 }
 ```
 
-- `meta.saved_at`: segundos Unix en UTC, con decimales. El menú lo muestra en hora local.
-- `meta.reason`: por qué se guardó (`manual`, `lugar`, `pista`, `deduccion`, `evento`, `escena`,
-  `interrogatorio`, `nuevo_dia`, `salida`, `importada`).
-- `sections`: una entrada por sección registrada; ver [Secciones](#secciones).
+- `kind`: origen del último guardado, `manual` o `auto` (autoguardado y salida).
+- `reason`: `manual`, `lugar`, `pista`, `deduccion`, `evento`, `escena`, `interrogatorio`,
+  `nuevo_dia`, `salida` o `importada`.
+- `saved_at`: segundos Unix en UTC; el menú los muestra en hora local.
+- `save_id` y `preview` son opcionales: las partidas anteriores no los tienen y siguen siendo
+  válidas, sin cambiar la versión del formato.
 
-Lo que aparece en los menús (lugar, día, hora, tiempo jugado, número de pistas) se deduce de las
-secciones al leer el archivo; no se guarda por duplicado.
+Lo que muestra el expediente (lugar, día, hora, tiempo de juego, pistas) sale de las secciones;
+no se guarda por duplicado.
 
-## Escritura segura
+## Validación, versiones y compatibilidad
 
-`SaveFile.write_atomic`:
+`SaveFormat.parse` devuelve `OK`, `EMPTY`, `CORRUPT` o `INCOMPATIBLE` (versión más reciente o
+lugar que ya no existe). Se comprueban tipos y rangos, y lo recuperable se corrige sin inventar
+datos: se quitan pistas, testimonios o deducciones que ya no existen, la posición inválida se
+descarta (el detective aparece en la entrada) y una referencia de imagen dudosa se ignora. Si el
+archivo principal no sirve pero queda una copia de una escritura interrumpida, se usa la copia.
 
-1. Escribe en `ranura.json.tmp` y lo relee para comprobar que el contenido es exacto.
-2. Renombra el archivo anterior a `ranura.json.bak`.
-3. Renombra el temporal a `ranura.json`.
-4. Borra la copia.
+**Versiones anteriores.** Cada versión se convierte paso a paso en `SaveFormat._migrate`. La
+primera vez que se usan las ranuras:
 
-Si el proceso muere entre los pasos 2 y 3, la siguiente lectura restaura la copia. Si el archivo
-principal está dañado pero queda una copia válida, se usa la copia.
+- la partida de la versión 1 (`user://partida.json`) se copia a la primera ranura libre;
+- de los autoguardados de la versión anterior (`auto_N.json`), el más reciente y válido se copia
+  a la primera ranura libre.
 
-Antes de escribir, `SaveSystem` valida el documento con las mismas reglas que al cargar: nunca se
-escribe una partida que después no se podría reconstruir.
-
-La escritura se hace en un hilo de `WorkerThreadPool`. Mientras dura, `is_busy()` es verdadero, se
-rechazan otros guardados y el borrado de esa ranura, y leer esa ranura espera a que termine. Al
-cerrar el juego también se espera a la escritura en curso.
-
-## Validación y versiones
-
-`SaveFormat.parse` devuelve un estado:
-
-| Estado | Significado | En los menús |
-| --- | --- | --- |
-| `OK` | Se puede cargar | Datos de la partida |
-| `EMPTY` | No hay archivo | «Vacía» |
-| `CORRUPT` | JSON roto, estructura o tipos incorrectos | «Dañada»; se puede eliminar |
-| `INCOMPATIBLE` | Versión más reciente o lugar que no existe en esta versión | «Incompatible»; se puede eliminar |
-
-Se comprueban los tipos de cada campo, que el día y la hora estén en rango y que el lugar exista.
-Lo recuperable se corrige sin inventar datos: se quitan pistas, testimonios o deducciones que ya no
-existen en `data/`, los duplicados y las hipótesis mal formadas, y si la posición del detective no
-es válida se descarta y aparece en la entrada del lugar.
-
-**Versiones.** `SaveFormat.VERSION` es la versión actual. Cada versión antigua se convierte paso a
-paso en `SaveFormat._migrate`. La versión 1 era el antiguo `user://partida.json`, con `state` y
-`clock` y sin metadatos; se convierte usando la fecha de modificación del archivo y sin tiempo
-jugado, porque no lo registraba.
-
-La primera vez que se usan las ranuras, la partida de la versión 1 se copia a la primera ranura
-manual libre, marcada como «importada». El archivo original no se modifica ni se borra.
+Las copias se marcan como importadas y los archivos originales no se modifican ni se borran.
 
 ## Secciones
-
-Cada sistema aporta su parte del estado con dos funciones:
 
 ```gdscript
 SaveSystem.register_section("clave", funcion_que_devuelve_un_diccionario, funcion_que_lo_recibe)
@@ -121,66 +144,34 @@ SaveSystem.register_section("clave", funcion_que_devuelve_un_diccionario, funcio
 
 | Sección | Quién la registra | Contenido |
 | --- | --- | --- |
-| `state` | `SaveSystem`, sobre `GameState` | Marcas, pistas, testimonios, deducciones, preguntas hechas, hipótesis, lugar, intentos de acusación y tiempo jugado |
+| `state` | `SaveSystem`, sobre `GameState` | Marcas, pistas, testimonios, deducciones, preguntas hechas, hipótesis, lugar, intentos de acusación, tiempo jugado |
 | `clock` | `SaveSystem`, sobre `GameClock` | Día y minuto del calendario |
 | `player` | `Game` | Lugar, posición y orientación del detective |
 
-Al cargar, las secciones se restauran en el orden en que se registraron. Una sección que el archivo
-no incluye recibe un diccionario vacío, de modo que los sistemas nuevos arrancan con su estado por
-defecto al cargar partidas antiguas.
+El juego no tiene un inventario aparte: las pistas del expediente cumplen esa función y se
+guardan en `state`. Al cargar, las secciones se restauran en el orden en que se registraron; una
+sección que el archivo no incluye recibe un diccionario vacío.
 
 ### Qué no se guarda
 
-Lo que se puede reconstruir a partir del estado guardado:
-
-| Dato | Se reconstruye desde |
-| --- | --- |
-| Personajes y su posición | Rutinas de `schedules.json` según día y hora |
-| Puertas abiertas o cerradas | Condiciones de cada salida sobre marcas y pistas |
-| Objetivos y su progreso | Condiciones de `story.json` |
-| Pistas ya examinadas en el escenario | `GameState.clues` |
-| Escenas que no deben repetirse | Marcas que ponen las propias escenas y condiciones de `on_enter` |
-| Eventos por hora ya ocurridos | Marcas `evento_*` |
-| Clima, luz, música, cámara | Lugar y hora |
-
-No se puede guardar durante una conversación, una escena o una transición, así que nunca hay que
-restaurar una a medias.
-
-## Ranuras
-
-- **Manuales (5).** Sólo las escribe el jugador desde la pausa. Nunca se sobrescriben solas.
-- **Automáticas (3).** Las escribe el autoguardado. Rotación (`SaveSystem.next_autosave_slot`):
-  primero una vacía; si no hay, una dañada o incompatible; si no, la más antigua.
-
-Las ranuras son independientes: cada archivo contiene todo lo necesario y borrar uno no afecta al
-resto. Una partida nueva empieza con `GameState.reset()` y `GameClock.reset()` y no lee ninguna
-ranura. Sus autoguardados comparten la rotación con los de partidas anteriores, de modo que con el
-tiempo sustituyen a los más antiguos; las ranuras manuales no se tocan.
-
-Cerrar el caso no borra ninguna partida. Después de `caso_resuelto` no se guarda, así que
-«Continuar» retoma el último guardado anterior al desenlace.
+Lo que se reconstruye a partir del estado guardado: la posición de los personajes (sus rutinas),
+las puertas (condiciones sobre marcas y pistas), los objetivos (condiciones de `story.json`), las
+pistas ya examinadas en el escenario, las escenas que no deben repetirse y los eventos por hora ya
+ocurridos (marcas), y el clima, la luz, la música y la cámara (lugar y hora).
 
 ## Guardado manual
 
-Pausa → **Guardar partida** → lista de las cinco ranuras manuales → elegir ranura → **Guardar
-aquí** o **Sobrescribir**.
+Pausa (Esc) → **Guardar partida** → expediente «GUARDAR PARTIDA» → elegir ranura → **Guardar**.
 
-- Sobrescribir y eliminar piden confirmación.
-- Cada ranura muestra lugar, día y hora del caso, fecha del guardado, tiempo jugado y pistas.
-- El resultado aparece en la lista y en el indicador.
-- La acción se desactiva y se explica el motivo si `SaveSystem.get_save_blocker()` lo impide.
-
-`get_save_blocker()` impide guardar si no hay partida en curso, ya hay una escritura, hay una
-conversación o escena activa, el caso está cerrado, hay una transición o el jugador tiene abierto
-cualquier panel que no sea la pausa.
-
-**Guardar y volver al menú** hace un autoguardado con motivo `salida` y espera a que termine. Si la
-escritura falla, no sale: avisa y deja salir sin guardar con una segunda pulsación.
+- Si la ranura está ocupada, se pide confirmación antes de sustituirla.
+- La ranura en la que se guarda pasa a ser la activa: los autoguardados siguientes van a ella.
+- La acción se desactiva, con el motivo, si `get_save_blocker()` lo impide: sin partida en curso,
+  con una escritura en marcha, en una conversación o escena, en una transición, con un panel
+  abierto o con el caso cerrado.
 
 ## Guardado automático
 
-Los autoguardados se piden con `SaveSystem.request_autosave(motivo, punto_de_control)`.
-`SaveSystem` lo hace por sí mismo al recibir estos eventos:
+`SaveSystem` pide un autoguardado (`request_autosave`) en estos eventos:
 
 | Evento | Motivo | Punto de control |
 | --- | --- | --- |
@@ -194,116 +185,170 @@ Los autoguardados se piden con `SaveSystem.request_autosave(motivo, punto_de_con
 
 Política:
 
-1. Las peticiones seguidas se agrupan: se escribe `autosave_delay` (1,5 s) después de la última.
-2. Entre un guardado y el siguiente autoguardado pasan al menos `autosave_min_interval` (30 s),
-   salvo en un punto de control. Una petición que llega antes no se pierde: se aplaza.
-3. Si el momento no es seguro (conversación, escena, transición o panel abierto), se vuelve a
-   comprobar cada segundo. Con el juego en pausa la espera se detiene.
-4. Si la partida no ha avanzado desde el último guardado o carga, la petición se descarta. La
-   posición del detective y el tiempo jugado no cuentan como avance.
-5. Sin partida en curso, o con el caso cerrado, no se guarda y lo pendiente se descarta.
+1. Escribe **sólo en la ranura activa**, nunca crea ranuras ni toca otras.
+2. Agrupa las peticiones seguidas: escribe `autosave_delay` (1,5 s) después de la última.
+3. Deja `autosave_min_interval` (30 s) desde el último guardado, salvo en un punto de control.
+4. Espera a un momento seguro (sin conversación, escena, transición ni panel abierto); en pausa
+   la espera se detiene.
+5. Descarta la petición si la partida no avanzó (la posición y el tiempo jugado no cuentan).
+6. **Sin ranura activa** no escribe en ninguna: avisa una vez por sesión de que hay que guardar en
+   una ranura (Esc › Guardar partida). La pausa también lo indica.
+
+## Cerrar el juego: X, Alt + F4 y botones de salida
+
+`ExitManager` desactiva `SceneTree.auto_accept_quit` y atiende `NOTIFICATION_WM_CLOSE_REQUEST`,
+por donde llegan la X de la ventana y Alt + F4. «Salir» del menú principal, «Guardar y volver al
+menú» de la pausa y la vuelta al menú tras cerrar el caso llaman a `ExitManager.request_exit`,
+porque `SceneTree.quit()` no genera una petición de cierre.
+
+1. Las peticiones repetidas se ignoran mientras hay una en curso.
+2. `SaveSystem.save_for_exit()` espera a la escritura en curso y a que termine una transición.
+3. Escribe en la ranura activa por el flujo único y espera el resultado. En mitad de una
+   conversación guarda el estado de justo antes de empezarla, porque a media conversación puede
+   estar a medio aplicar.
+4. Sólo si se guardó, o no había nada que guardar (sin partida, partida nueva sin avanzar o caso
+   cerrado), sale.
+5. Si la partida **no tiene ranura activa**, pausa y pregunta: *Elegir ranura* (abre el
+   expediente; tras guardar, sale), *Salir sin guardar* o *Cancelar*.
+6. Si la escritura **falla**, no sale: ofrece *Reintentar*, *Salir sin guardar* o *Cancelar*.
+
+**Límite.** Un cierre forzado (el administrador de tareas, `taskkill /F`), un fallo grave o un
+corte de corriente no pasan por la petición de cierre: se conserva el último guardado completo, y
+la escritura atómica evita que quede un archivo a medias.
+
+## Imágenes de las partidas
+
+Cada guardado lleva una imagen real de la escena:
+
+- `SavePreview` crea un `SubViewport` que comparte el mundo 3D, con una copia de la cámara del
+  juego y el mismo postproceso noir. Por eso la pausa, el expediente, el HUD y los diálogos no
+  aparecen nunca, aunque estén abiertos.
+- Se escribe como `manual_N.jpg` (384 × 216) antes que la partida, y la partida guarda su nombre
+  y su huella SHA-256. Al sobrescribir se sustituyen las dos; al eliminar, también la imagen.
+- Al mostrarla se comprueba la huella: una imagen dañada, ajena o desfasada se trata como
+  ausente y la ranura muestra un marcador. Las texturas se leen una vez y se vuelven a comprobar
+  si el archivo cambia.
+- Sin ventana (`--headless`) no se puede renderizar: la partida se guarda sin imagen.
+
+## Expediente de guardar y cargar
+
+Reproduce las capturas de referencia: hoja de pergamino con hojas apiladas detrás, marco de
+madera con filetes dorados, grabado de la mansión, sello «EXPEDIENTE DEL CASO», título con
+filigranas, pestaña burdeos con la acción principal («Cargar» o «Guardar») y botones de madera
+«Eliminar» y «Volver». Cada ranura muestra número, imagen, lugar, fecha del guardado, día y hora
+del caso, tiempo de juego, pistas encontradas y si es la activa; las vacías y dañadas se
+distinguen a simple vista. Todo está hecho con nodos Control, estilos, un sombreador y SVG
+propios.
+
+| Entrada | Efecto |
+| --- | --- |
+| Clic | Selecciona la ranura |
+| Doble clic | Carga una partida válida (sólo al cargar) |
+| Flechas arriba y abajo, cruceta | Recorren las cinco ranuras; la selección sigue al foco |
+| Tab y Mayús + Tab | Ranura, acción principal, «Eliminar», «Volver», saltando lo desactivado |
+| Intro, botón de aceptar | Ejecuta el control enfocado; sobre una ranura, la acción principal |
+| Escape, botón de cancelar | Cierra la confirmación y después el expediente |
+
+Al abrirlo, la ranura activa queda seleccionada y con el foco. Lo desactivado no acepta el foco,
+el foco no sale de una confirmación abierta y vuelve a donde estaba al cerrarla. Las acciones
+confirmadas quedan ligadas a la ranura que nombraba el mensaje. El mando usa las acciones `ui_*`
+de Godot, sin tocar el mapa de controles del juego.
 
 ## Carga y restauración
 
-1. El menú llama a `SaveSystem.request_load(ranura)`, que lee y valida el archivo. Si falla, el
-   menú muestra el motivo y no cambia nada.
-2. La partida validada queda pendiente y se abre `scenes/main/game.tscn`. Desde la pausa se vuelve
-   a crear la escena; si había progreso sin guardar, antes se pide confirmación.
-3. `Game._ready`, con todos sus nodos ya listos:
-   1. registra la sección `player`;
-   2. recoge la partida con `take_pending_load()`;
-   3. aplica las secciones: estado, calendario y posición pendiente;
-   4. construye el escenario guardado, que coloca al detective en la entrada;
-   5. aplica la posición y orientación guardadas, que así no se pierden;
-   6. actualiza la interfaz y abre la sesión con `begin_session`;
-   7. hace el fundido y comprueba las escenas de entrada, que no se repiten si sus marcas ya están.
+1. El expediente llama a `SaveSystem.request_load(ranura)`, que valida el archivo; si falla, lo
+   explica y no cambia nada.
+2. La partida queda pendiente y se abre `scenes/main/game.tscn`. Desde la pausa se vuelve a crear
+   la escena; si había progreso sin guardar, antes se pide confirmación.
+3. `Game._ready`, con todos sus nodos listos: registra la sección `player` y la cámara, recoge la
+   partida, aplica las secciones, construye el escenario guardado, coloca al detective donde
+   estaba, actualiza la interfaz y abre la sesión con `begin_session`, que convierte la ranura en
+   la activa.
 
-**Continuar** carga la ranura válida más reciente, manual o automática (`find_latest_slot`).
+## Indicador
+
+`SaveIndicator` muestra un reloj de bolsillo en la esquina inferior derecha: «Guardando…», luego
+«Partida guardada» o «Error al guardar» con el motivo, y el origen («Ranura 2», «Autoguardado ·
+ranura 2», «Al salir · ranura 2»). Sólo confirma cuando `SaveSystem` lo hace, hay una única
+instancia y queda por debajo de los diálogos modales.
 
 ## Señales y API
 
-Señales de `SaveSystem`:
-
-| Señal | Cuándo |
+| Señal de `SaveSystem` | Cuándo |
 | --- | --- |
 | `save_started(slot_id)` | Empieza una escritura |
-| `save_finished(slot_id, ok, message)` | Termina una escritura; `message` explica el fallo |
-| `slot_deleted(slot_id)` | Se eliminó una ranura |
-| `slots_changed` | Cambió el contenido de alguna ranura |
-
-`SaveSlotsMenu` emite `closed` y `load_ready(slot_id)`; quien lo abrió decide el cambio de escena.
+| `save_finished(slot_id, ok, message)` | Termina; `message` explica el fallo |
+| `slot_deleted(slot_id)`, `slots_changed` | Cambia el contenido de las ranuras |
+| `active_slot_changed(slot_id)` | Cambia la ranura activa (`""` si no hay) |
 
 | Función | Uso |
 | --- | --- |
-| `save_to_slot(id, motivo)` | Empieza a guardar; devuelve `{ok, error}` y el resultado llega con `save_finished` |
-| `autosave(motivo)` | Guarda ya en la ranura automática que toca |
-| `request_autosave(motivo, punto_de_control)` | Pide un autoguardado según la política |
-| `read_slot(id)`, `get_slot_info(id)`, `list_slots(tipo)` | Leer sin aplicar |
+| `save_to_slot(id)` | Guardado manual; la ranura pasa a ser la activa si sale bien |
+| `autosave(motivo)`, `request_autosave(motivo, punto_de_control)` | Autoguardado en la ranura activa |
+| `save_for_exit()` | Guardado al salir (corrutina); devuelve el estado |
+| `get_active_slot()`, `check_active_slot()`, `get_continue_slot()` | Ranura activa |
+| `read_slot(id)`, `get_slot_info(id)`, `list_slots()`, `get_slot_preview(id)` | Leer sin aplicar |
 | `request_load(id)`, `take_pending_load()`, `apply_sections(secciones)` | Cargar |
-| `delete_slot(id)` | Eliminar |
-| `find_latest_slot()` | Partida para «Continuar» |
+| `delete_slot(id)` | Eliminar la partida y su imagen |
 | `get_save_blocker()`, `has_unsaved_progress()`, `is_busy()` | Estado actual |
-| `begin_session(dueño)`, `end_session(dueño)` | Los llama la escena de juego |
+| `begin_session(dueño, documento)`, `end_session(dueño)` | Los llama la escena de juego |
+
+`ExitManager.request_exit(Target.QUIT | Target.MAIN_MENU)` es la única entrada para salir.
+`SaveSlotsMenu` emite `closed` y `load_ready(slot_id)`.
 
 ## Cómo ampliarlo
 
-**Una variable narrativa nueva** (una decisión, una escena vista, un objetivo): usa una marca. Los
-diálogos, eventos y deducciones ya las ponen desde `data/` con `"effects": {"flags": [...]}`, y
-`GameState.flags` se guarda entero. No hace falta tocar el código del guardado.
+**Una variable narrativa nueva** (una decisión, una escena vista, un objetivo): usa una marca
+desde `data/` con `"effects": {"flags": [...]}`. `GameState.flags` se guarda entero; no hace
+falta tocar el guardado.
 
 **Un sistema con estado propio**, por ejemplo un inventario con cantidades:
 
 1. Dale `to_dict()` y `from_dict(data)`, y haz que `from_dict({})` deje el estado inicial.
-2. Regístralo: un autoload declarado después de `SaveSystem` lo hace en su `_ready`, y un nodo de
-   escena, en su `_ready`, retirándolo en `_exit_tree` con `unregister_section(clave, self)`.
+2. Regístralo con `register_section`: un autoload declarado después de `SaveSystem` en su
+   `_ready`; un nodo de escena en su `_ready`, retirándolo en `_exit_tree` con
+   `unregister_section(clave, self)`.
 3. Si sus datos pueden invalidar una partida, añade sus comprobaciones en `SaveFormat.validate`.
-4. Si no cuenta como avance de la partida, añade su clave a `SaveSystem.NON_PROGRESS_SECTIONS`.
+4. Si no cuenta como avance, añade su clave a `SaveSystem.NON_PROGRESS_SECTIONS`.
 5. Añade una prueba de ida y vuelta en `tests/unit/test_save_slots.gd`.
 
-**Cambiar la estructura de una sección existente:** sube `SaveFormat.VERSION` y añade en
-`_migrate` el paso que convierte la versión anterior. Las partidas antiguas se seguirán cargando.
+**Cambiar la estructura de una sección:** sube `SaveFormat.VERSION` y añade el paso en
+`_migrate`.
 
-**Un punto de autoguardado nuevo:** llama a `SaveSystem.request_autosave("motivo")`, o con
-`true` si debe guardarse sin esperar la separación mínima, y añade el texto del motivo a
-`SaveSlotsMenu.REASON_LABELS`.
+**Un punto de autoguardado nuevo:** llama a `SaveSystem.request_autosave("motivo")`, con `true`
+si debe guardarse sin esperar la separación mínima.
 
 ## Limitaciones conocidas
 
-- **Cerrar la ventana no guarda.** Se conserva el último guardado; se pierde lo hecho desde el
-  último autoguardado. «Guardar y volver al menú» sí guarda.
-- **No se guarda a mitad de una conversación.** El autoguardado espera a que termine.
-- **Los personajes no conservan su posición exacta:** reaparecen donde marca su rutina para esa
-  hora, que es como funcionaba ya al cambiar de lugar.
-- **La partida importada de la versión 1** no tiene tiempo jugado: se muestra «sin registrar», y el
-  que se acumule después no incluye el anterior. Si las cinco ranuras manuales están ocupadas, la
-  importación espera a que quede una libre.
-- **Las partidas de una versión más reciente** se muestran como incompatibles y no se cargan.
-- **Las ranuras no tienen nombre propio:** se identifican por número, lugar y fecha.
-- **El corte durante una escritura** se ha probado simulando los archivos que quedarían, no matando
-  el proceso.
+- **No se ha generado un `.exe`**: faltan las plantillas de exportación. La X y Alt + F4 se
+  probaron con el juego ejecutándose en el motor del editor, con ventana real.
+- **Cierres forzados**: ver [Cerrar el juego](#cerrar-el-juego-x-alt--f4-y-botones-de-salida).
+- **Sin ranura activa no hay autoguardado**: una partida nueva no se guarda sola hasta que el
+  jugador elige ranura; se le avisa en el juego, en la pausa y al salir.
+- **A media conversación** se guarda el estado previo a ella, no el de ese instante.
+- **Los personajes** reaparecen donde marca su rutina para esa hora, no en su posición exacta.
+- **Partidas importadas**: la de la versión 1 no tiene tiempo jugado («sin registrar»); ninguna
+  importada tiene imagen hasta que se vuelve a guardar en su ranura.
+- **Tipografía**: se usan fuentes del sistema (Georgia, con alternativas); en otro equipo el
+  aspecto puede variar ligeramente.
 
 ## Pruebas
 
-`tools/verificar.ps1` ejecuta todas las pruebas y, además, guarda en un proceso de Godot y carga
-en otro nuevo (`tests/persistencia/reinicio.tscn`), como al cerrar y volver a abrir el juego.
-
-| Archivo | Cubre |
-| --- | --- |
-| `test_save_format` | Escritura atómica, recuperación desde la copia, archivos rotos, versiones, tipos, referencias, migración |
-| `test_save_slots` | Restauración completa, posición, tiempo jugado, independencia, sobrescritura, borrado, rotación, «Continuar», operaciones simultáneas, bloqueos, identificadores inválidos, importación, partida nueva limpia |
-| `test_autosave` | Agrupación, descarte sin avance, espera a escenas y paneles, separación mínima, punto de control, caso cerrado, cambio de lugar real |
-| `test_save_indicator` | Aparición, confirmación sólo tras éxito, fallo real de escritura, reinicio de la animación, instancia única |
-| `test_save_menus` | Guardar, sobrescribir, eliminar y cargar desde la pausa y el menú principal; aviso de progreso sin guardar; ranuras vacías y dañadas |
-| `test_save` | Ida y vuelta del caso, archivos dañados e incompatibles, reanudación, «Continuar» |
-| `persistencia/reinicio` | Guardar, cerrar el proceso, abrir otro y cargar desde el menú principal |
-
-La prueba de reinicio se validó con una mutación: cambiar una pista en el archivo guardado entre
-las dos fases la hace fallar.
-
-Los menús y el indicador también se revisaron con capturas:
-
 ```powershell
-godot --path . --resolution 1280x720 res://tests/visual/captura.tscn -- --out=C:/ruta/img.png --open=save
+powershell -File tools\verificar.ps1              # sin ventana
+powershell -File tools\verificar.ps1 -ConVentana  # además, imágenes y cierre real de la ventana
 ```
 
-Valores de `--open`: `save` y `saving`/`saved` en partida, y `load` junto con `--menu`.
+| Prueba | Cubre |
+| --- | --- |
+| `test_save_format` | Escritura atómica de texto y bytes, recuperación, validación, versiones, migración, referencias de imagen |
+| `test_save_slots` | Restauración completa, independencia, sobrescritura, borrado, autoguardado sólo en la activa, ranura cambiada por fuera, importaciones, partida nueva limpia |
+| `test_active_slot` | Ranura activa al guardar, cargar, reiniciar, eliminar y empezar de nuevo; «Continuar» |
+| `test_autosave` | Agrupación, descarte sin avance, momentos seguros, separación, punto de control, sin ranura activa |
+| `test_exit` | X y Alt + F4 (petición de cierre), salida sin ranura, fallo de escritura, peticiones repetidas, conversación en curso |
+| `test_save_menus` | Guardar, sobrescribir, cancelar, eliminar y cargar desde la pausa y el menú principal |
+| `test_save_navigation` | Teclado, mando, doble clic, foco y confirmaciones |
+| `test_save_indicator` | Indicador: éxito, fallo real, instancia única |
+| `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro |
+| `visual/vista_previa` (ventana) | La imagen es la escena guardada y no incluye la pausa |
+| `tools/probar_cierre.ps1` (ventana) | Cerrar con WM_CLOSE (X) o con Alt + F4 enviado a la ventana: guarda en la activa y no toca otra ranura |
