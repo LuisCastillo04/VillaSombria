@@ -131,16 +131,13 @@ func test_hovering_highlights_a_single_option() -> void:
 
 func test_panels_take_the_focus_and_give_it_back() -> void:
 	var options: Control = menu.get_node("%Menu")
-	var settings: SettingsPanel = menu.get_node("%SettingsPanel")
+	var settings: SettingsMenu = menu.get_node("%SettingsMenu")
 	_option("Settings").grab_focus()
 	_option("Settings").pressed.emit()
-	check(settings.visible and not options.visible, "Configuración ocupa el lugar de las opciones")
+	check(settings.is_open() and not options.is_visible_in_tree(), "Configuración se abre en lugar de las opciones")
 	check(_focus_owner() != null and settings.is_ancestor_of(_focus_owner()), "y recibe el foco")
-	var cancel := InputEventAction.new()
-	cancel.action = "ui_cancel"
-	cancel.pressed = true
-	menu._input(cancel)
-	check(options.visible and not settings.visible, "Escape vuelve a las opciones")
+	_navigate("ui_cancel")
+	check(options.is_visible_in_tree() and not settings.is_open(), "Escape vuelve a las opciones")
 	check(_focus_owner() == _option("Settings"), "con el foco en «Configuración»")
 	_option("Credits").pressed.emit()
 	check((menu.get_node("%CreditsPanel") as Control).visible, "los créditos se abren")

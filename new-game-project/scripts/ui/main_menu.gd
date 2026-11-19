@@ -36,15 +36,16 @@ const SUBTITLE_GOLD := Color("d3b679")
 @onready var _settings_button: MenuOptionButton = %Settings
 @onready var _credits_button: MenuOptionButton = %Credits
 @onready var _quit: MenuOptionButton = %Quit
-@onready var _settings: SettingsPanel = %SettingsPanel
+@onready var _settings: SettingsMenu = %SettingsMenu
 @onready var _credits: VBoxContainer = %CreditsPanel
 @onready var _credits_text: RichTextLabel = %CreditsText
 @onready var _credits_close: MenuOptionButton = %CreditsClose
 @onready var _slots: SaveSlotsMenu = %SaveSlotsMenu
 @onready var _fade: ScreenFade = $ScreenFade
 
-## Opción que abrió el panel o el expediente visibles: recupera el foco al volver.
+## Opción que abrió el panel o la pantalla visibles: recupera el foco al volver.
 var _return_focus: Control
+var _layout_tween: Tween
 
 
 func _ready() -> void:
@@ -57,7 +58,7 @@ func _ready() -> void:
 	_new_game.pressed.connect(_on_new_game)
 	_continue.pressed.connect(_on_continue)
 	_load.pressed.connect(_open_load_menu)
-	_settings_button.pressed.connect(_show_panel.bind(_settings, _settings_button))
+	_settings_button.pressed.connect(_open_settings)
 	_credits_button.pressed.connect(_show_panel.bind(_credits, _credits_button))
 	_quit.pressed.connect(_on_quit)
 	_credits_close.pressed.connect(_show_menu)
@@ -81,6 +82,9 @@ func _input(event: InputEvent) -> void:
 	if _slots.visible:
 		get_viewport().set_input_as_handled()
 		_slots.cancel()
+	elif _settings.is_open():
+		# La configuración gestiona su propio Escape y vuelve aquí.
+		return
 	elif not _menu.visible:
 		get_viewport().set_input_as_handled()
 		_show_menu()
@@ -133,18 +137,36 @@ func _show_panel(panel: Control, opener: Control) -> void:
 		first.grab_focus()
 
 
+## La configuración se abre encima de la plaza, en lugar del título y las opciones.
+func _open_settings() -> void:
+	AudioManager.play("click")
+	_return_focus = _settings_button
+	_layout.hide()
+	_settings.open()
+
+
 func _show_menu() -> void:
-	_settings.hide()
 	_credits.hide()
 	_slots.hide()
-	_layout.show()
 	_menu.show()
+	if not _layout.visible:
+		_fade_in_layout()
 	_refresh_continue()
 	var target := _return_focus
 	_return_focus = null
 	if target == null or target.focus_mode == Control.FOCUS_NONE or not target.is_visible_in_tree():
 		target = _new_game
 	target.grab_focus()
+
+
+## Al volver de otra pantalla, el título y las opciones aparecen con un fundido.
+func _fade_in_layout() -> void:
+	_layout.show()
+	_layout.modulate.a = 0.0
+	if _layout_tween != null:
+		_layout_tween.kill()
+	_layout_tween = create_tween()
+	_layout_tween.tween_property(_layout, "modulate:a", 1.0, MenuScreen.FADE_SECONDS)
 
 
 ## «Continuar» retoma la ranura activa de la última sesión o, si ya no es válida, la más reciente.

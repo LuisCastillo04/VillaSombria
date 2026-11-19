@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/world/post_fx.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/save_slots_menu.tscn" id="5"]
 [ext_resource type="Script" path="res://scripts/ui/menu_frame.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/ui/menu_option_button.gd" id="7"]
@@ -172,11 +172,6 @@ text = "Salir"
 icon = ExtResource("15")
 script = ExtResource("7")
 
-[node name="SettingsPanel" parent="Ui/Root/Layout/Frame" instance=ExtResource("4")]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-
 [node name="CreditsPanel" type="VBoxContainer" parent="Ui/Root/Layout/Frame"]
 unique_name_in_owner = true
 visible = false
@@ -197,6 +192,12 @@ layout_mode = 2
 text = "Volver"
 icon = ExtResource("16")
 script = ExtResource("7")
+
+[node name="SettingsMenu" parent="Ui/Root" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+backdrop_dim = 0.45
 
 [node name="SaveSlotsMenu" parent="Ui/Root" instance=ExtResource("5")]
 unique_name_in_owner = true
