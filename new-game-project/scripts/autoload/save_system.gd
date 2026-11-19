@@ -480,7 +480,8 @@ func _on_write_done(error: Error) -> void:
 		_last_save_msec = Time.get_ticks_msec()
 		save_finished.emit(slot_id, true, "")
 	else:
-		push_error("No se pudo guardar la partida en %s: %s" % [slot_id, error_string(error)])
+		# El jugador ya recibe el aviso: en la consola basta una advertencia.
+		push_warning("No se pudo guardar la partida en %s: %s" % [slot_id, error_string(error)])
 		save_finished.emit(slot_id, false, "No se pudo escribir el archivo (%s)." % error_string(error))
 	slots_changed.emit()
 

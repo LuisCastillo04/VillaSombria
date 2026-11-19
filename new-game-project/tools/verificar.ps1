@@ -35,6 +35,11 @@ Invoke-Paso 'Arranque de la escena principal' @('--headless', '--path', $proyect
 if (-not $SinPruebas -and (Test-Path (Join-Path $proyecto 'tests\test_runner.tscn'))) {
     Invoke-Paso 'Pruebas automatizadas' @('--headless', '--path', $proyecto, 'res://tests/test_runner.tscn')
 }
+# Guarda en un proceso y carga en otro nuevo, como al cerrar y volver a abrir el juego.
+if (-not $SinPruebas -and (Test-Path (Join-Path $proyecto 'tests\persistencia\reinicio.tscn'))) {
+    Invoke-Paso 'Reinicio: guardar partida' @('--headless', '--path', $proyecto, 'res://tests/persistencia/reinicio.tscn', '--', '--fase=guardar')
+    Invoke-Paso 'Reinicio: cargar en un proceso nuevo' @('--headless', '--path', $proyecto, 'res://tests/persistencia/reinicio.tscn', '--', '--fase=comprobar')
+}
 
 if ($fallos -gt 0) { Write-Host "RESUMEN: $fallos paso(s) con fallos"; exit 1 }
 Write-Host 'RESUMEN: todo correcto'
