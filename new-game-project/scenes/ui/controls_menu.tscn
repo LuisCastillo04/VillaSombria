@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/category_menu.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/controls_menu.gd" id="2"]
+
+[node name="ControlsMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+title = "CONTROLES"
+emblem_icon = "mando"
+panel_size = Vector2(1080, 650)
