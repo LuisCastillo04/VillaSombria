@@ -34,10 +34,7 @@ var _retry_after_failure := false
 func _ready() -> void:
 	# Sin esto Godot cerraría la ventana sin dar ocasión de guardar.
 	get_tree().auto_accept_quit = false
-	_root.theme = UiTheme.get_theme()
-	_title.add_theme_font_override("font", UiTheme.serif())
-	_title.add_theme_font_size_override("font_size", 30)
-	_title.add_theme_color_override("font_color", UiTheme.STAMP)
+	_build_look()
 	_root.hide()
 	_slots.hide()
 	_primary.pressed.connect(_on_primary_pressed)
@@ -89,6 +86,21 @@ func is_dialog_open() -> bool:
 	return _root.visible
 
 
+## La pregunta de salida usa la misma ficha de pergamino que las confirmaciones del
+## expediente.
+func _build_look() -> void:
+	var card := CaseFileStyle.box(CaseFileStyle.PARCHMENT_LIGHT, CaseFileStyle.BURGUNDY, 3, 10, 34.0)
+	card.shadow_color = Color(0, 0, 0, 0.55)
+	card.shadow_size = 18
+	_dialog.add_theme_stylebox_override("panel", card)
+	CaseFileStyle.style_label(_title, CaseFileStyle.serif_bold(), 32, CaseFileStyle.BURGUNDY)
+	CaseFileStyle.style_label(_message, CaseFileStyle.serif(), 24, CaseFileStyle.INK)
+	_message.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	for button: Button in [_primary, _leave, _cancel]:
+		CaseFileStyle.apply_wood_button(button, 24)
+		button.custom_minimum_size = Vector2(250, 64)
+
+
 func _ask(title: String, message: String, primary_label: String, retry: bool) -> void:
 	_retry_after_failure = retry
 	_title.text = title
@@ -103,6 +115,12 @@ func _ask(title: String, message: String, primary_label: String, retry: bool) ->
 	_dialog.show()
 	_slots.hide()
 	_cancel.grab_focus()
+	_dialog.pivot_offset = _dialog.size * 0.5
+	_dialog.scale = Vector2(0.96, 0.96)
+	_dialog.modulate.a = 0.0
+	var tween := create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(_dialog, "modulate:a", 1.0, 0.18)
+	tween.tween_property(_dialog, "scale", Vector2.ONE, 0.22)
 
 
 func _on_primary_pressed() -> void:

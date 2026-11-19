@@ -35,38 +35,37 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Dialog" type="PanelContainer" parent="Root/Center"]
-custom_minimum_size = Vector2(760, 0)
+custom_minimum_size = Vector2(880, 0)
 layout_mode = 2
 
 [node name="Box" type="VBoxContainer" parent="Root/Center/Dialog"]
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 22
 
 [node name="Title" type="Label" parent="Root/Center/Dialog/Box"]
 layout_mode = 2
 horizontal_alignment = 1
 
 [node name="Message" type="Label" parent="Root/Center/Dialog/Box"]
+custom_minimum_size = Vector2(800, 0)
 layout_mode = 2
 autowrap_mode = 3
 
 [node name="Buttons" type="HBoxContainer" parent="Root/Center/Dialog/Box"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 20
+alignment = 1
 
 [node name="Primary" type="Button" parent="Root/Center/Dialog/Box/Buttons"]
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Elegir ranura"
 
 [node name="Leave" type="Button" parent="Root/Center/Dialog/Box/Buttons"]
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Salir sin guardar"
 
 [node name="Cancel" type="Button" parent="Root/Center/Dialog/Box/Buttons"]
 layout_mode = 2
-size_flags_horizontal = 3
 text = "Cancelar"
 
 [node name="SaveSlotsMenu" parent="Root" instance=ExtResource("2")]

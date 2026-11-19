@@ -123,6 +123,13 @@ func set_busy(busy: bool) -> void:
 		_saved.text = "Guardando…"
 
 
+## Destello breve sobre la fila recién guardada, como la tinta de un sello fresco.
+func flash() -> void:
+	modulate = Color(1.18, 1.1, 0.95)
+	var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(self, "modulate", Color.WHITE, 0.6)
+
+
 func _show_placeholder(texture: Texture2D, background: Color, tint: Color) -> void:
 	_picture.texture = null
 	_picture.hide()

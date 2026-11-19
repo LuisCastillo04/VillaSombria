@@ -17,6 +17,7 @@ var is_open := false
 @onready var _controls_button: Button = $Root/Center/Panel/Box/Controls
 @onready var _quit: Button = $Root/Center/Panel/Box/Quit
 @onready var _status: Label = $Root/Center/Panel/Box/Status
+@onready var _slot_info: Label = $Root/Center/Panel/Box/SlotInfo
 @onready var _panel: PanelContainer = $Root/Center/Panel
 @onready var _settings: SettingsPanel = $Root/Center/SettingsPanel
 @onready var _slots: SaveSlotsMenu = $Root/SaveSlotsMenu
@@ -42,6 +43,7 @@ func _ready() -> void:
 func open() -> void:
 	is_open = true
 	_status.text = ""
+	_refresh_slot_info()
 	_panel.show()
 	_settings.hide()
 	_slots.hide()
@@ -89,7 +91,19 @@ func _on_load_pressed() -> void:
 	_slots.open(SaveSlotsMenu.Mode.LOAD)
 
 
+## Recuerda en qué ranura guardan los autoguardados, o que todavía no hay ninguna.
+func _refresh_slot_info() -> void:
+	var active := SaveSystem.get_active_slot()
+	if active.is_empty():
+		_slot_info.text = "Autoguardado en espera: guarda en una ranura para activarlo."
+		_slot_info.add_theme_color_override("font_color", UiTheme.STAMP)
+	else:
+		_slot_info.text = "Ranura activa: %02d · los autoguardados van a ella" % SaveSystem.get_slot_number(active)
+		_slot_info.add_theme_color_override("font_color", UiTheme.INK_SOFT)
+
+
 func _on_slots_closed() -> void:
+	_refresh_slot_info()
 	_panel.show()
 	(_load if _slots.mode == SaveSlotsMenu.Mode.LOAD else _save).grab_focus()
 

@@ -492,6 +492,13 @@ func _ask(title: String, text: String, accept_label: String, action: Callable) -
 	_confirm.show()
 	_update_buttons()
 	_cancel.grab_focus()
+	var card: Control = $Confirm/Center/Card
+	card.pivot_offset = card.size * 0.5
+	card.scale = Vector2(0.96, 0.96)
+	card.modulate.a = 0.0
+	var tween := create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(card, "modulate:a", 1.0, 0.16)
+	tween.tween_property(card, "scale", Vector2.ONE, 0.2)
 
 
 func _on_confirm_accepted() -> void:
@@ -529,9 +536,10 @@ func _on_save_finished(slot_id: String, ok: bool, message: String) -> void:
 		return
 	_saving_slot = ""
 	if ok:
-		_set_status("Partida guardada en %s." % slot_name(slot_id))
+		_set_status("Partida guardada en %s. Los autoguardados seguirán en ella." % slot_name(slot_id))
+		(_rows[slot_id] as SaveSlotRow).flash()
 	else:
-		_set_status("No se pudo guardar: %s" % message, true)
+		_set_status("Error al guardar: %s" % message, true)
 
 
 func _on_slots_changed() -> void:

@@ -70,6 +70,7 @@ var _writing_slot := ""
 var _writing_digest := ""
 var _writing_save_id := ""
 var _writing_kind := ""
+var _writing_reason := ""
 var _write_task := -1
 var _active_slot := ""
 var _active_save_id := ""
@@ -197,6 +198,11 @@ func is_busy() -> bool:
 ## Origen de la escritura en curso: "manual" o "auto" (autoguardado o guardado al salir).
 func get_writing_kind() -> String:
 	return _writing_kind if is_busy() else ""
+
+
+## Motivo de la escritura en curso, como "manual", "pista" o "salida".
+func get_writing_reason() -> String:
+	return _writing_reason if is_busy() else ""
 
 
 ## Motivo por el que ahora no se puede guardar, o una cadena vacía si se puede. Al salir
@@ -648,6 +654,7 @@ func _begin_write(slot_id: String, kind: String, reason: String, sections: Dicti
 	_writing_digest = _digest_of(document["sections"])
 	_writing_save_id = meta["save_id"]
 	_writing_kind = kind
+	_writing_reason = reason
 	save_started.emit(slot_id)
 	_capture_and_write(slot_id, document)
 	return {"ok": true, "error": ""}

@@ -83,7 +83,7 @@ func _on_save_finished(slot_id: String, ok: bool, message: String) -> void:
 	if ok:
 		_show_result(State.SAVED, "Partida guardada", _detail.text, saved_seconds)
 	else:
-		_show_result(State.FAILED, "No se pudo guardar", message, failed_seconds)
+		_show_result(State.FAILED, "Error al guardar", message, failed_seconds)
 
 
 func _show_result(new_state: State, title: String, detail: String, hold_seconds: float) -> void:
@@ -114,6 +114,8 @@ func _restart_tween() -> void:
 
 func _describe(slot_id: String) -> String:
 	var slot_text := "Ranura %d" % SaveSystem.get_slot_number(slot_id)
+	if SaveSystem.get_writing_reason() == "salida":
+		return "Al salir · " + slot_text.to_lower()
 	if SaveSystem.get_writing_kind() == "auto":
 		return "Autoguardado · " + slot_text.to_lower()
 	return slot_text
