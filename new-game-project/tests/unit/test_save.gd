@@ -51,9 +51,10 @@ func test_round_trip_preserves_the_whole_case() -> void:
 
 
 func test_loaded_clues_are_not_duplicated_or_renotified() -> void:
+	GameState.location_id = "plaza"
 	Investigation.discover_clue("foto_clara")
-	SaveSystem.save_game()
-	SaveSystem.load_game()
+	check(SaveSystem.save_game(), "se guarda")
+	check(SaveSystem.load_game(), "se carga")
 	check(not Investigation.discover_clue("foto_clara"), "tras cargar la pista sigue registrada")
 	check_equal(GameState.clues.count("foto_clara"), 1, "sin duplicados")
 
@@ -77,6 +78,7 @@ func test_incompatible_version_is_rejected() -> void:
 
 
 func test_description_for_menu() -> void:
+	GameState.location_id = "plaza"
 	GameClock.day = 3
 	GameClock.minutes = 9 * 60 + 5
 	SaveSystem.save_game()
@@ -149,6 +151,7 @@ func test_menu_offers_continue_only_with_a_save() -> void:
 	check(empty_menu.get_node("Ui/Root/Layout/Menu/Continue").disabled, "sin partida, Continuar está desactivado")
 	empty_menu.queue_free()
 	await get_tree().process_frame
+	GameState.location_id = "plaza"
 	GameClock.day = 2
 	SaveSystem.save_game()
 	var menu := scene.instantiate()
