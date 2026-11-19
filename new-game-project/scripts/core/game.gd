@@ -15,6 +15,8 @@ static var play_intro := true
 var current_location: LocationBase
 var _changing := false
 var _rain: RainEffect
+## Posición leída de la partida, pendiente hasta que el escenario esté construido.
+var _saved_pose: Dictionary = {}
 
 @onready var _world_root: Node3D = $WorldRoot
 @onready var _fade: ScreenFade = $ScreenFade
@@ -34,15 +36,29 @@ func _ready() -> void:
 	EventBus.location_change_requested.connect(go_to)
 	EventBus.rest_requested.connect(_on_rest_requested)
 	EventBus.story_action.connect(_on_story_action)
-	if SaveSystem.load_requested and SaveSystem.load_game():
-		SaveSystem.load_requested = false
-		_load_location(GameState.location_id, GameState.spawn_id)
-		_notify_state()
-		await _fade.fade_in()
-		StoryDirector.on_location_entered(GameState.location_id)
-	else:
-		SaveSystem.load_requested = false
+	SaveSystem.register_section("player", _capture_player, _restore_player)
+	SaveSystem.register_preview_source(_preview_source)
+	var snapshot := SaveSystem.take_pending_load()
+	if snapshot.is_empty():
 		_start_new_game()
+		return
+	SaveSystem.apply_sections(snapshot["sections"])
+	_load_location(GameState.location_id, GameState.spawn_id)
+	_apply_saved_pose()
+	_notify_state()
+	SaveSystem.begin_session(self, snapshot)
+	await _fade.fade_in()
+	StoryDirector.on_location_entered(GameState.location_id)
+
+
+func _exit_tree() -> void:
+	SaveSystem.end_session(self)
+	SaveSystem.unregister_section("player", self)
+	SaveSystem.unregister_preview_source(self)
+
+
+func _process(delta: float) -> void:
+	GameState.play_seconds += delta
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -76,7 +92,6 @@ func go_to(location_id: String, spawn_id: String) -> void:
 	await _fade.fade_in()
 	GameState.unlock_player("transicion")
 	_changing = false
-	SaveSystem.autosave()
 	StoryDirector.on_location_entered(location_id)
 
 
@@ -85,9 +100,40 @@ func _start_new_game() -> void:
 	GameClock.reset()
 	_load_location(NEW_GAME_LOCATION, NEW_GAME_SPAWN)
 	_notify_state()
+	SaveSystem.begin_session(self)
 	await _fade.fade_in()
 	if play_intro:
 		DialogueManager.play_scene("intro")
+
+
+## Posición exacta del detective, para reanudar donde se guardó y no en la entrada.
+func _capture_player() -> Dictionary:
+	var where := player.global_position
+	return {
+		"location_id": GameState.location_id,
+		"position": [where.x, where.y, where.z],
+		"yaw": player.model.rotation.y,
+	}
+
+
+func _restore_player(data: Dictionary) -> void:
+	_saved_pose = data
+
+
+## Cámara y niebla actuales, para que la imagen de cada guardado sea la escena real.
+func _preview_source() -> Dictionary:
+	return {"camera": camera.camera, "fog": _post_fx.get_fog_amount()}
+
+
+## Se aplica después de construir el escenario, que coloca al detective en la entrada.
+func _apply_saved_pose() -> void:
+	var pose := _saved_pose
+	_saved_pose = {}
+	if pose.get("location_id", "") != GameState.location_id or not pose.has("position"):
+		return
+	var where: Array = pose["position"]
+	player.teleport(Vector3(float(where[0]), float(where[1]), float(where[2])), float(pose.get("yaw", 0.0)))
+	camera.snap()
 
 
 ## La interfaz se crea antes de que el estado esté listo: aquí se pone al día.
@@ -158,6 +204,5 @@ func _on_rest_requested() -> void:
 	await _fade.fade_in(0.8)
 	GameState.unlock_player("transicion")
 	_changing = false
-	SaveSystem.autosave()
 	if rested:
 		DialogueManager.play_scene("dia_%d" % GameClock.day)

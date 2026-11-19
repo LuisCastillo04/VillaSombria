@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/world/post_fx.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="3"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/save_slots_menu.tscn" id="5"]
 
 [sub_resource type="Gradient" id="shade_gradient"]
 offsets = PackedFloat32Array(0, 0.62, 1)
@@ -80,6 +81,10 @@ text = "Nueva partida"
 layout_mode = 2
 text = "Continuar partida"
 
+[node name="Load" type="Button" parent="Ui/Root/Layout/Menu"]
+layout_mode = 2
+text = "Cargar partida"
+
 [node name="Settings" type="Button" parent="Ui/Root/Layout/Menu"]
 layout_mode = 2
 text = "Configuración"
@@ -112,5 +117,9 @@ bbcode_enabled = true
 [node name="Close" type="Button" parent="Ui/Root/Layout/CreditsPanel/Box"]
 layout_mode = 2
 text = "Volver"
+
+[node name="SaveSlotsMenu" parent="Ui/Root" instance=ExtResource("5")]
+visible = false
+layout_mode = 1
 
 [node name="ScreenFade" parent="." instance=ExtResource("3")]

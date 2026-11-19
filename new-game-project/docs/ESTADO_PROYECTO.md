@@ -29,6 +29,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | 8. Escenarios adicionales | Hecha | Capturas y pruebas de alcance con colisiones reales |
 | 9. Historia jugable | Hecha | Recorrido automático completo del caso |
 | 10. Pulido e interfaces | Hecha | Pruebas y capturas; audio sin escuchar |
+| Sistema de guardado | Hecho | Pruebas, reinicio en dos procesos, cierre real de la ventana y capturas; ver [GUARDADO.md](GUARDADO.md) |
 
 Diferencias con el encargo:
 
@@ -39,9 +40,12 @@ Diferencias con el encargo:
 
 ## Pruebas
 
-`tools/verificar.ps1` importa el proyecto, arranca la escena principal y ejecuta las pruebas.
+`tools/verificar.ps1` importa el proyecto, arranca la escena principal, ejecuta las pruebas y
+guarda una partida en un proceso de Godot para cargarla en otro nuevo. Con `-ConVentana` además
+comprueba las imágenes de las ranuras y cierra la ventana real con la X y con Alt + F4.
 
-Último resultado: 82 pruebas correctas, 0 fallos.
+Último resultado: 168 pruebas correctas, 0 fallos; el reinicio, las imágenes y los dos cierres
+de la ventana, correctos.
 
 | Archivo | Cubre |
 | --- | --- |
@@ -54,7 +58,18 @@ Diferencias con el encargo:
 | `test_board` | Tablero y acusación manejados por su interfaz |
 | `test_story` | El caso completo, de la llegada al epílogo |
 | `test_integration` | Rutas reales, puertas, cama y conversación con entradas de teclado |
-| `test_save` | Guardado, archivos corruptos, pausa, menú, volumen |
+| `test_save` | Guardado y carga básicos, archivos dañados, pausa, menú, volumen |
+| `test_save_format` | Escritura atómica, recuperación, validación, versiones y migración |
+| `test_save_slots` | Ranuras, restauración completa, autoguardado sólo en la activa, bloqueos, importaciones, partida nueva limpia |
+| `test_active_slot` | Ranura activa al guardar, cargar, reiniciar, eliminar y empezar de nuevo |
+| `test_exit` | X, Alt + F4 y botones de salida: guardar antes de salir, sin ranura, fallos, repeticiones |
+| `test_save_navigation` | Teclado, mando, doble clic y foco del expediente |
+| `test_autosave` | Política de autoguardado: agrupación, momentos seguros, separación, puntos de control |
+| `test_save_indicator` | Indicador de guardado: aparición, éxito, fallo real e instancia única |
+| `test_save_menus` | Guardar, sobrescribir, eliminar y cargar desde la pausa y el menú principal |
+| `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
+| `persistencia/cierre` | Con ventana: cerrar con la X o Alt + F4 guarda en la ranura activa |
+| `visual/vista_previa` | Con ventana: la imagen de cada ranura es la escena guardada, sin la pausa |
 
 Las pruebas de alcance se validaron con una mutación: tapiar el cuarto de Lucía y quitar una
 pista hizo fallar las pruebas correspondientes.
@@ -70,6 +85,12 @@ arranca desde él sin errores en modo sin ventana.
   canales, no cómo suena.
 - **No se ha generado un `.exe`:** faltan las plantillas de exportación de Godot.
 - **La animación y las transiciones** se revisaron con capturas fijas, no en movimiento.
+- **El guardado y la carga no se han probado jugando a mano.** Las pruebas manejan los menús como
+  lo haría el jugador, el reinicio se probó en dos procesos y el cierre con ventana real, pero
+  falta jugar guardando, saliendo y cargando con ratón, teclado y mando, y ver en movimiento las
+  animaciones del expediente y del indicador.
+- **Alt + F4 en un `.exe`:** se probó con el juego ejecutándose en el motor del editor, enviando
+  la pulsación a su ventana; falta repetirlo con el ejecutable exportado.
 - **La tasa de fotogramas en primer plano.** Ver el apartado siguiente.
 
 ## Rendimiento
@@ -99,6 +120,9 @@ La plaza tiene unas 91 llamadas de dibujado y 134.000 primitivas por fotograma.
 - El editor de Godot no muestra la geometría de los escenarios: se genera al ejecutar.
 - Mientras el editor siga abierto desde antes de crear los autoloads, su analizador marca
   errores falsos. Se resuelve con **Proyecto > Recargar proyecto actual**.
+- En el equipo de desarrollo, el paso «Importación» de `verificar.ps1` aparece como fallido
+  porque la configuración del editor de Godot apunta a un `Code.exe` de otro usuario que no
+  existe. No depende del proyecto: los demás pasos se ejecutan y pasan.
 
 ## Recursos previstos
 
@@ -112,6 +136,7 @@ Ninguno.
 
 ## Siguiente tarea
 
-1. Jugar una partida completa y anotar qué resulta confuso o lento.
+1. Jugar una partida completa y anotar qué resulta confuso o lento, guardando, saliendo y
+   cargando desde la pausa y el menú principal.
 2. Ajustar la dificultad y el ritmo con esas notas.
 3. Instalar las plantillas de exportación y generar el `.exe`.

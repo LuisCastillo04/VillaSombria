@@ -1,0 +1,285 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/save_slots_menu.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/case_file_frame.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/ui/case_stamp.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/ui/title_flourish.gd" id="4"]
+[ext_resource type="Texture2D" path="res://assets/ui/mansion_grabado.svg" id="5"]
+
+[node name="SaveSlotsMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Dim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.02, 0.03, 0.45)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Sheet" type="Control" parent="Center"]
+custom_minimum_size = Vector2(1340, 960)
+layout_mode = 2
+
+[node name="PaperBack" type="Panel" parent="Center/Sheet"]
+layout_mode = 0
+offset_left = 46.0
+offset_top = 34.0
+offset_right = 1364.0
+offset_bottom = 968.0
+rotation = 0.012
+mouse_filter = 2
+
+[node name="PaperMiddle" type="Panel" parent="Center/Sheet"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = 1352.0
+offset_bottom = 962.0
+rotation = -0.006
+mouse_filter = 2
+
+[node name="Parchment" type="ColorRect" parent="Center/Sheet"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Mansion" type="TextureRect" parent="Center/Sheet"]
+modulate = Color(1, 1, 1, 0.9)
+layout_mode = 0
+offset_left = 38.0
+offset_top = 30.0
+offset_right = 338.0
+offset_bottom = 220.0
+mouse_filter = 2
+texture = ExtResource("5")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Stamp" type="Control" parent="Center/Sheet"]
+layout_mode = 0
+offset_left = 1132.0
+offset_top = 36.0
+offset_right = 1302.0
+offset_bottom = 206.0
+rotation = -0.14
+pivot_offset = Vector2(85, 85)
+mouse_filter = 2
+script = ExtResource("3")
+
+[node name="Frame" type="Control" parent="Center/Sheet"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2")
+
+[node name="Content" type="MarginContainer" parent="Center/Sheet"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 64
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 64
+theme_override_constants/margin_bottom = 44
+
+[node name="Box" type="VBoxContainer" parent="Center/Sheet/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="TitleRow" type="HBoxContainer" parent="Center/Sheet/Content/Box"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="FlourishLeft" type="Control" parent="Center/Sheet/Content/Box/TitleRow"]
+custom_minimum_size = Vector2(190, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("4")
+
+[node name="Title" type="Label" parent="Center/Sheet/Content/Box/TitleRow"]
+layout_mode = 2
+text = "CARGAR PARTIDA"
+horizontal_alignment = 1
+
+[node name="FlourishRight" type="Control" parent="Center/Sheet/Content/Box/TitleRow"]
+custom_minimum_size = Vector2(190, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("4")
+mirrored = true
+
+[node name="Subtitle" type="Label" parent="Center/Sheet/Content/Box"]
+layout_mode = 2
+text = "Elige una partida guardada para continuar con la investigación."
+horizontal_alignment = 1
+
+[node name="ActionRow" type="Control" parent="Center/Sheet/Content/Box"]
+custom_minimum_size = Vector2(0, 100)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="RuleTop" type="ColorRect" parent="Center/Sheet/Content/Box/ActionRow"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 210.0
+offset_top = 82.0
+offset_right = -210.0
+offset_bottom = 84.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.42, 0.29, 0.18, 0.6)
+
+[node name="RuleBottom" type="ColorRect" parent="Center/Sheet/Content/Box/ActionRow"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 150.0
+offset_top = 88.0
+offset_right = -150.0
+offset_bottom = 89.0
+grow_horizontal = 2
+mouse_filter = 2
+color = Color(0.42, 0.29, 0.18, 0.35)
+
+[node name="Action" type="Button" parent="Center/Sheet/Content/Box/ActionRow"]
+custom_minimum_size = Vector2(440, 76)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -220.0
+offset_top = -94.0
+offset_right = 220.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "Cargar"
+
+[node name="ListFrame" type="PanelContainer" parent="Center/Sheet/Content/Box"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Slots" type="VBoxContainer" parent="Center/Sheet/Content/Box/ListFrame"]
+layout_mode = 2
+theme_override_constants/separation = 9
+
+[node name="Status" type="Label" parent="Center/Sheet/Content/Box"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Center/Sheet/Content/Box"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 64
+alignment = 1
+
+[node name="Delete" type="Button" parent="Center/Sheet/Content/Box/Buttons"]
+custom_minimum_size = Vector2(380, 72)
+layout_mode = 2
+text = "Eliminar"
+
+[node name="Back" type="Button" parent="Center/Sheet/Content/Box/Buttons"]
+custom_minimum_size = Vector2(380, 72)
+layout_mode = 2
+text = "Volver"
+
+[node name="Confirm" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Shade" type="ColorRect" parent="Confirm"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.03, 0.02, 0.02, 0.5)
+
+[node name="Center" type="CenterContainer" parent="Confirm"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Card" type="PanelContainer" parent="Confirm/Center"]
+custom_minimum_size = Vector2(760, 0)
+layout_mode = 2
+
+[node name="Box" type="VBoxContainer" parent="Confirm/Center/Card"]
+layout_mode = 2
+theme_override_constants/separation = 22
+
+[node name="Title" type="Label" parent="Confirm/Center/Card/Box"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="Text" type="Label" parent="Confirm/Center/Card/Box"]
+custom_minimum_size = Vector2(680, 0)
+layout_mode = 2
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Buttons" type="HBoxContainer" parent="Confirm/Center/Card/Box"]
+layout_mode = 2
+theme_override_constants/separation = 34
+alignment = 1
+
+[node name="Accept" type="Button" parent="Confirm/Center/Card/Box/Buttons"]
+custom_minimum_size = Vector2(290, 66)
+layout_mode = 2
+text = "Aceptar"
+
+[node name="Cancel" type="Button" parent="Confirm/Center/Card/Box/Buttons"]
+custom_minimum_size = Vector2(290, 66)
+layout_mode = 2
+text = "Cancelar"

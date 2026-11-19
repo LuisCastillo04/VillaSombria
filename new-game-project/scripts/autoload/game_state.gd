@@ -13,6 +13,8 @@ var hypotheses: Dictionary = {}
 var location_id := ""
 var spawn_id := ""
 var accusation_attempts := 0
+## Tiempo real jugado en esta partida, sin contar la pausa ni los menús.
+var play_seconds := 0.0
 
 var _player_locks: Dictionary = {}
 
@@ -27,6 +29,7 @@ func reset() -> void:
 	location_id = ""
 	spawn_id = ""
 	accusation_attempts = 0
+	play_seconds = 0.0
 	clear_player_locks()
 
 
@@ -56,6 +59,12 @@ func is_player_locked() -> bool:
 	return not _player_locks.is_empty()
 
 
+func get_player_lock_reasons() -> Array[String]:
+	var reasons: Array[String] = []
+	reasons.assign(_player_locks.keys())
+	return reasons
+
+
 func clear_player_locks() -> void:
 	_player_locks.clear()
 
@@ -71,6 +80,7 @@ func to_dict() -> Dictionary:
 		"location_id": location_id,
 		"spawn_id": spawn_id,
 		"accusation_attempts": accusation_attempts,
+		"play_seconds": play_seconds,
 	}
 
 
@@ -87,3 +97,4 @@ func from_dict(data: Dictionary) -> void:
 	location_id = data.get("location_id", "")
 	spawn_id = data.get("spawn_id", "")
 	accusation_attempts = int(data.get("accusation_attempts", 0))
+	play_seconds = float(data.get("play_seconds", 0.0))

@@ -4,15 +4,17 @@ extends Node
 
 const UNIT_DIR := "res://tests/unit"
 const SCRIPT_ROOTS: Array[String] = ["res://scripts", "res://tests/unit"]
+const TEST_STORAGE := "user://pruebas_guardado/ranuras"
 
 var _passed := 0
 var _failed := 0
 
 
 func _ready() -> void:
-	# Las pruebas nunca deben tocar la partida guardada del jugador.
+	# Las pruebas nunca deben tocar las partidas guardadas del jugador.
 	SaveSystem.autosave_enabled = false
-	SaveSystem.save_path = "user://prueba_partida.json"
+	SaveSystem.use_storage(TEST_STORAGE)
+	TestCase.clear_save_storage()
 	_check_scripts_load()
 	var filter := ""
 	for argument in OS.get_cmdline_user_args():
@@ -22,7 +24,7 @@ func _ready() -> void:
 		var matches_filter := filter.is_empty() or file_name.contains(filter)
 		if file_name.begins_with("test_") and file_name.ends_with(".gd") and matches_filter:
 			await _run_file(UNIT_DIR.path_join(file_name))
-	SaveSystem.delete_save()
+	TestCase.clear_save_storage()
 	print("RESUMEN: %d correctas, %d con fallos" % [_passed, _failed])
 	# Una ejecución sin pruebas también es un fallo: no demuestra nada.
 	get_tree().quit(1 if _failed > 0 or _passed == 0 else 0)
