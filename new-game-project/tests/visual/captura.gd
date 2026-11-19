@@ -11,10 +11,11 @@ extends Node
 ##   --seed=todo           concede todas las pistas y testimonios
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
 ##   --open=clue:id | journal:n | board | accusation | pause | closed | save | load | confirm
-##                         | exit | saving | saved
+##                         | exit | saving | saved | settings:n | controls:n
+##                         (settings y controls se abren desde la pausa; n es la categoría)
 ##   --menu                captura el menú principal en lugar de la partida
 ##                         (con --open=load, la lista de partidas con ejemplos;
-##                         con --open=settings o --open=credits, esos paneles)
+##                         con --open=settings:n o --open=credits, esos paneles)
 ##   --focus=Nombre        en el menú, señala esa opción (NewGame, Continue, Load...)
 ##   --press=Nombre        en el menú, deja el ratón pulsado sobre esa opción
 ##   --sin-partidas        en el menú, vacía las ranuras de las capturas
@@ -79,12 +80,15 @@ func _capture_menu(args: Dictionary) -> void:
 	var menu := (load(MENU_SCENE) as PackedScene).instantiate()
 	add_child(menu)
 	await get_tree().process_frame
-	match opened:
+	var parts := opened.split(":")
+	match parts[0]:
 		"load":
 			(menu.get_node("%Load") as Button).pressed.emit()
 			(menu.get_node("%SaveSlotsMenu") as SaveSlotsMenu).select_slot("manual_1")
 		"settings":
 			(menu.get_node("%Settings") as Button).pressed.emit()
+			if parts.size() > 1:
+				(menu.get_node("%SettingsMenu") as CategoryMenu).select_category(int(parts[1]))
 		"credits":
 			(menu.get_node("%Credits") as Button).pressed.emit()
 	if args.has("focus"):
@@ -127,6 +131,16 @@ func _open_panel(game: Game, what: String) -> void:
 			game.get_node("AccusationUi").open()
 		"pause":
 			game.get_node("PauseMenu").open()
+		"settings", "controls":
+			# La pausa congelaría el fundido de entrada a medias.
+			await _wait_seconds(0.6)
+			var pause: PauseMenu = game.get_node("PauseMenu")
+			pause.open()
+			var button := "Settings" if parts[0] == "settings" else "Controls"
+			(pause.get_node("Root/Center/Panel/Box/" + button) as Button).pressed.emit()
+			if parts.size() > 1:
+				var screen: CategoryMenu = pause.get_node("Root/SettingsMenu" if parts[0] == "settings" else "Root/ControlsMenu")
+				screen.select_category(int(parts[1]))
 		"save":
 			await _seed_slots()
 			# La pausa congelaría el fundido de entrada a medias.
