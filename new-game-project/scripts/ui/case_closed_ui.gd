@@ -2,8 +2,6 @@ class_name CaseClosedUi
 extends CanvasLayer
 ## Pantalla de cierre del caso, con el balance de la investigación.
 
-const MAIN_MENU := "res://scenes/main/main_menu.tscn"
-
 var is_open := false
 
 @onready var _root: Control = $Root
@@ -59,5 +57,4 @@ func build_summary() -> String:
 
 func _on_menu_pressed() -> void:
 	AudioManager.play("click")
-	GameState.clear_player_locks()
-	get_tree().change_scene_to_file(MAIN_MENU)
+	ExitManager.request_exit(ExitManager.Target.MAIN_MENU)

@@ -45,6 +45,8 @@ const NON_PROGRESS_SECTIONS: Array[String] = ["player"]
 const NON_PROGRESS_STATE_KEYS: Array[String] = ["play_seconds"]
 ## Espera entre comprobaciones mientras el momento no es seguro para guardar.
 const AUTOSAVE_RETRY_SECONDS := 1.0
+## Al salir se espera a que termine una transición en curso, como mucho este tiempo.
+const EXIT_TRANSITION_WAIT := 3.0
 
 ## El guardado automático se puede desactivar durante las pruebas.
 var autosave_enabled := true
@@ -75,6 +77,9 @@ var _missing_slot_notified := false
 var _autosave_reason := ""
 var _autosave_checkpoint := false
 var _autosave_timer: Timer
+## Estado justo antes de la conversación en curso: lo que se guarda si se sale en mitad de
+## ella, porque a media conversación el estado puede estar a medio aplicar.
+var _pre_dialogue_sections: Dictionary = {}
 
 
 func _ready() -> void:
@@ -89,6 +94,7 @@ func _ready() -> void:
 	EventBus.deduction_made.connect(_on_deduction_made)
 	EventBus.flag_set.connect(_on_flag_set)
 	EventBus.day_changed.connect(_on_day_changed)
+	DialogueManager.opened.connect(_on_dialogue_opened)
 	DialogueManager.closed.connect(_on_dialogue_closed)
 
 
@@ -174,12 +180,16 @@ func get_writing_kind() -> String:
 	return _writing_kind if is_busy() else ""
 
 
-## Motivo por el que ahora no se puede guardar, o una cadena vacía si se puede.
-func get_save_blocker() -> String:
+## Motivo por el que ahora no se puede guardar, o una cadena vacía si se puede. Al salir
+## (`for_exit`) basta con que haya partida y no esté cerrada: las conversaciones se
+## resuelven con el estado previo y las transiciones se esperan.
+func get_save_blocker(for_exit: bool = false) -> String:
 	if not has_session():
 		return "No hay ninguna partida en curso."
 	if is_busy():
 		return "Ya se está guardando la partida."
+	if for_exit:
+		return "El caso ya está cerrado." if GameState.has_flag(CASE_CLOSED_FLAG) else ""
 	if DialogueManager.active:
 		return "Termina la conversación antes de guardar."
 	if GameState.has_flag(CASE_CLOSED_FLAG):
@@ -331,14 +341,47 @@ func has_any_save() -> bool:
 
 ## Guardado manual en la ranura que eligió el jugador, que pasa a ser la activa si la
 ## escritura termina bien. Devuelve {"ok": bool, "error": String} según se haya podido
-## iniciar; el resultado llega después con `save_finished`.
-func save_to_slot(slot_id: String) -> Dictionary:
+## iniciar; el resultado llega después con `save_finished`. Con `for_exit`, el jugador eligió
+## la ranura para poder salir, y valen las mismas reglas que en `save_for_exit`.
+func save_to_slot(slot_id: String, for_exit: bool = false) -> Dictionary:
 	if not is_valid_slot(slot_id):
 		return _refuse("Ranura desconocida.")
-	var blocker := get_save_blocker()
+	var blocker := get_save_blocker(for_exit)
 	if not blocker.is_empty():
 		return _refuse(blocker)
-	return _begin_write(slot_id, "manual", "manual", capture_sections())
+	var sections := _exit_sections() if for_exit else capture_sections()
+	return _begin_write(slot_id, "manual", "salida" if for_exit else "manual", sections)
+
+
+## Guardado al salir del juego o volver al menú, por el mismo flujo que los demás: escribe
+## en la ranura activa y espera el resultado. Antes espera a la escritura en curso y a que
+## termine una transición. Devuelve {"status": String, "message": String}, con estado
+## "saved", "nothing" (no hay nada que guardar), "no_slot" (hay que elegir ranura) o
+## "failed".
+func save_for_exit() -> Dictionary:
+	if not has_session() or GameState.has_flag(CASE_CLOSED_FLAG):
+		return {"status": "nothing", "message": ""}
+	_cancel_autosave()
+	while is_busy():
+		await save_finished
+	var waited := 0.0
+	while _is_in_transition() and waited < EXIT_TRANSITION_WAIT:
+		await get_tree().create_timer(0.1).timeout
+		waited += 0.1
+	if not has_active_slot():
+		if has_unsaved_progress():
+			return {"status": "no_slot", "message": "Esta partida todavía no se ha guardado en ninguna ranura."}
+		return {"status": "nothing", "message": ""}
+	var problem := check_active_slot()
+	if not problem.is_empty():
+		return {"status": "no_slot", "message": problem}
+	var started := _begin_write(_active_slot, "auto", "salida", _exit_sections())
+	if not started["ok"]:
+		return {"status": "failed", "message": started["error"]}
+	var outcome: Array = await save_finished
+	if outcome[1]:
+		return {"status": "saved", "message": ""}
+	return {"status": "failed", "message": outcome[2]}
 
 
 ## Guarda ya en la ranura activa, sin tocar ninguna otra. Si la partida no tiene ranura
@@ -557,6 +600,18 @@ func _begin_write(slot_id: String, kind: String, reason: String, sections: Dicti
 	return {"ok": true, "error": ""}
 
 
+## Estado que se guarda al salir: el actual o, en mitad de una conversación, el de justo
+## antes de empezarla.
+func _exit_sections() -> Dictionary:
+	if DialogueManager.active and not _pre_dialogue_sections.is_empty():
+		return _pre_dialogue_sections
+	return capture_sections()
+
+
+func _is_in_transition() -> bool:
+	return GameState.get_player_lock_reasons().has(TRANSITION_LOCK)
+
+
 func _write_in_background(path: String, text: String) -> void:
 	var error := SaveFile.write_atomic(path, text)
 	_on_write_done.call_deferred(error)
@@ -717,8 +772,13 @@ func _on_day_changed(_day: int) -> void:
 	request_autosave("nuevo_dia", true)
 
 
+func _on_dialogue_opened(_npc_id: String) -> void:
+	_pre_dialogue_sections = capture_sections().duplicate(true) if has_session() else {}
+
+
 ## Termina una escena narrativa (sin interlocutor) o un interrogatorio.
 func _on_dialogue_closed(npc_id: String) -> void:
+	_pre_dialogue_sections = {}
 	request_autosave("escena" if npc_id.is_empty() else "interrogatorio")
 
 

@@ -70,6 +70,8 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
+	if ExitManager.is_dialog_open():
+		return
 	if event.is_action_pressed("pause") and not _menu.visible:
 		get_viewport().set_input_as_handled()
 		if _slots.visible:
@@ -150,4 +152,5 @@ func _on_load_ready(_slot_id: String) -> void:
 
 
 func _on_quit() -> void:
-	get_tree().quit()
+	AudioManager.play("click")
+	ExitManager.request_exit(ExitManager.Target.QUIT)

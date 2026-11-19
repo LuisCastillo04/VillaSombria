@@ -105,15 +105,20 @@ func test_escape_closes_confirmation_then_menu() -> void:
 	check(pause.is_open, "sin cerrar la pausa")
 
 
-## Se prueba el paso de guardado sin el cambio de escena, que sustituiría al ejecutor.
+## La salida real se sustituye: cambiar de escena eliminaría al ejecutor de pruebas.
 func test_quit_to_menu_saves_automatically() -> void:
 	await save_and_wait("manual_2")
 	GameState.set_flag("progreso_antes_de_salir")
-	SaveSystem.autosave_enabled = true
 	pause.open()
-	var saved: bool = await pause._save_before_leaving()
-	SaveSystem.autosave_enabled = false
-	check(saved, "se guarda antes de salir")
+	var targets: Array = []
+	ExitManager.finish_override = func(target: int) -> void: targets.append(target)
+	(pause.get_node("Root/Center/Panel/Box/Quit") as Button).pressed.emit()
+	for frame in 120:
+		if not targets.is_empty():
+			break
+		await get_tree().process_frame
+	ExitManager.finish_override = Callable()
+	check_equal(targets, [ExitManager.Target.MAIN_MENU], "vuelve al menú tras guardar")
 	var latest := SaveSystem.find_latest_slot()
 	check_equal(latest, "manual_2", "en la ranura activa")
 	check_equal(SaveSystem.get_slot_info(latest)["summary"]["reason"], "salida", "con el motivo de salida")

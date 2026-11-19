@@ -35,6 +35,8 @@ const TAG_COLORS := {
 @export var list_height := 440.0
 
 var mode := Mode.SAVE
+## Guardado para poder salir del juego: valen las reglas de `SaveSystem.save_for_exit`.
+var for_exit := false
 ## Si no está vacío, se pide confirmación con este texto antes de cargar.
 var load_warning := ""
 
@@ -83,7 +85,7 @@ func open(new_mode: Mode = Mode.SAVE) -> void:
 	_hide_confirm()
 	show()
 	refresh()
-	_set_status(SaveSystem.get_save_blocker() if mode == Mode.SAVE else "", true)
+	_set_status(SaveSystem.get_save_blocker(for_exit) if mode == Mode.SAVE else "", true)
 	_focus_default()
 
 
@@ -266,7 +268,7 @@ func _update_buttons() -> void:
 	var locked := _confirm.visible or not _saving_slot.is_empty() or _loading
 	if mode == Mode.SAVE:
 		_action.text = "Sobrescribir" if occupied else "Guardar aquí"
-		_action.disabled = info.is_empty() or locked or not SaveSystem.get_save_blocker().is_empty()
+		_action.disabled = info.is_empty() or locked or not SaveSystem.get_save_blocker(for_exit).is_empty()
 	else:
 		_action.text = "Cargar"
 		_action.disabled = info.is_empty() or locked or info["status"] != SaveFormat.Status.OK
@@ -311,7 +313,7 @@ func _set_status(text: String, is_error: bool = false) -> void:
 
 func _on_row_pressed(slot_id: String) -> void:
 	_selected = slot_id
-	_set_status(SaveSystem.get_save_blocker() if mode == Mode.SAVE else "", true)
+	_set_status(SaveSystem.get_save_blocker(for_exit) if mode == Mode.SAVE else "", true)
 	_update_buttons()
 	if not _action.disabled:
 		_action.grab_focus()
@@ -351,7 +353,7 @@ func _on_back_pressed() -> void:
 
 func _save_selected() -> void:
 	var slot_id := _selected
-	var result := SaveSystem.save_to_slot(slot_id)
+	var result := SaveSystem.save_to_slot(slot_id, for_exit)
 	if not result["ok"]:
 		_set_status(result["error"], true)
 		return

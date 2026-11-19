@@ -30,6 +30,7 @@ DialogueManager="*res://scripts/autoload/dialogue_manager.gd"
 StoryDirector="*res://scripts/autoload/story_director.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
 SaveIndicator="*res://scenes/ui/save_indicator.tscn"
+ExitManager="*res://scenes/ui/exit_manager.tscn"
 Settings="*res://scripts/autoload/settings.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 
