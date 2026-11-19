@@ -98,6 +98,14 @@ func test_new_day_is_a_checkpoint() -> void:
 	check_equal(_last_reason(), "nuevo_dia", "motivo de punto de control")
 
 
+func test_closed_case_drops_pending_requests() -> void:
+	Investigation.discover_clue("reloj_despacho")
+	GameState.set_flag(SaveSystem.CASE_CLOSED_FLAG)
+	await _wait(0.3)
+	check(_finished.is_empty(), "con el caso cerrado no se guarda")
+	check(not SaveSystem.has_pending_autosave(), "ni queda una petición reintentándose")
+
+
 func test_ending_the_session_cancels_pending_requests() -> void:
 	Investigation.discover_clue("reloj_despacho")
 	SaveSystem.end_session(self)

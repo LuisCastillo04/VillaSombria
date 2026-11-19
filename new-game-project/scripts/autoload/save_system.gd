@@ -335,7 +335,7 @@ func autosave(reason: String) -> Dictionary:
 ## transición o un panel abierto se espera, y si la partida no ha avanzado desde el último
 ## guardado la petición se descarta. Una petición nunca se pierde por llegar en mal momento.
 func request_autosave(reason: String, checkpoint: bool = false) -> void:
-	if not autosave_enabled or not has_session():
+	if not autosave_enabled or not has_session() or GameState.has_flag(CASE_CLOSED_FLAG):
 		return
 	if checkpoint or not _autosave_checkpoint:
 		_autosave_reason = reason
@@ -497,7 +497,8 @@ func _wait_for_write() -> void:
 func _on_autosave_timer_timeout() -> void:
 	if _autosave_reason.is_empty():
 		return
-	if not autosave_enabled or not has_session():
+	# Con el caso cerrado ya no se guarda: esperar sería reintentar para siempre.
+	if not autosave_enabled or not has_session() or GameState.has_flag(CASE_CLOSED_FLAG):
 		_cancel_autosave()
 		return
 	if not _autosave_checkpoint:
