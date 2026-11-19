@@ -13,6 +13,7 @@ const REASON_LABELS := {
 	"deduccion": "deducción",
 	"escena": "escena",
 	"interrogatorio": "interrogatorio",
+	"evento": "evento",
 	"salida": "al salir",
 	"importada": "importada",
 }

@@ -5,6 +5,9 @@ extends Node
 ##
 ## La escritura se hace en un hilo secundario para no congelar el juego. Mientras dura, las
 ## demás escrituras se rechazan y el resultado llega con `save_finished`.
+##
+## Los autoguardados se piden con `request_autosave` desde los eventos de la partida; ver
+## esa función para la política que evita guardados redundantes o en momentos inseguros.
 
 signal save_started(slot_id: String)
 signal save_finished(slot_id: String, ok: bool, message: String)
@@ -23,9 +26,19 @@ const LEGACY_MARKER := ".importada_v1"
 const SAVE_SAFE_LOCKS: Array[String] = ["pausa"]
 const TRANSITION_LOCK := "transicion"
 const CASE_CLOSED_FLAG := "caso_resuelto"
+## Datos que cambian sin que la partida avance: no cuentan como progreso sin guardar.
+const NON_PROGRESS_SECTIONS: Array[String] = ["player"]
+const NON_PROGRESS_STATE_KEYS: Array[String] = ["play_seconds"]
+## Espera entre comprobaciones mientras el momento no es seguro para guardar.
+const AUTOSAVE_RETRY_SECONDS := 1.0
 
 ## El guardado automático se puede desactivar durante las pruebas.
 var autosave_enabled := true
+## Espera desde la última petición antes de escribir: agrupa las ráfagas de eventos.
+var autosave_delay := 1.5
+## Separación mínima entre un guardado y el siguiente autoguardado, salvo en los puntos de
+## control, que se guardan en cuanto el momento es seguro.
+var autosave_min_interval := 30.0
 
 var _storage_dir := DEFAULT_STORAGE
 var _legacy_path := DEFAULT_LEGACY_PATH
@@ -35,12 +48,29 @@ var _sections: Dictionary = {}
 var _session_owner: Object = null
 var _pending_load: Dictionary = {}
 var _writing_slot := ""
+var _writing_digest := ""
 var _write_task := -1
+## Huella del progreso tal como quedó en el último guardado o carga de la sesión.
+var _saved_digest := ""
+var _last_save_msec := 0
+var _autosave_reason := ""
+var _autosave_checkpoint := false
+var _autosave_timer: Timer
 
 
 func _ready() -> void:
 	register_section("state", GameState.to_dict, GameState.from_dict)
 	register_section("clock", GameClock.to_dict, GameClock.from_dict)
+	_autosave_timer = Timer.new()
+	_autosave_timer.one_shot = true
+	_autosave_timer.timeout.connect(_on_autosave_timer_timeout)
+	add_child(_autosave_timer)
+	EventBus.location_changed.connect(_on_location_changed)
+	EventBus.clue_discovered.connect(_on_clue_discovered)
+	EventBus.deduction_made.connect(_on_deduction_made)
+	EventBus.flag_set.connect(_on_flag_set)
+	EventBus.day_changed.connect(_on_day_changed)
+	DialogueManager.closed.connect(_on_dialogue_closed)
 
 
 ## Una escritura en curso debe terminar antes de cerrar el juego.
@@ -89,11 +119,20 @@ func apply_sections(sections: Dictionary) -> void:
 ## nueva o una cargada. Sin sesión no se puede guardar.
 func begin_session(session_owner: Object) -> void:
 	_session_owner = session_owner
+	_saved_digest = _progress_digest()
+	_last_save_msec = Time.get_ticks_msec()
+	_cancel_autosave()
 
 
 func end_session(session_owner: Object) -> void:
 	if _session_owner == session_owner:
 		_session_owner = null
+		_cancel_autosave()
+
+
+## Indica si la partida ha avanzado desde el último guardado o carga.
+func has_unsaved_progress() -> bool:
+	return has_session() and _progress_digest() != _saved_digest
 
 
 func has_session() -> bool:
@@ -276,17 +315,36 @@ func save_to_slot(slot_id: String, reason: String = "manual") -> Dictionary:
 		push_warning("Estado no guardable: %s" % problem["error"])
 		return _refuse("El estado actual de la partida no se puede guardar.")
 	_writing_slot = slot_id
+	_writing_digest = _digest_of(document["sections"])
 	save_started.emit(slot_id)
 	var text := SaveFormat.to_text(document)
 	_write_task = WorkerThreadPool.add_task(_write_in_background.bind(get_slot_path(slot_id), text), false, "Guardar partida")
 	return {"ok": true, "error": ""}
 
 
-## Guarda en la ranura automática que corresponde según la rotación.
+## Guarda ya en la ranura automática que corresponde según la rotación.
 func autosave(reason: String) -> Dictionary:
 	if not autosave_enabled:
 		return _refuse("El guardado automático está desactivado.")
 	return save_to_slot(next_autosave_slot(), reason)
+
+
+## Pide un autoguardado sin escribir enseguida. Las peticiones seguidas se agrupan durante
+## `autosave_delay`; después se respeta `autosave_min_interval` desde el último guardado,
+## salvo en un punto de control (`checkpoint`). Mientras haya una conversación, una
+## transición o un panel abierto se espera, y si la partida no ha avanzado desde el último
+## guardado la petición se descarta. Una petición nunca se pierde por llegar en mal momento.
+func request_autosave(reason: String, checkpoint: bool = false) -> void:
+	if not autosave_enabled or not has_session():
+		return
+	if checkpoint or not _autosave_checkpoint:
+		_autosave_reason = reason
+	_autosave_checkpoint = _autosave_checkpoint or checkpoint
+	_autosave_timer.start(maxf(autosave_delay, 0.01))
+
+
+func has_pending_autosave() -> bool:
+	return not _autosave_reason.is_empty()
 
 
 func delete_slot(slot_id: String) -> Dictionary:
@@ -418,6 +476,8 @@ func _on_write_done(error: Error) -> void:
 	var slot_id := _writing_slot
 	_writing_slot = ""
 	if error == OK:
+		_saved_digest = _writing_digest
+		_last_save_msec = Time.get_ticks_msec()
 		save_finished.emit(slot_id, true, "")
 	else:
 		push_error("No se pudo guardar la partida en %s: %s" % [slot_id, error_string(error)])
@@ -431,6 +491,75 @@ func _wait_for_write() -> void:
 		return
 	WorkerThreadPool.wait_for_task_completion(_write_task)
 	_write_task = -1
+
+
+func _on_autosave_timer_timeout() -> void:
+	if _autosave_reason.is_empty():
+		return
+	if not autosave_enabled or not has_session():
+		_cancel_autosave()
+		return
+	if not _autosave_checkpoint:
+		var remaining := autosave_min_interval - (Time.get_ticks_msec() - _last_save_msec) / 1000.0
+		if remaining > 0.0:
+			_autosave_timer.start(remaining)
+			return
+	if not get_save_blocker().is_empty():
+		_autosave_timer.start(AUTOSAVE_RETRY_SECONDS)
+		return
+	if not has_unsaved_progress():
+		_cancel_autosave()
+		return
+	var reason := _autosave_reason
+	_cancel_autosave()
+	autosave(reason)
+
+
+func _cancel_autosave() -> void:
+	_autosave_reason = ""
+	_autosave_checkpoint = false
+	if _autosave_timer != null:
+		_autosave_timer.stop()
+
+
+func _progress_digest() -> String:
+	return _digest_of(capture_sections())
+
+
+## Huella de unas secciones sin los datos que cambian sin que la partida avance.
+func _digest_of(sections: Dictionary) -> String:
+	var tracked := sections.duplicate(true)
+	for key in NON_PROGRESS_SECTIONS:
+		tracked.erase(key)
+	var state: Dictionary = tracked.get("state", {})
+	for key in NON_PROGRESS_STATE_KEYS:
+		state.erase(key)
+	return JSON.stringify(tracked, "", true).sha256_text()
+
+
+func _on_location_changed(_location_id: String) -> void:
+	request_autosave("lugar")
+
+
+func _on_clue_discovered(_clue_id: String) -> void:
+	request_autosave("pista")
+
+
+func _on_deduction_made(_deduction_id: String) -> void:
+	request_autosave("deduccion")
+
+
+func _on_flag_set(_flag: String) -> void:
+	request_autosave("evento")
+
+
+func _on_day_changed(_day: int) -> void:
+	request_autosave("nuevo_dia", true)
+
+
+## Termina una escena narrativa (sin interlocutor) o un interrogatorio.
+func _on_dialogue_closed(npc_id: String) -> void:
+	request_autosave("escena" if npc_id.is_empty() else "interrogatorio")
 
 
 func _kind_of(slot_id: String) -> String:

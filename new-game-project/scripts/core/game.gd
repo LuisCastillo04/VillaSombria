@@ -90,7 +90,6 @@ func go_to(location_id: String, spawn_id: String) -> void:
 	await _fade.fade_in()
 	GameState.unlock_player("transicion")
 	_changing = false
-	SaveSystem.autosave("lugar")
 	StoryDirector.on_location_entered(location_id)
 
 
@@ -198,6 +197,5 @@ func _on_rest_requested() -> void:
 	await _fade.fade_in(0.8)
 	GameState.unlock_player("transicion")
 	_changing = false
-	SaveSystem.autosave("nuevo_dia" if rested else "lugar")
 	if rested:
 		DialogueManager.play_scene("dia_%d" % GameClock.day)
