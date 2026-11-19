@@ -20,7 +20,8 @@ participación en diseño, programación, narrativa y dirección.
 - Tablero de deducción que comprueba relaciones reales entre pruebas y declaraciones.
 - Calendario de tres días con rutinas de personajes. Nada se pierde por llegar tarde.
 - Acusación final con motivo, oportunidad y medios. Equivocarse no termina la partida.
-- Guardado automático y manual.
+- Guardado manual en cinco ranuras y automático en otras tres, con carga desde el menú
+  principal o la pausa.
 
 ## Requisitos
 
@@ -74,7 +75,8 @@ Si el juego va a tirones, prueba a cambiar **Sincronización vertical** en Confi
 powershell -File new-game-project\tools\verificar.ps1
 ```
 
-El script importa el proyecto, arranca la escena principal y ejecuta las pruebas automatizadas.
+El script importa el proyecto, arranca la escena principal, ejecuta las pruebas automatizadas y
+comprueba que una partida guardada se recupera al volver a abrir el juego.
 Si Godot no está en la ruta de Steam por defecto, define antes la variable `GODOT_BIN`.
 
 ## Documentación
@@ -82,6 +84,7 @@ Si Godot no está en la ruta de Steam por defecto, define antes la variable `GOD
 - [Estado del proyecto](new-game-project/docs/ESTADO_PROYECTO.md)
 - [Plan de desarrollo](new-game-project/docs/PLAN_DESARROLLO.md)
 - [Arquitectura](new-game-project/docs/ARQUITECTURA.md)
+- [Guardado](new-game-project/docs/GUARDADO.md): partidas, ranuras, autoguardado y cómo ampliarlo
 - [Historia](new-game-project/docs/HISTORIA.md) (contiene la solución del caso)
 - [Recursos](new-game-project/docs/RECURSOS.md): origen y condiciones de los recursos
 
