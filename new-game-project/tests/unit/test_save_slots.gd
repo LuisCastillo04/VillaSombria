@@ -230,6 +230,29 @@ func test_version_one_save_is_imported_once() -> void:
 	check_equal(SaveSystem.get_slot_info("manual_1")["status"], SaveFormat.Status.EMPTY, "no se vuelve a importar")
 
 
+func test_previous_autosaves_are_imported_once() -> void:
+	_prepare_state(600)
+	await save_and_wait("manual_1")
+	var older: Dictionary = SaveSystem.read_slot("manual_1")["document"]
+	older["meta"]["kind"] = "auto"
+	older["meta"]["saved_at"] = 1000.0
+	var newer: Dictionary = older.duplicate(true)
+	newer["meta"]["saved_at"] = 2000.0
+	newer["sections"]["clock"]["minutes"] = 1234
+	var directory := SaveSystem.get_storage_dir()
+	for entry: Array in [["auto_1.json", older], ["auto_2.json", newer]]:
+		var file := FileAccess.open(directory.path_join(entry[0]), FileAccess.WRITE)
+		file.store_string(SaveFormat.to_text(entry[1]))
+		file.close()
+	SaveSystem.use_storage(directory)
+	check_equal(_minutes_in("manual_2"), 1234, "el autoguardado más reciente pasa a la primera ranura libre")
+	check_equal(SaveSystem.get_slot_info("manual_2")["summary"]["reason"], "importada", "marcado como importado")
+	check(FileAccess.file_exists(directory.path_join("auto_1.json")), "los archivos originales no se tocan")
+	SaveSystem.delete_slot("manual_2")
+	SaveSystem.use_storage(directory)
+	check_equal(SaveSystem.get_slot_info("manual_2")["status"], SaveFormat.Status.EMPTY, "no se vuelve a importar")
+
+
 func test_new_game_does_not_inherit_previous_state() -> void:
 	_prepare_state(1300, "reloj_despacho")
 	GameState.set_flag("ortega_briefing")

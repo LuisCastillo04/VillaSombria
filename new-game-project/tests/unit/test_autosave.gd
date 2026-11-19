@@ -100,6 +100,21 @@ func test_new_day_is_a_checkpoint() -> void:
 	check_equal(_last_reason(), "nuevo_dia", "motivo de punto de control")
 
 
+func test_without_active_slot_nothing_is_written_and_the_player_is_told() -> void:
+	SaveSystem.begin_session(self)
+	var notices: Array[String] = []
+	var on_notice := func(title: String, _body: String, _kind: String) -> void: notices.append(title)
+	EventBus.notification_requested.connect(on_notice)
+	Investigation.discover_clue("reloj_despacho")
+	await _wait(0.3)
+	Investigation.discover_clue("foto_clara")
+	await _wait(0.3)
+	EventBus.notification_requested.disconnect(on_notice)
+	check(_finished.is_empty(), "sin ranura activa no se escribe en ninguna")
+	check_equal(notices.count("Autoguardado en espera"), 1, "se pide elegir ranura una sola vez")
+	check_equal(SaveSystem.read_slot("manual_1")["document"]["sections"]["state"]["clues"], [], "la ranura anterior no se toca")
+
+
 func test_closed_case_drops_pending_requests() -> void:
 	Investigation.discover_clue("reloj_despacho")
 	GameState.set_flag(SaveSystem.CASE_CLOSED_FLAG)

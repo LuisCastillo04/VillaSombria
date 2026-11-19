@@ -70,6 +70,29 @@ func test_remove_deletes_every_trace() -> void:
 	check(not SaveFile.exists(PATH), "no queda nada")
 
 
+func test_binary_files_are_written_atomically() -> void:
+	var data := PackedByteArray([0, 255, 13, 10, 42])
+	check_equal(SaveFile.write_atomic_bytes(PATH, data), OK, "se escriben bytes")
+	check_equal(FileAccess.get_file_as_bytes(PATH), data, "sin alterar ninguno")
+	check_equal(SaveFile.sha256_hex(data).length(), 64, "con una huella SHA-256")
+	check(SaveFile.sha256_hex(data) != SaveFile.sha256_hex(PackedByteArray([0, 255])), "distinta para datos distintos")
+
+
+func test_preview_references_are_validated() -> void:
+	var document := _valid_document()
+	document["meta"]["preview"] = {"file": "manual_1.jpg", "sha256": "a".repeat(64)}
+	check(_parse(document)["document"]["meta"].has("preview"), "una referencia correcta se conserva")
+	for bad: Variant in [
+		{"file": "../ajustes.cfg", "sha256": "a".repeat(64)},
+		{"file": "manual_1.jpg", "sha256": "corta"},
+		"manual_1.jpg",
+	]:
+		document["meta"]["preview"] = bad
+		var result := _parse(document)
+		check_equal(result["status"], SaveFormat.Status.OK, "la partida sigue siendo válida")
+		check(not result["document"]["meta"].has("preview"), "y la referencia dudosa se descarta: %s" % str(bad))
+
+
 func test_missing_file_reports_not_found() -> void:
 	check_equal(SaveFile.read_text(PATH)["error"], ERR_FILE_NOT_FOUND, "sin archivo")
 

@@ -10,7 +10,8 @@ extends Node
 ##   --day=N --time=HH:MM  fija el calendario
 ##   --seed=todo           concede todas las pistas y testimonios
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
-##   --open=clue:id | journal:n | board | accusation | pause | closed | save | saving | saved
+##   --open=clue:id | journal:n | board | accusation | pause | closed | save | load | confirm
+##                         | exit | saving | saved
 ##   --menu                captura el menú principal en lugar de la partida
 ##                         (con --open=load, la lista de partidas con ejemplos)
 ##   --intro               reproduce la introducción narrativa
@@ -96,6 +97,22 @@ func _open_panel(game: Game, what: String) -> void:
 			(pause.get_node("Root/Center/Panel/Box/Save") as Button).pressed.emit()
 			var slots: SaveSlotsMenu = pause.get_node("Root/SaveSlotsMenu")
 			slots.select_slot("manual_1")
+		"load", "confirm":
+			await _seed_slots()
+			await _wait_seconds(0.6)
+			var pause: PauseMenu = game.get_node("PauseMenu")
+			pause.open()
+			var button := "Load" if what == "load" else "Save"
+			(pause.get_node("Root/Center/Panel/Box/" + button) as Button).pressed.emit()
+			var slots: SaveSlotsMenu = pause.get_node("Root/SaveSlotsMenu")
+			slots.select_slot("manual_2")
+			if what == "confirm":
+				slots.get_action_button().pressed.emit()
+		"exit":
+			await _wait_seconds(0.6)
+			GameState.set_flag("captura_sin_ranura")
+			ExitManager.finish_override = func(_target: int) -> void: pass
+			ExitManager.request_exit(ExitManager.Target.QUIT)
 		"saving":
 			SaveIndicator.min_saving_seconds = 30.0
 			SaveSystem.save_to_slot("manual_1")
