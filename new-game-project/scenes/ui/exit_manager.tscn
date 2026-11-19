@@ -69,7 +69,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Cancelar"
 
-[node name="SaveSlotsMenu" parent="Root/Center" instance=ExtResource("2")]
+[node name="SaveSlotsMenu" parent="Root" instance=ExtResource("2")]
 visible = false
-layout_mode = 2
-list_height = 540.0
+layout_mode = 1

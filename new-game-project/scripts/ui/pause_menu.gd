@@ -19,7 +19,7 @@ var is_open := false
 @onready var _status: Label = $Root/Center/Panel/Box/Status
 @onready var _panel: PanelContainer = $Root/Center/Panel
 @onready var _settings: SettingsPanel = $Root/Center/SettingsPanel
-@onready var _slots: SaveSlotsMenu = $Root/Center/SaveSlotsMenu
+@onready var _slots: SaveSlotsMenu = $Root/SaveSlotsMenu
 
 
 func _ready() -> void:

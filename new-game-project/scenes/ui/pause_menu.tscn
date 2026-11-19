@@ -79,7 +79,6 @@ autowrap_mode = 3
 visible = false
 layout_mode = 2
 
-[node name="SaveSlotsMenu" parent="Root/Center" instance=ExtResource("3")]
+[node name="SaveSlotsMenu" parent="Root" instance=ExtResource("3")]
 visible = false
-layout_mode = 2
-list_height = 540.0
+layout_mode = 1

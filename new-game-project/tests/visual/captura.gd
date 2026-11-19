@@ -33,7 +33,7 @@ func _ready() -> void:
 		if with_slots:
 			await get_tree().process_frame
 			(menu.get_node("Ui/Root/Layout/Menu/Load") as Button).pressed.emit()
-			(menu.get_node("Ui/Root/Layout/SaveSlotsMenu") as SaveSlotsMenu).select_slot("manual_1")
+			(menu.get_node("Ui/Root/SaveSlotsMenu") as SaveSlotsMenu).select_slot("manual_1")
 		await _save_frame(args.get("out", "user://menu.png"), int(args.get("frames", "120")))
 		get_tree().quit()
 		return
@@ -94,7 +94,7 @@ func _open_panel(game: Game, what: String) -> void:
 			var pause: PauseMenu = game.get_node("PauseMenu")
 			pause.open()
 			(pause.get_node("Root/Center/Panel/Box/Save") as Button).pressed.emit()
-			var slots: SaveSlotsMenu = pause.get_node("Root/Center/SaveSlotsMenu")
+			var slots: SaveSlotsMenu = pause.get_node("Root/SaveSlotsMenu")
 			slots.select_slot("manual_1")
 		"saving":
 			SaveIndicator.min_saving_seconds = 30.0

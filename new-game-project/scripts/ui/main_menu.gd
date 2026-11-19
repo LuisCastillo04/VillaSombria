@@ -23,6 +23,7 @@ El juego no incluye recursos de terceros."""
 @onready var _camera: Camera3D = $Backdrop/Camera3D
 @onready var _post_fx: PostFx = $PostFx
 @onready var _root: Control = $Ui/Root
+@onready var _layout: VBoxContainer = $Ui/Root/Layout
 @onready var _title: Label = $Ui/Root/Layout/Title
 @onready var _subtitle: Label = $Ui/Root/Layout/Subtitle
 @onready var _menu: VBoxContainer = $Ui/Root/Layout/Menu
@@ -36,7 +37,7 @@ El juego no incluye recursos de terceros."""
 @onready var _credits: PanelContainer = $Ui/Root/Layout/CreditsPanel
 @onready var _credits_text: RichTextLabel = $Ui/Root/Layout/CreditsPanel/Box/Text
 @onready var _credits_close: Button = $Ui/Root/Layout/CreditsPanel/Box/Close
-@onready var _slots: SaveSlotsMenu = $Ui/Root/Layout/SaveSlotsMenu
+@onready var _slots: SaveSlotsMenu = $Ui/Root/SaveSlotsMenu
 @onready var _fade: ScreenFade = $ScreenFade
 
 
@@ -72,12 +73,14 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if ExitManager.is_dialog_open():
 		return
-	if event.is_action_pressed("pause") and not _menu.visible:
+	if not event.is_action_pressed("pause"):
+		return
+	if _slots.visible:
 		get_viewport().set_input_as_handled()
-		if _slots.visible:
-			_slots.cancel()
-		else:
-			_show_menu()
+		_slots.cancel()
+	elif not _menu.visible:
+		get_viewport().set_input_as_handled()
+		_show_menu()
 
 
 func _build_backdrop() -> void:
@@ -106,6 +109,7 @@ func _show_menu() -> void:
 	_settings.hide()
 	_credits.hide()
 	_slots.hide()
+	_layout.show()
 	_menu.show()
 	_refresh_continue()
 	_new_game.grab_focus()
@@ -123,7 +127,7 @@ func _refresh_continue() -> void:
 
 func _open_load_menu() -> void:
 	AudioManager.play("click")
-	_menu.hide()
+	_layout.hide()
 	_slots.load_warning = ""
 	_slots.open(SaveSlotsMenu.Mode.LOAD)
 

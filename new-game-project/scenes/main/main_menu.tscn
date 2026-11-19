@@ -101,13 +101,6 @@ text = "Salir"
 visible = false
 layout_mode = 2
 
-[node name="SaveSlotsMenu" parent="Ui/Root/Layout" instance=ExtResource("5")]
-visible = false
-custom_minimum_size = Vector2(700, 0)
-layout_mode = 2
-size_flags_vertical = 3
-list_height = 300.0
-
 [node name="CreditsPanel" type="PanelContainer" parent="Ui/Root/Layout"]
 visible = false
 layout_mode = 2
@@ -124,5 +117,9 @@ bbcode_enabled = true
 [node name="Close" type="Button" parent="Ui/Root/Layout/CreditsPanel/Box"]
 layout_mode = 2
 text = "Volver"
+
+[node name="SaveSlotsMenu" parent="Ui/Root" instance=ExtResource("5")]
+visible = false
+layout_mode = 1
 
 [node name="ScreenFade" parent="." instance=ExtResource("3")]

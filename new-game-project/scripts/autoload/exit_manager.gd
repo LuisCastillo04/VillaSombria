@@ -28,7 +28,7 @@ var _retry_after_failure := false
 @onready var _primary: Button = $Root/Center/Dialog/Box/Buttons/Primary
 @onready var _leave: Button = $Root/Center/Dialog/Box/Buttons/Leave
 @onready var _cancel: Button = $Root/Center/Dialog/Box/Buttons/Cancel
-@onready var _slots: SaveSlotsMenu = $Root/Center/SaveSlotsMenu
+@onready var _slots: SaveSlotsMenu = $Root/SaveSlotsMenu
 
 
 func _ready() -> void:
@@ -99,6 +99,7 @@ func _ask(title: String, message: String, primary_label: String, retry: bool) ->
 		_paused_before = get_tree().paused
 		get_tree().paused = true
 	_root.show()
+	$Root/Dim.show()
 	_dialog.show()
 	_slots.hide()
 	_cancel.grab_focus()
@@ -113,6 +114,7 @@ func _on_primary_pressed() -> void:
 		return
 	_choosing_slot = true
 	_dialog.hide()
+	$Root/Dim.hide()
 	_slots.for_exit = true
 	_slots.open(SaveSlotsMenu.Mode.SAVE)
 
@@ -134,6 +136,7 @@ func _on_slots_closed() -> void:
 		return
 	_choosing_slot = false
 	_slots.for_exit = false
+	$Root/Dim.show()
 	_dialog.show()
 	_primary.grab_focus()
 
