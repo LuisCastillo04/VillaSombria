@@ -13,7 +13,11 @@ extends Node
 ##   --open=clue:id | journal:n | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved
 ##   --menu                captura el menú principal en lugar de la partida
-##                         (con --open=load, la lista de partidas con ejemplos)
+##                         (con --open=load, la lista de partidas con ejemplos;
+##                         con --open=settings o --open=credits, esos paneles)
+##   --focus=Nombre        en el menú, señala esa opción (NewGame, Continue, Load...)
+##   --press=Nombre        en el menú, deja el ratón pulsado sobre esa opción
+##   --sin-partidas        en el menú, vacía las ranuras de las capturas
 ##   --intro               reproduce la introducción narrativa
 ##   --stats               mide fotogramas por segundo y llamadas de dibujado
 
@@ -26,16 +30,7 @@ func _ready() -> void:
 	SaveSystem.autosave_enabled = false
 	SaveSystem.use_storage("user://pruebas_guardado/capturas")
 	if args.has("menu"):
-		var with_slots: bool = args.get("open", "") == "load"
-		if with_slots:
-			await _seed_slots()
-		var menu := (load(MENU_SCENE) as PackedScene).instantiate()
-		add_child(menu)
-		if with_slots:
-			await get_tree().process_frame
-			(menu.get_node("Ui/Root/Layout/Menu/Load") as Button).pressed.emit()
-			(menu.get_node("Ui/Root/SaveSlotsMenu") as SaveSlotsMenu).select_slot("manual_1")
-		await _save_frame(args.get("out", "user://menu.png"), int(args.get("frames", "120")))
+		await _capture_menu(args)
 		get_tree().quit()
 		return
 	Game.play_intro = args.has("intro")
@@ -73,6 +68,50 @@ func _ready() -> void:
 			await _open_panel(game, args["open"])
 		await _save_frame(out, frames)
 	get_tree().quit()
+
+
+func _capture_menu(args: Dictionary) -> void:
+	var opened: String = args.get("open", "")
+	if opened == "load":
+		await _seed_slots()
+	elif args.has("sin-partidas"):
+		_remove_slots()
+	var menu := (load(MENU_SCENE) as PackedScene).instantiate()
+	add_child(menu)
+	await get_tree().process_frame
+	match opened:
+		"load":
+			(menu.get_node("%Load") as Button).pressed.emit()
+			(menu.get_node("%SaveSlotsMenu") as SaveSlotsMenu).select_slot("manual_1")
+		"settings":
+			(menu.get_node("%Settings") as Button).pressed.emit()
+		"credits":
+			(menu.get_node("%Credits") as Button).pressed.emit()
+	if args.has("focus"):
+		(menu.get_node("%" + args["focus"]) as Control).grab_focus()
+	if args.has("press"):
+		_hold_mouse_on(menu.get_node("%" + args["press"]) as Control)
+	await _save_frame(args.get("out", "user://menu.png"), int(args.get("frames", "120")))
+
+
+## Lleva el ratón al centro del control y deja el botón izquierdo pulsado, como a mitad de un clic.
+func _hold_mouse_on(control: Control) -> void:
+	var center := control.get_global_rect().get_center()
+	var motion := InputEventMouseMotion.new()
+	motion.position = center
+	motion.global_position = center
+	get_viewport().push_input(motion, true)
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	click.position = center
+	click.global_position = center
+	get_viewport().push_input(click, true)
+
+
+func _remove_slots() -> void:
+	for slot_id: String in SaveSystem.get_slots():
+		SaveFile.remove(SaveSystem.get_slot_path(slot_id))
 
 
 func _open_panel(game: Game, what: String) -> void:
@@ -136,8 +175,7 @@ func _seed_slots() -> void:
 		for clue_id: String in ["reloj_despacho", "lista_invitados", "carta_valdes"]:
 			Investigation.discover_clue(clue_id)
 		SaveSystem.begin_session(self)
-	for slot_id: String in SaveSystem.get_slots():
-		SaveFile.remove(SaveSystem.get_slot_path(slot_id))
+	_remove_slots()
 	for slot_id: String in ["manual_1", "manual_2"]:
 		if SaveSystem.save_to_slot(slot_id)["ok"]:
 			await SaveSystem.save_finished
