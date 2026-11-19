@@ -31,6 +31,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | 10. Pulido e interfaces | Hecha | Pruebas y capturas; audio sin escuchar |
 | Sistema de guardado | Hecho | Pruebas, reinicio en dos procesos, cierre real de la ventana y capturas; ver [GUARDADO.md](GUARDADO.md) |
 | Rediseño del menú principal | Hecho | Pruebas de navegación y capturas a 1280×720, 1920×1080, 2560×1080 y 1024×768 |
+| Rediseño de pausa, configuración y controles | Hecho | Pruebas de navegación, ajustes e InputMap; capturas a 1920×1080, 1600×900 y 1280×720 |
 
 Diferencias con el encargo:
 
@@ -45,7 +46,7 @@ Diferencias con el encargo:
 guarda una partida en un proceso de Godot para cargarla en otro nuevo. Con `-ConVentana` además
 comprueba las imágenes de las ranuras y cierra la ventana real con la X y con Alt + F4.
 
-Último resultado: 176 pruebas correctas, 0 fallos; el reinicio, las imágenes y los dos cierres
+Último resultado: 186 pruebas correctas, 0 fallos; el reinicio, las imágenes y los dos cierres
 de la ventana, correctos.
 
 | Archivo | Cubre |
@@ -69,6 +70,7 @@ de la ventana, correctos.
 | `test_save_indicator` | Indicador de guardado: aparición, éxito, fallo real e instancia única |
 | `test_save_menus` | Guardar, sobrescribir, eliminar y cargar desde la pausa y el menú principal |
 | `test_main_menu` | Plaza en marcha detrás del menú, orden e iconos de las opciones, «Continuar» según las partidas, navegación con teclado, mando y ratón, foco de los paneles |
+| `test_pause_menus` | Pausa sobre el escenario, ranura activa real, Escape por niveles, volumen y gráficos reales, teclas del InputMap, opciones previstas inertes, pestañas con teclado |
 | `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
 | `persistencia/cierre` | Con ventana: cerrar con la X o Alt + F4 guarda en la ranura activa |
 | `visual/vista_previa` | Con ventana: la imagen de cada ranura es la escena guardada, sin la pausa |
@@ -87,9 +89,11 @@ arranca desde él sin errores en modo sin ventana.
   canales, no cómo suena.
 - **No se ha generado un `.exe`:** faltan las plantillas de exportación de Godot.
 - **La animación y las transiciones** se revisaron con capturas fijas, no en movimiento.
-- **El menú principal con un mando real y el ratón a mano.** Las pruebas envían las mismas
-  acciones (`ui_up`, `ui_down`, `ui_cancel`) y movimientos de ratón por código, y el resaltado
-  animado de las opciones se revisó con capturas fijas.
+- **Los menús con un mando real y el ratón a mano.** Las pruebas envían las mismas acciones
+  (`ui_up`, `ui_down`, `ui_left`, `ui_right`, `ui_cancel`) y movimientos de ratón por código, y
+  los fundidos y el resaltado animado se revisaron con capturas fijas.
+- **Pantalla completa desde Configuración** no se ha conmutado en las pruebas: sin ventana el
+  ajuste no se aplica. El interruptor llama al mismo `Settings.set_fullscreen` de antes.
 - **El guardado y la carga no se han probado jugando a mano.** Las pruebas manejan los menús como
   lo haría el jugador, el reinicio se probó en dos procesos y el cierre con ventana real, pero
   falta jugar guardando, saliendo y cargando con ratón, teclado y mando, y ver en movimiento las

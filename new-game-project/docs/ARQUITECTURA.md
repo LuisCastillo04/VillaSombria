@@ -19,7 +19,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `data/` | Historia y reglas en JSON |
 | `assets/siluetas/` | Siluetas SVG de los interrogatorios |
 | `assets/shaders/` | Empedrado, brillo, contraluz, postproceso y pergamino |
-| `assets/ui/` | Grabado de la mansión, silueta del pueblo e iconos SVG del menú principal y del expediente de partidas |
+| `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús y del expediente, perilla de volumen e interruptor |
 | `scenes/main/` | Menú principal y escena de juego |
 | `scenes/actors/` | Detective y NPC |
 | `scenes/world/locations/` | Los cinco escenarios y el campo de pruebas |
@@ -62,6 +62,10 @@ pergamino con icono que se resalta en burdeos al señalarla con el ratón, el te
 Los dos se dibujan en código con la paleta y las tipografías de `CaseFileStyle`, y los botones
 reutilizan el shader de pergamino del expediente. «Continuar» muestra el día y la hora de la
 ranura que retomaría y, sin partidas, queda atenuado y fuera de la navegación.
+
+La pausa (`scenes/ui/pause_menu.tscn`) usa los mismos componentes sobre el escenario congelado.
+Configuración y Controles son pantallas propias que se abren encima de la pausa o del menú
+principal; ver [Menús](#menús).
 
 `scenes/main/game.tscn` contiene:
 
@@ -148,6 +152,45 @@ Una pregunta puede llevar `variants` para responder según el estado, y una esce
 - **Deducción:** añádela a `data/deductions.json`; el tablero la detecta sola.
 - **Estado que deba guardarse:** si es una decisión o un hecho de la historia, usa una marca
   desde los datos; si es un sistema nuevo, registra una sección. Ver [GUARDADO.md](GUARDADO.md).
+
+## Menús
+
+Todos los menús oscuros se dibujan en código, sin texturas de fondo, y se superponen al escenario
+real: el menú principal sobre la plaza en marcha, y la pausa y sus pantallas sobre el juego
+congelado por `get_tree().paused`. Los fundidos funcionan en pausa porque `PauseMenu` usa
+`PROCESS_MODE_ALWAYS`.
+
+| Pieza | Papel |
+| --- | --- |
+| `MenuStyle` | Paleta (panel `#101116`, dorado `#B58B4A`, crema `#F1DEB9`, burdeos `#8A2632`) y estilos de deslizadores, interruptores, teclas, filas y «Próximamente» |
+| `MenuFrame` | Panel translúcido con filete dorado; con `emblem`, medallón sobre una cresta |
+| `MenuHeading`, `GoldDivider` | Título entre filigranas y filetes con rombo |
+| `MenuOptionButton` | Opción de pergamino con resaltado animado; `compact` y `centered` para la pausa y «Volver» |
+| `MenuScreen` | Pantalla que se abre encima de otra: fundido, Escape, señal `closed` |
+| `CategoryMenu` | `MenuScreen` con pestañas (`CategoryTab`) y páginas desplazables; base de las dos siguientes |
+| `SettingsMenu` | Audio y Gráficos con los ajustes reales de `Settings`; Jugabilidad prevista |
+| `ControlsMenu` | Teclas leídas del InputMap al abrir, en filas `BindingRow` con `KeyCap`; nombres en `InputLabels` |
+
+Escape cierra siempre la pantalla de arriba: expediente o configuración → pausa → juego. Al
+volver, el foco regresa a la opción que abrió la pantalla. Las pestañas se recorren con
+arriba y abajo y cambian la página; a la derecha se entra en la página y a la izquierda se
+vuelve a su pestaña.
+
+### Funcionalidades preparadas para futuras versiones
+
+Lo previsto se muestra desactivado, sin foco y con «Próximamente»; no guarda nada.
+
+| Ampliación | Qué tocar |
+| --- | --- |
+| Opción gráfica (resolución, modo de ventana, calidad, partículas) | Guardarla y aplicarla en `scripts/autoload/settings.gd`; crear su fila en `_build_graphics()` de `scripts/ui/settings_menu.gd` y quitarla de `PLANNED_GRAPHICS` |
+| Opción de jugabilidad (velocidad del texto, avance automático, confirmaciones, accesibilidad) | Igual, en `_build_gameplay()` y `PLANNED_GAMEPLAY`; quien la use (p. ej. `dialogue_ui.gd`) la lee de `Settings` |
+| Acción o categoría de controles | Crear la acción en el InputMap y añadir su fila o categoría a `CATEGORIES` de `scripts/ui/controls_menu.gd` |
+| Reasignación de teclas | `BindingRow.actions` dice qué acciones cambiar; pedir la tecla al pulsar la fila, guardar el InputMap en `Settings` y llamar a `ControlsMenu.refresh()` |
+| Mandos y esquemas de entrada | `InputLabels` sólo lee el teclado; ahí hay que añadir los botones del mando |
+| Categoría nueva en cualquier menú por categorías | Otra llamada a `add_category()` en `_build_categories()` |
+
+Las teclas 1 a 9 de las preguntas y el clic del diálogo se leen directamente en
+`dialogue_ui.gd`, fuera del InputMap; por eso figuran como teclas fijas en `CATEGORIES`.
 
 ## Decisiones técnicas
 
