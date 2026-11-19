@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/save_slots_menu.tscn" id="3"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 layer = 20
@@ -73,3 +74,8 @@ autowrap_mode = 3
 [node name="SettingsPanel" parent="Root/Center" instance=ExtResource("2")]
 visible = false
 layout_mode = 2
+
+[node name="SaveSlotsMenu" parent="Root/Center" instance=ExtResource("3")]
+visible = false
+layout_mode = 2
+list_height = 540.0

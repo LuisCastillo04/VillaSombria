@@ -1,0 +1,366 @@
+class_name SaveSlotsMenu
+extends PanelContainer
+## Lista de ranuras para guardar la partida. Sobrescribir o eliminar una partida pide
+## confirmación, y el resultado de cada operación se muestra en la propia lista.
+
+signal closed
+
+const ROW_HEIGHT := 100.0
+const REASON_LABELS := {
+	"lugar": "cambio de lugar",
+	"nuevo_dia": "nuevo día",
+	"pista": "pista nueva",
+	"deduccion": "deducción",
+	"escena": "escena",
+	"interrogatorio": "interrogatorio",
+	"salida": "al salir",
+	"importada": "importada",
+}
+const TAG_COLORS := {
+	"manual": UiTheme.INK_SOFT,
+	"auto": UiTheme.CORK,
+	"empty": UiTheme.INK_SOFT,
+	"error": UiTheme.STAMP,
+	"busy": UiTheme.STAMP,
+}
+
+## Altura mínima de la lista de ranuras.
+@export var list_height := 440.0
+
+var _selected := ""
+var _infos: Dictionary = {}
+var _rows: Dictionary = {}
+var _saving_slot := ""
+var _confirm_action := Callable()
+
+@onready var _title: Label = $Box/Title
+@onready var _hint: Label = $Box/Hint
+@onready var _scroll: ScrollContainer = $Box/Scroll
+@onready var _slots: VBoxContainer = $Box/Scroll/Slots
+@onready var _confirm: PanelContainer = $Box/Confirm
+@onready var _confirm_text: Label = $Box/Confirm/Box/Text
+@onready var _accept: Button = $Box/Confirm/Box/Buttons/Accept
+@onready var _cancel: Button = $Box/Confirm/Box/Buttons/Cancel
+@onready var _status: Label = $Box/Status
+@onready var _action: Button = $Box/Buttons/Action
+@onready var _delete: Button = $Box/Buttons/Delete
+@onready var _back: Button = $Box/Buttons/Back
+
+
+func _ready() -> void:
+	_scroll.custom_minimum_size.y = list_height
+	_title.add_theme_font_override("font", UiTheme.serif())
+	_title.add_theme_font_size_override("font_size", 30)
+	_hint.add_theme_color_override("font_color", UiTheme.INK_SOFT)
+	_hint.add_theme_font_size_override("font_size", 19)
+	_confirm.add_theme_stylebox_override("panel", UiTheme.paper_box(UiTheme.PAPER_LIGHT, UiTheme.STAMP, 12))
+	_action.pressed.connect(_on_action_pressed)
+	_delete.pressed.connect(_on_delete_pressed)
+	_back.pressed.connect(_on_back_pressed)
+	_accept.pressed.connect(_on_confirm_accepted)
+	_cancel.pressed.connect(_on_confirm_cancelled)
+	SaveSystem.save_finished.connect(_on_save_finished)
+	SaveSystem.slots_changed.connect(_on_slots_changed)
+
+
+func open() -> void:
+	_title.text = "GUARDAR PARTIDA"
+	_hint.text = "Elige una ranura. Los autoguardados van aparte y nunca ocupan estas cinco."
+	_selected = ""
+	_hide_confirm()
+	show()
+	refresh()
+	var blocker := SaveSystem.get_save_blocker()
+	_set_status(blocker, true)
+	_focus_default()
+
+
+func close() -> void:
+	_hide_confirm()
+	hide()
+	closed.emit()
+
+
+## Escape: primero cierra la confirmación y después el menú.
+func cancel() -> void:
+	if _confirm.visible:
+		_on_confirm_cancelled()
+	else:
+		close()
+
+
+func get_selected_slot() -> String:
+	return _selected
+
+
+func select_slot(slot_id: String) -> void:
+	if _rows.has(slot_id):
+		(_rows[slot_id] as Button).button_pressed = true
+		_on_row_pressed(slot_id)
+
+
+func is_confirming() -> bool:
+	return _confirm.visible
+
+
+func get_status_text() -> String:
+	return _status.text
+
+
+## Vuelve a leer las ranuras y reconstruye la lista conservando la selección.
+func refresh() -> void:
+	var focused_slot := _focused_slot()
+	for child in _slots.get_children():
+		_slots.remove_child(child)
+		child.queue_free()
+	_rows.clear()
+	_infos.clear()
+	var group := ButtonGroup.new()
+	for info in SaveSystem.list_slots("manual"):
+		var slot_id: String = info["id"]
+		_infos[slot_id] = info
+		var row := _make_row(info, group)
+		_slots.add_child(row)
+		_rows[slot_id] = row
+	if _rows.has(_selected):
+		(_rows[_selected] as Button).set_pressed_no_signal(true)
+	else:
+		_selected = ""
+	if _rows.has(focused_slot):
+		(_rows[focused_slot] as Button).grab_focus()
+	_update_buttons()
+
+
+## Textos de una ranura para la lista. Sólo usa lo que el archivo registró.
+static func describe_slot(info: Dictionary) -> Dictionary:
+	var auto: bool = info["kind"] == "auto"
+	var title := ("Autoguardado %d" if auto else "Ranura %d") % int(info["number"])
+	match info["status"]:
+		SaveFormat.Status.EMPTY:
+			return {"title": title, "tag": "VACÍA", "detail": "Sin partida guardada.", "extra": "", "tone": "empty"}
+		SaveFormat.Status.INCOMPATIBLE:
+			return {"title": title, "tag": "INCOMPATIBLE", "detail": info["error"], "extra": "Puedes eliminarla para liberar la ranura.", "tone": "error"}
+		SaveFormat.Status.CORRUPT:
+			return {"title": title, "tag": "DAÑADA", "detail": info["error"], "extra": "Puedes eliminarla para liberar la ranura.", "tone": "error"}
+	var summary: Dictionary = info["summary"]
+	var tag := "AUTOMÁTICA" if auto else "MANUAL"
+	var reason: String = REASON_LABELS.get(summary["reason"], "")
+	if not reason.is_empty():
+		tag += " · " + reason.to_upper()
+	var detail := "%s · Día %d, %s" % [summary["location_name"], int(summary["day"]), format_clock(int(summary["minutes"]))]
+	var extra := "Guardada el %s · %s · %d %s" % [
+		format_saved_at(float(summary["saved_at"])),
+		format_play_time(float(summary["play_seconds"])),
+		int(summary["clues"]),
+		"pista" if int(summary["clues"]) == 1 else "pistas",
+	]
+	return {"title": title, "tag": tag, "detail": detail, "extra": extra, "tone": "auto" if auto else "manual"}
+
+
+## Nombre de la ranura con su artículo, como «la ranura 2» o «el autoguardado 1».
+static func slot_name(slot_id: String) -> String:
+	var number := SaveSystem.get_slot_number(slot_id)
+	return ("el autoguardado %d" if SaveSystem.is_auto_slot(slot_id) else "la ranura %d") % number
+
+
+static func format_clock(minutes: int) -> String:
+	return "%02d:%02d" % [minutes / 60, minutes % 60]
+
+
+## Fecha y hora locales del guardado; el archivo la registra en UTC.
+static func format_saved_at(unix_time: float) -> String:
+	var bias_minutes := int(Time.get_time_zone_from_system().get("bias", 0))
+	var local := Time.get_datetime_dict_from_unix_time(int(unix_time) + bias_minutes * 60)
+	return "%02d/%02d/%04d %02d:%02d" % [local["day"], local["month"], local["year"], local["hour"], local["minute"]]
+
+
+static func format_play_time(seconds: float) -> String:
+	if seconds < 0.0:
+		return "tiempo de juego sin registrar"
+	var total_minutes := int(seconds) / 60
+	if total_minutes < 1:
+		return "menos de 1 min de juego"
+	if total_minutes < 60:
+		return "%d min de juego" % total_minutes
+	return "%d h %02d min de juego" % [total_minutes / 60, total_minutes % 60]
+
+
+func _make_row(info: Dictionary, group: ButtonGroup) -> Button:
+	var slot_id: String = info["id"]
+	var text := describe_slot(info)
+	var tone: String = text["tone"]
+	if slot_id == _saving_slot:
+		text["tag"] = "GUARDANDO…"
+		tone = "busy"
+	var row := Button.new()
+	row.name = slot_id
+	row.toggle_mode = true
+	row.button_group = group
+	row.custom_minimum_size = Vector2(0.0, ROW_HEIGHT)
+	row.pressed.connect(_on_row_pressed.bind(slot_id))
+	var box := VBoxContainer.new()
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_theme_constant_override("separation", 2)
+	row.add_child(box)
+	box.set_anchors_preset(Control.PRESET_FULL_RECT)
+	box.offset_left = 14.0
+	box.offset_top = 8.0
+	box.offset_right = -14.0
+	box.offset_bottom = -8.0
+	var header := HBoxContainer.new()
+	header.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(header)
+	var title := _make_label(text["title"], 23, UiTheme.INK)
+	title.add_theme_font_override("font", UiTheme.serif())
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(title)
+	var tag := _make_label(text["tag"], 17, TAG_COLORS[tone])
+	# La etiqueta nunca se recorta: es la que distingue manual, automática, vacía o dañada.
+	tag.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING
+	header.add_child(tag)
+	box.add_child(_make_label(text["detail"], 19, UiTheme.STAMP if tone == "error" else UiTheme.INK))
+	box.add_child(_make_label(text["extra"], 17, UiTheme.INK_SOFT))
+	return row
+
+
+func _make_label(text: String, font_size: int, color: Color) -> Label:
+	var label := Label.new()
+	label.text = text
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	label.add_theme_font_size_override("font_size", font_size)
+	label.add_theme_color_override("font_color", color)
+	return label
+
+
+func _update_buttons() -> void:
+	var info: Dictionary = _infos.get(_selected, {})
+	var occupied: bool = not info.is_empty() and info["status"] != SaveFormat.Status.EMPTY
+	var locked := _confirm.visible or not _saving_slot.is_empty()
+	_action.text = "Sobrescribir" if occupied else "Guardar aquí"
+	_action.disabled = info.is_empty() or locked or not SaveSystem.get_save_blocker().is_empty()
+	_delete.disabled = not occupied or locked or SaveSystem.is_busy()
+	_back.disabled = _confirm.visible
+	for slot_id: String in _rows:
+		(_rows[slot_id] as Button).disabled = locked
+
+
+func _focus_default() -> void:
+	if _rows.has(_selected):
+		(_rows[_selected] as Button).grab_focus()
+	elif not _rows.is_empty():
+		(_rows.values()[0] as Button).grab_focus()
+	else:
+		_back.grab_focus()
+
+
+func _focused_slot() -> String:
+	var focused := get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	for slot_id: String in _rows:
+		if _rows[slot_id] == focused:
+			return slot_id
+	return ""
+
+
+func _set_status(text: String, is_error: bool = false) -> void:
+	_status.text = text
+	_status.add_theme_color_override("font_color", UiTheme.STAMP if is_error else UiTheme.INK)
+
+
+func _on_row_pressed(slot_id: String) -> void:
+	_selected = slot_id
+	_set_status(SaveSystem.get_save_blocker(), true)
+	_update_buttons()
+	if not _action.disabled:
+		_action.grab_focus()
+
+
+func _on_action_pressed() -> void:
+	AudioManager.play("click")
+	var info: Dictionary = _infos.get(_selected, {})
+	if info.is_empty():
+		return
+	if info["status"] == SaveFormat.Status.EMPTY:
+		_save_selected()
+		return
+	var detail: String = describe_slot(info)["detail"]
+	var name_text := slot_name(_selected)
+	name_text = name_text.left(1).to_upper() + name_text.substr(1)
+	_ask("%s ya contiene una partida (%s). ¿Quieres sobrescribirla?" % [name_text, detail], "Sobrescribir", _save_selected)
+
+
+func _on_delete_pressed() -> void:
+	AudioManager.play("click")
+	if not _infos.has(_selected):
+		return
+	_ask("¿Eliminar %s? La partida no se podrá recuperar." % slot_name(_selected), "Eliminar", _delete_selected)
+
+
+func _on_back_pressed() -> void:
+	AudioManager.play("click")
+	close()
+
+
+func _save_selected() -> void:
+	var slot_id := _selected
+	var result := SaveSystem.save_to_slot(slot_id)
+	if not result["ok"]:
+		_set_status(result["error"], true)
+		return
+	_saving_slot = slot_id
+	_set_status("Guardando en %s…" % slot_name(slot_id))
+	refresh()
+
+
+func _delete_selected() -> void:
+	var result := SaveSystem.delete_slot(_selected)
+	if result["ok"]:
+		_set_status("Partida eliminada.")
+	else:
+		_set_status(result["error"], true)
+
+
+func _ask(text: String, accept_label: String, action: Callable) -> void:
+	_confirm_text.text = text
+	_accept.text = accept_label
+	_confirm_action = action
+	_confirm.show()
+	_update_buttons()
+	_cancel.grab_focus()
+
+
+func _on_confirm_accepted() -> void:
+	AudioManager.play("click")
+	var action := _confirm_action
+	_hide_confirm()
+	if action.is_valid():
+		action.call()
+
+
+func _on_confirm_cancelled() -> void:
+	AudioManager.play("click")
+	_hide_confirm()
+	_focus_default()
+
+
+func _hide_confirm() -> void:
+	_confirm.hide()
+	_confirm_action = Callable()
+	_update_buttons()
+
+
+func _on_save_finished(slot_id: String, ok: bool, message: String) -> void:
+	if slot_id != _saving_slot:
+		return
+	_saving_slot = ""
+	if ok:
+		_set_status("Partida guardada en %s." % slot_name(slot_id))
+	else:
+		_set_status("No se pudo guardar: %s" % message, true)
+
+
+func _on_slots_changed() -> void:
+	if visible:
+		refresh()
+		if _focused_slot().is_empty() and get_viewport().gui_get_focus_owner() == null:
+			_focus_default()
