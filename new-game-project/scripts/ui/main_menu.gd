@@ -1,3 +1,4 @@
+
 extends Node
 ## Menú principal. La plaza real, bajo la lluvia, hace de fondo.
 
