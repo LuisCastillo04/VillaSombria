@@ -75,12 +75,12 @@ func _check_phase() -> void:
 	var menu: Node = (load(MAIN_MENU) as PackedScene).instantiate()
 	add_child(menu)
 	await get_tree().process_frame
-	var continue_button: Button = menu.get_node("Ui/Root/Layout/Menu/Continue")
+	var continue_button: Button = menu.get_node("%Continue")
 	check(not continue_button.disabled, "el menú principal ofrece continuar")
-	var slots: SaveSlotsMenu = menu.get_node("Ui/Root/SaveSlotsMenu")
+	var slots: SaveSlotsMenu = menu.get_node("%SaveSlotsMenu")
 	# El cambio de escena real sustituiría a esta prueba: se crea la partida a mano.
 	slots.load_ready.disconnect(menu._on_load_ready)
-	(menu.get_node("Ui/Root/Layout/Menu/Load") as Button).pressed.emit()
+	(menu.get_node("%Load") as Button).pressed.emit()
 	slots.select_slot(SLOT)
 	slots.get_action_button().pressed.emit()
 	check(SaveSystem.has_pending_load(), "la ranura se carga desde el menú")

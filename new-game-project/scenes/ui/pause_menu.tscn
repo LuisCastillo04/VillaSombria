@@ -1,8 +1,19 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/pause_menu.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/save_slots_menu.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/ui/controls_menu.tscn" id="4"]
+[ext_resource type="Script" path="res://scripts/ui/menu_frame.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/ui/menu_heading.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/ui/menu_option_button.gd" id="7"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/pausa.svg" id="8"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/reproducir.svg" id="9"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/disquete.svg" id="10"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/carpeta_cargar.svg" id="11"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/engranaje.svg" id="12"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/mando.svg" id="13"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/salir.svg" id="14"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 layer = 20
@@ -23,7 +34,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.03, 0.05, 0.75)
+color = Color(0.02, 0.03, 0.05, 0.5)
 
 [node name="Center" type="CenterContainer" parent="Root"]
 layout_mode = 1
@@ -34,57 +45,93 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="Root/Center"]
-custom_minimum_size = Vector2(560, 0)
+custom_minimum_size = Vector2(720, 0)
 layout_mode = 2
+script = ExtResource("5")
+emblem = ExtResource("8")
+footer = 1
+fill_color = Color(0.063, 0.067, 0.086, 0.94)
+padding_side = 80.0
+padding_top = 6.0
+padding_bottom = 42.0
 
 [node name="Box" type="VBoxContainer" parent="Root/Center/Panel"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
-[node name="Title" type="Label" parent="Root/Center/Panel/Box"]
+[node name="Heading" type="VBoxContainer" parent="Root/Center/Panel/Box"]
 layout_mode = 2
+script = ExtResource("6")
 text = "PAUSA"
-horizontal_alignment = 1
 
 [node name="SlotInfo" type="Label" parent="Root/Center/Panel/Box"]
-custom_minimum_size = Vector2(500, 0)
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
 horizontal_alignment = 1
 autowrap_mode = 3
 
+[node name="Gap" type="Control" parent="Root/Center/Panel/Box"]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+mouse_filter = 2
+
 [node name="Resume" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
+focus_neighbor_top = NodePath("../Quit")
 text = "Continuar"
+icon = ExtResource("9")
+script = ExtResource("7")
+compact = true
+separator = false
 
 [node name="Save" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
 text = "Guardar partida"
+icon = ExtResource("10")
+script = ExtResource("7")
+compact = true
+separator = false
 
 [node name="Load" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
 text = "Cargar partida"
+icon = ExtResource("11")
+script = ExtResource("7")
+compact = true
+separator = false
 
 [node name="Settings" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
 text = "Configuración"
+icon = ExtResource("12")
+script = ExtResource("7")
+compact = true
+separator = false
 
 [node name="Controls" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
 text = "Controles"
+icon = ExtResource("13")
+script = ExtResource("7")
+compact = true
+separator = false
 
 [node name="Quit" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
+focus_neighbor_bottom = NodePath("../Resume")
 text = "Guardar y volver al menú"
+icon = ExtResource("14")
+script = ExtResource("7")
+compact = true
+separator = false
 
-[node name="Status" type="Label" parent="Root/Center/Panel/Box"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 19
-autowrap_mode = 3
-
-[node name="SettingsPanel" parent="Root/Center" instance=ExtResource("2")]
+[node name="SettingsMenu" parent="Root" instance=ExtResource("2")]
 visible = false
-layout_mode = 2
+layout_mode = 1
+
+[node name="ControlsMenu" parent="Root" instance=ExtResource("4")]
+visible = false
+layout_mode = 1
 
 [node name="SaveSlotsMenu" parent="Root" instance=ExtResource("3")]
 visible = false

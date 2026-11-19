@@ -159,7 +159,7 @@ func test_menu_offers_continue_only_with_a_save() -> void:
 	var empty_menu := scene.instantiate()
 	add_child(empty_menu)
 	await get_tree().process_frame
-	check(empty_menu.get_node("Ui/Root/Layout/Menu/Continue").disabled, "sin partida, Continuar está desactivado")
+	check(empty_menu.get_node("%Continue").disabled, "sin partida, Continuar está desactivado")
 	empty_menu.queue_free()
 	await get_tree().process_frame
 	GameState.location_id = "plaza"
@@ -168,9 +168,9 @@ func test_menu_offers_continue_only_with_a_save() -> void:
 	var menu := scene.instantiate()
 	add_child(menu)
 	await get_tree().process_frame
-	var continue_button: Button = menu.get_node("Ui/Root/Layout/Menu/Continue")
+	var continue_button: MenuOptionButton = menu.get_node("%Continue")
 	check(not continue_button.disabled, "con partida, Continuar está activo")
-	check(continue_button.text.contains("Día 2"), "muestra el progreso guardado")
+	check(continue_button.detail_text.contains("Día 2"), "muestra el progreso guardado")
 	menu.queue_free()
 	await get_tree().process_frame
 

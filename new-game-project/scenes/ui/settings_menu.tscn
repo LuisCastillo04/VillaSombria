@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/category_menu.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="2"]
+
+[node name="SettingsMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+title = "CONFIGURACIÓN"
+emblem_icon = "engranaje"
+panel_size = Vector2(1000, 700)

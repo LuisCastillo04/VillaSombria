@@ -180,7 +180,7 @@ func test_main_menu_quit_without_a_game_exits_directly() -> void:
 	var menu: Node = (load("res://scenes/main/main_menu.tscn") as PackedScene).instantiate()
 	add_child(menu)
 	await get_tree().process_frame
-	(menu.get_node("Ui/Root/Layout/Menu/Quit") as Button).pressed.emit()
+	(menu.get_node("%Quit") as Button).pressed.emit()
 	await _wait_until(func() -> bool: return not _targets.is_empty())
 	check_equal(_targets, [ExitManager.Target.QUIT], "«Salir» usa la misma ruta y sale")
 	check(_writes.is_empty(), "sin partida no hay nada que guardar")

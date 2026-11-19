@@ -24,6 +24,7 @@ const ICONS := "res://assets/ui/iconos/%s.svg"
 
 static var _serif_regular: SystemFont
 static var _serif_italic: SystemFont
+static var _display: SystemFont
 
 
 static func serif_bold() -> Font:
@@ -45,6 +46,16 @@ static func serif_italic() -> Font:
 		_serif_italic.font_weight = 400
 		_serif_italic.font_italic = true
 	return _serif_italic
+
+
+## Serif de los rótulos grandes, como el título del menú principal. Palatino se diseñó a finales
+## de los años cuarenta y encaja con la época; si el sistema no la tiene, se usa Georgia.
+static func display_serif() -> Font:
+	if _display == null:
+		_display = SystemFont.new()
+		_display.font_names = PackedStringArray(["Palatino Linotype", "Book Antiqua", "Palatino", "Georgia", "Times New Roman", "Liberation Serif", "serif"])
+		_display.font_weight = 700
+	return _display
 
 
 static func icon(icon_name: String) -> Texture2D:

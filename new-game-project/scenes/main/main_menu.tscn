@@ -3,12 +3,23 @@
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/world/post_fx.tscn" id="2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/screen_fade.tscn" id="3"]
-[ext_resource type="PackedScene" path="res://scenes/ui/settings_panel.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_menu.tscn" id="4"]
 [ext_resource type="PackedScene" path="res://scenes/ui/save_slots_menu.tscn" id="5"]
+[ext_resource type="Script" path="res://scripts/ui/menu_frame.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/ui/menu_option_button.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/ui/title_flourish.gd" id="8"]
+[ext_resource type="Texture2D" path="res://assets/ui/villa_silueta.svg" id="9"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/reproducir.svg" id="10"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/carpeta.svg" id="11"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/carpeta_cargar.svg" id="12"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/engranaje.svg" id="13"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/libro.svg" id="14"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/salir.svg" id="15"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/volver.svg" id="16"]
 
 [sub_resource type="Gradient" id="shade_gradient"]
 offsets = PackedFloat32Array(0, 0.62, 1)
-colors = PackedColorArray(0.02, 0.03, 0.05, 0.86, 0.02, 0.03, 0.05, 0.7, 0.02, 0.03, 0.05, 0)
+colors = PackedColorArray(0.02, 0.03, 0.05, 0.76, 0.02, 0.03, 0.05, 0.52, 0.02, 0.03, 0.05, 0)
 
 [sub_resource type="GradientTexture2D" id="shade_texture"]
 gradient = SubResource("shade_gradient")
@@ -29,6 +40,7 @@ current = true
 layer = 5
 
 [node name="Root" type="Control" parent="Ui"]
+unique_name_in_owner = true
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -47,78 +59,148 @@ texture = SubResource("shade_texture")
 expand_mode = 1
 
 [node name="Layout" type="VBoxContainer" parent="Ui/Root"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 9
 anchor_bottom = 1.0
-offset_left = 90.0
-offset_top = 130.0
-offset_right = 800.0
-offset_bottom = -60.0
+offset_left = 128.0
+offset_top = 36.0
+offset_right = 900.0
+offset_bottom = -36.0
 grow_vertical = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Emblem" type="TextureRect" parent="Ui/Root/Layout"]
+custom_minimum_size = Vector2(0, 110)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("9")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Title" type="Label" parent="Ui/Root/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Villa Sombría"
+horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="Ui/Root/Layout"]
+[node name="SubtitleRow" type="HBoxContainer" parent="Ui/Root/Layout"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="LeftRule" type="Control" parent="Ui/Root/Layout/SubtitleRow"]
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("8")
+color = Color(0.72, 0.57, 0.31, 0.85)
+
+[node name="Subtitle" type="Label" parent="Ui/Root/Layout/SubtitleRow"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Un caso del inspector Ibarra · Octubre de 1948"
 
-[node name="Spacer" type="Control" parent="Ui/Root/Layout"]
-custom_minimum_size = Vector2(0, 36)
+[node name="RightRule" type="Control" parent="Ui/Root/Layout/SubtitleRow"]
+custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("8")
+mirrored = true
+color = Color(0.72, 0.57, 0.31, 0.85)
 
-[node name="Menu" type="VBoxContainer" parent="Ui/Root/Layout"]
+[node name="Gap" type="Control" parent="Ui/Root/Layout"]
+custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-theme_override_constants/separation = 12
+mouse_filter = 2
 
-[node name="NewGame" type="Button" parent="Ui/Root/Layout/Menu"]
+[node name="Frame" type="PanelContainer" parent="Ui/Root/Layout"]
+unique_name_in_owner = true
 layout_mode = 2
+script = ExtResource("6")
+
+[node name="Menu" type="VBoxContainer" parent="Ui/Root/Layout/Frame"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="NewGame" type="Button" parent="Ui/Root/Layout/Frame/Menu"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_neighbor_top = NodePath("../Quit")
 text = "Nueva partida"
+icon = ExtResource("10")
+script = ExtResource("7")
 
-[node name="Continue" type="Button" parent="Ui/Root/Layout/Menu"]
+[node name="Continue" type="Button" parent="Ui/Root/Layout/Frame/Menu"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Continuar partida"
+icon = ExtResource("11")
+script = ExtResource("7")
 
-[node name="Load" type="Button" parent="Ui/Root/Layout/Menu"]
+[node name="Load" type="Button" parent="Ui/Root/Layout/Frame/Menu"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Cargar partida"
+icon = ExtResource("12")
+script = ExtResource("7")
 
-[node name="Settings" type="Button" parent="Ui/Root/Layout/Menu"]
+[node name="Settings" type="Button" parent="Ui/Root/Layout/Frame/Menu"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Configuración"
+icon = ExtResource("13")
+script = ExtResource("7")
 
-[node name="Credits" type="Button" parent="Ui/Root/Layout/Menu"]
+[node name="Credits" type="Button" parent="Ui/Root/Layout/Frame/Menu"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Créditos"
+icon = ExtResource("14")
+script = ExtResource("7")
 
-[node name="Quit" type="Button" parent="Ui/Root/Layout/Menu"]
+[node name="Quit" type="Button" parent="Ui/Root/Layout/Frame/Menu"]
+unique_name_in_owner = true
 layout_mode = 2
+focus_neighbor_bottom = NodePath("../NewGame")
 text = "Salir"
+icon = ExtResource("15")
+script = ExtResource("7")
 
-[node name="SettingsPanel" parent="Ui/Root/Layout" instance=ExtResource("4")]
+[node name="CreditsPanel" type="VBoxContainer" parent="Ui/Root/Layout/Frame"]
+unique_name_in_owner = true
 visible = false
 layout_mode = 2
+theme_override_constants/separation = 26
 
-[node name="CreditsPanel" type="PanelContainer" parent="Ui/Root/Layout"]
-visible = false
+[node name="CreditsText" type="RichTextLabel" parent="Ui/Root/Layout/Frame/CreditsPanel"]
+unique_name_in_owner = true
 layout_mode = 2
-
-[node name="Box" type="VBoxContainer" parent="Ui/Root/Layout/CreditsPanel"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Text" type="RichTextLabel" parent="Ui/Root/Layout/CreditsPanel/Box"]
-custom_minimum_size = Vector2(0, 400)
-layout_mode = 2
+focus_mode = 0
 bbcode_enabled = true
+fit_content = true
+scroll_active = false
 
-[node name="Close" type="Button" parent="Ui/Root/Layout/CreditsPanel/Box"]
+[node name="CreditsClose" type="Button" parent="Ui/Root/Layout/Frame/CreditsPanel"]
+unique_name_in_owner = true
 layout_mode = 2
 text = "Volver"
+icon = ExtResource("16")
+script = ExtResource("7")
+
+[node name="SettingsMenu" parent="Ui/Root" instance=ExtResource("4")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+backdrop_dim = 0.45
 
 [node name="SaveSlotsMenu" parent="Ui/Root" instance=ExtResource("5")]
+unique_name_in_owner = true
 visible = false
 layout_mode = 1
 
