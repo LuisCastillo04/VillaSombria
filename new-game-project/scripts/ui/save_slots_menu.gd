@@ -7,6 +7,12 @@ extends Control
 ##
 ## Elegir una ranura en la lista sólo la selecciona: la ranura activa de la partida no cambia
 ## hasta que se guarda o se carga.
+##
+## Navegación: arriba y abajo recorren las ranuras (la selección sigue al foco); Tab y
+## Mayús + Tab pasan por la ranura, la acción principal, «Eliminar» y «Volver»; Intro sobre
+## una ranura ejecuta la acción principal; Escape cierra la confirmación y después el
+## expediente. Con mando valen la cruceta y los botones de aceptar y cancelar (acciones
+## `ui_*`). Con ratón, un clic selecciona y un doble clic carga una partida válida.
 
 signal closed
 ## La carga quedó preparada: quien abrió el menú debe pasar a la escena de juego.
@@ -36,6 +42,7 @@ var _saving_slot := ""
 var _loading := false
 var _empty_note := ""
 var _confirm_action := Callable()
+var _focus_before_confirm: Control
 
 @onready var _parchment: ColorRect = $Center/Sheet/Parchment
 @onready var _title: Label = $Center/Sheet/Content/Box/TitleRow/Title
@@ -61,6 +68,8 @@ func _ready() -> void:
 		_list.add_child(row)
 		row.slot_id = slot_id
 		row.pressed.connect(_on_row_pressed.bind(slot_id))
+		row.focus_entered.connect(_on_row_focused.bind(slot_id))
+		row.double_clicked.connect(_on_row_double_clicked)
 		_rows[slot_id] = row
 	_action.pressed.connect(_on_action_pressed)
 	_delete.pressed.connect(_on_delete_pressed)
@@ -100,8 +109,35 @@ func close() -> void:
 func cancel() -> void:
 	if _confirm.visible:
 		_on_confirm_cancelled()
-	else:
+	elif not _loading:
 		close()
+
+
+## La navegación se resuelve aquí, antes que la del sistema de foco, para que las flechas no
+## salgan de la lista y Tab siga un orden fijo que salta lo desactivado.
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree() or event.is_echo() and not _is_vertical(event):
+		return
+	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
+		_consume()
+		cancel()
+	elif _confirm.visible:
+		_navigate_confirm(event)
+	elif event.is_action_pressed("ui_up"):
+		_move_vertically(-1)
+	elif event.is_action_pressed("ui_down"):
+		_move_vertically(1)
+	elif event.is_action_pressed("ui_focus_next"):
+		_consume()
+		_cycle_focus(1)
+	elif event.is_action_pressed("ui_focus_prev"):
+		_consume()
+		_cycle_focus(-1)
+	elif event.is_action_pressed("ui_left") or event.is_action_pressed("ui_right"):
+		_move_horizontally(event.is_action_pressed("ui_right"))
+	elif event.is_action_pressed("ui_accept") and _focused_row() != null:
+		_consume()
+		_activate_selected()
 
 
 func get_selected_slot() -> String:
@@ -109,8 +145,11 @@ func get_selected_slot() -> String:
 
 
 func select_slot(slot_id: String) -> void:
-	if _rows.has(slot_id):
-		_on_row_pressed(slot_id)
+	if not _rows.has(slot_id):
+		return
+	_on_row_pressed(slot_id)
+	if is_visible_in_tree() and not _confirm.visible:
+		(_rows[slot_id] as Control).grab_focus()
 
 
 func is_confirming() -> bool:
@@ -152,6 +191,10 @@ func get_confirm_accept() -> Button:
 
 func get_confirm_cancel() -> Button:
 	return _cancel
+
+
+func get_focused_control() -> Control:
+	return get_viewport().gui_get_focus_owner() if is_inside_tree() else null
 
 
 ## Vuelve a leer las ranuras y actualiza las filas, que no se recrean: el foco y la
@@ -254,6 +297,12 @@ func _update_buttons() -> void:
 	_back.disabled = _confirm.visible or _loading
 	for slot_id: String in _rows:
 		(_rows[slot_id] as SaveSlotRow).disabled = locked
+	# Lo desactivado no puede tener el foco: ni Tab ni el ratón lo alcanzan.
+	for button: Button in [_action, _delete, _back]:
+		button.focus_mode = Control.FOCUS_NONE if button.disabled else Control.FOCUS_ALL
+	var focused := get_focused_control()
+	if focused is Button and (focused as Button).disabled and not _confirm.visible and is_ancestor_of(focused):
+		_focus_default()
 
 
 func _focus_default() -> void:
@@ -269,9 +318,102 @@ func _set_status(text: String, is_error: bool = false) -> void:
 
 
 func _on_row_pressed(slot_id: String) -> void:
+	if slot_id == _selected:
+		return
 	_selected = slot_id
 	_update_selection()
 	_set_status(SaveSystem.get_save_blocker(for_exit) if mode == Mode.SAVE else _empty_note, mode == Mode.SAVE)
+
+
+## Con teclado o mando la selección sigue al foco; el ratón por encima no la cambia.
+func _on_row_focused(slot_id: String) -> void:
+	_on_row_pressed(slot_id)
+
+
+func _on_row_double_clicked(slot_id: String) -> void:
+	if mode != Mode.LOAD or _infos.get(slot_id, {}).get("status", -1) != SaveFormat.Status.OK:
+		return
+	_on_row_pressed(slot_id)
+	if not _action.disabled:
+		_on_action_pressed()
+
+
+func _activate_selected() -> void:
+	if not _action.disabled:
+		_on_action_pressed()
+	elif mode == Mode.LOAD and _infos.get(_selected, {}).get("status", -1) == SaveFormat.Status.EMPTY:
+		_set_status("%s está vacía: elige una partida guardada." % _capitalized(slot_name(_selected)), true)
+
+
+func _move_vertically(step: int) -> void:
+	_consume()
+	if _loading or not _saving_slot.is_empty():
+		return
+	var focused := get_focused_control()
+	var slots := SaveSystem.get_slots()
+	if focused == _action:
+		if step > 0:
+			(_rows[_selected] as Control).grab_focus()
+		return
+	if focused == _delete or focused == _back:
+		if step < 0:
+			(_rows[_selected] as Control).grab_focus()
+		return
+	var index := clampi(slots.find(_selected) + step, 0, slots.size() - 1)
+	(_rows[slots[index]] as Control).grab_focus()
+
+
+func _move_horizontally(right: bool) -> void:
+	var focused := get_focused_control()
+	if focused != _delete and focused != _back:
+		_consume()
+		return
+	var target := _back if right else _delete
+	if target.focus_mode != Control.FOCUS_NONE:
+		target.grab_focus()
+	_consume()
+
+
+## Orden fijo de Tab: ranura seleccionada, acción principal, «Eliminar» y «Volver».
+func _cycle_focus(step: int) -> void:
+	var order: Array[Control] = [_rows[_selected], _action, _delete, _back]
+	var focused := get_focused_control()
+	var index := order.find(focused)
+	if index == -1:
+		index = 0 if step > 0 else 1
+	for attempt in order.size():
+		index = posmod(index + step, order.size())
+		if order[index].focus_mode != Control.FOCUS_NONE:
+			order[index].grab_focus()
+			return
+
+
+## Mientras se confirma, el foco no sale de los dos botones del diálogo.
+func _navigate_confirm(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_left") or event.is_action_pressed("ui_focus_prev"):
+		_consume()
+		_accept.grab_focus()
+	elif event.is_action_pressed("ui_right") or event.is_action_pressed("ui_focus_next"):
+		_consume()
+		_cancel.grab_focus()
+	elif event.is_action_pressed("ui_up") or event.is_action_pressed("ui_down"):
+		_consume()
+
+
+func _focused_row() -> SaveSlotRow:
+	return get_focused_control() as SaveSlotRow
+
+
+func _is_vertical(event: InputEvent) -> bool:
+	return event.is_action("ui_up") or event.is_action("ui_down")
+
+
+func _consume() -> void:
+	get_viewport().set_input_as_handled()
+
+
+static func _capitalized(text: String) -> String:
+	return text.left(1).to_upper() + text.substr(1)
 
 
 func _on_action_pressed() -> void:
@@ -279,29 +421,29 @@ func _on_action_pressed() -> void:
 	var info: Dictionary = _infos.get(_selected, {})
 	if info.is_empty():
 		return
+	var slot_id := _selected
 	if mode == Mode.LOAD:
 		if load_warning.is_empty():
-			_load_selected()
+			_load_slot(slot_id)
 		else:
-			_ask("CARGAR PARTIDA", load_warning, "Cargar", _load_selected)
+			_ask("CARGAR PARTIDA", load_warning, "Cargar", _load_slot.bind(slot_id))
 		return
 	if info["status"] == SaveFormat.Status.EMPTY:
-		_save_selected()
+		_save_slot(slot_id)
 		return
-	var name_text := slot_name(_selected)
-	name_text = name_text.left(1).to_upper() + name_text.substr(1)
+	var name_text := _capitalized(slot_name(_selected))
 	var detail := ""
 	if info["status"] == SaveFormat.Status.OK:
 		var summary: Dictionary = info["summary"]
 		detail = " (%s, día %d)" % [summary["location_name"], int(summary["day"])]
-	_ask("SOBRESCRIBIR", "%s ya contiene una partida%s. ¿Quieres sustituirla por la actual?" % [name_text, detail], "Sobrescribir", _save_selected)
+	_ask("SOBRESCRIBIR", "%s ya contiene una partida%s. ¿Quieres sustituirla por la actual?" % [name_text, detail], "Sobrescribir", _save_slot.bind(slot_id))
 
 
 func _on_delete_pressed() -> void:
 	AudioManager.play("click")
 	if not _infos.has(_selected):
 		return
-	_ask("ELIMINAR PARTIDA", "¿Eliminar %s? La partida no se podrá recuperar." % slot_name(_selected), "Eliminar", _delete_selected)
+	_ask("ELIMINAR PARTIDA", "¿Eliminar %s? La partida no se podrá recuperar." % slot_name(_selected), "Eliminar", _delete_slot.bind(_selected))
 
 
 func _on_back_pressed() -> void:
@@ -309,8 +451,9 @@ func _on_back_pressed() -> void:
 	close()
 
 
-func _save_selected() -> void:
-	var slot_id := _selected
+## Las acciones reciben la ranura que se nombró al pedir confirmación, no la que esté
+## seleccionada al aceptar.
+func _save_slot(slot_id: String) -> void:
 	var result := SaveSystem.save_to_slot(slot_id, for_exit)
 	if not result["ok"]:
 		_set_status(result["error"], true)
@@ -320,20 +463,20 @@ func _save_selected() -> void:
 	refresh()
 
 
-func _load_selected() -> void:
-	var result := SaveSystem.request_load(_selected)
+func _load_slot(slot_id: String) -> void:
+	var result := SaveSystem.request_load(slot_id)
 	if not result["ok"]:
-		_set_status("No se pudo cargar %s: %s" % [slot_name(_selected), result["error"]], true)
+		_set_status("No se pudo cargar %s: %s" % [slot_name(slot_id), result["error"]], true)
 		refresh()
 		return
 	_loading = true
 	_set_status("Cargando la partida…")
 	_update_buttons()
-	load_ready.emit(_selected)
+	load_ready.emit(slot_id)
 
 
-func _delete_selected() -> void:
-	var result := SaveSystem.delete_slot(_selected)
+func _delete_slot(slot_id: String) -> void:
+	var result := SaveSystem.delete_slot(slot_id)
 	if result["ok"]:
 		_set_status("Partida eliminada.")
 	else:
@@ -341,6 +484,7 @@ func _delete_selected() -> void:
 
 
 func _ask(title: String, text: String, accept_label: String, action: Callable) -> void:
+	_focus_before_confirm = get_focused_control()
 	_confirm_title.text = title
 	_confirm_text.text = text
 	_accept.text = accept_label
@@ -356,18 +500,28 @@ func _on_confirm_accepted() -> void:
 	_hide_confirm()
 	if action.is_valid():
 		action.call()
+		_update_buttons()
 
 
 func _on_confirm_cancelled() -> void:
 	AudioManager.play("click")
 	_hide_confirm()
-	_focus_default()
 
 
+## Al cerrar la confirmación, el foco vuelve a donde estaba si sigue disponible.
 func _hide_confirm() -> void:
+	var was_open := _confirm.visible
 	_confirm.hide()
 	_confirm_action = Callable()
 	_update_buttons()
+	if not was_open or not visible:
+		return
+	var previous := _focus_before_confirm
+	_focus_before_confirm = null
+	if is_instance_valid(previous) and previous.is_visible_in_tree() and previous.focus_mode != Control.FOCUS_NONE:
+		previous.grab_focus()
+	else:
+		_focus_default()
 
 
 func _on_save_finished(slot_id: String, ok: bool, message: String) -> void:

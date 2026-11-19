@@ -62,7 +62,7 @@ func _input(event: InputEvent) -> void:
 	# Con la pregunta de salida en pantalla, Escape es suyo.
 	if ExitManager.is_dialog_open():
 		return
-	if is_open and event.is_action_pressed("pause"):
+	if is_open and (event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel")):
 		get_viewport().set_input_as_handled()
 		if _slots.visible:
 			_slots.cancel()
