@@ -13,6 +13,9 @@ extends Node
 ## escribe en ella, y sólo si en disco sigue la versión que conoce el juego. Se conserva
 ## entre sesiones junto con la huella (`save_id`) de esa versión.
 ##
+## Cada guardado lleva una imagen real de la escena (`SavePreview`), guardada junto a la
+## ranura y ligada a ella por su huella SHA-256 en los metadatos.
+##
 ## Los autoguardados se piden con `request_autosave` desde los eventos de la partida; ver
 ## esa función para la política que evita guardados redundantes o en momentos inseguros.
 
@@ -77,6 +80,12 @@ var _missing_slot_notified := false
 var _autosave_reason := ""
 var _autosave_checkpoint := false
 var _autosave_timer: Timer
+## Devuelve {"camera": Camera3D, "fog": float} para fotografiar la escena; lo registra la
+## escena de juego.
+var _preview_source := Callable()
+## Texturas de las imágenes ya leídas, por ranura, con su huella y la fecha del archivo:
+## si el archivo cambia, se vuelve a comprobar.
+var _preview_cache: Dictionary = {}
 ## Estado justo antes de la conversación en curso: lo que se guarda si se sale en mitad de
 ## ella, porque a media conversación el estado puede estar a medio aplicar.
 var _pre_dialogue_sections: Dictionary = {}
@@ -136,6 +145,16 @@ func apply_sections(sections: Dictionary) -> void:
 		var loader: Callable = _sections[key]["load"]
 		if loader.is_valid():
 			loader.call(sections.get(key, {}))
+
+
+## La escena de juego indica de dónde sacar la imagen de cada guardado.
+func register_preview_source(source: Callable) -> void:
+	_preview_source = source
+
+
+func unregister_preview_source(source_owner: Object) -> void:
+	if _preview_source.is_valid() and _preview_source.get_object() == source_owner:
+		_preview_source = Callable()
 
 
 # --- Sesión de juego ---------------------------------------------------------------------
@@ -246,6 +265,7 @@ func use_storage(directory: String, legacy_path: String = "") -> void:
 	_storage_dir = directory
 	_legacy_path = legacy_path if not legacy_path.is_empty() else directory.path_join("partida.json")
 	_storage_ready = false
+	_preview_cache.clear()
 
 
 func get_storage_dir() -> String:
@@ -269,6 +289,37 @@ func get_slot_number(slot_id: String) -> int:
 
 func get_slot_path(slot_id: String) -> String:
 	return _storage_dir.path_join("%s.json" % slot_id)
+
+
+func get_preview_path(slot_id: String) -> String:
+	return _storage_dir.path_join("%s.jpg" % slot_id)
+
+
+## Imagen de la partida de una ranura, o null si no tiene, falta o no corresponde a esa
+## partida (su huella no coincide). Las imágenes se leen una vez y se reutilizan.
+func get_slot_preview(slot_id: String) -> Texture2D:
+	var result := read_slot(slot_id)
+	if result["status"] != SaveFormat.Status.OK:
+		return null
+	var preview: Variant = result["document"]["meta"].get("preview")
+	if not preview is Dictionary or preview["file"] != get_preview_path(slot_id).get_file():
+		return null
+	var digest: String = preview["sha256"]
+	var path := get_preview_path(slot_id)
+	var modified := FileAccess.get_modified_time(path)
+	var cached: Dictionary = _preview_cache.get(slot_id, {})
+	if cached.get("sha256", "") == digest and cached.get("modified", -1) == modified:
+		return cached["texture"]
+	_preview_cache.erase(slot_id)
+	var bytes := FileAccess.get_file_as_bytes(path)
+	if bytes.is_empty() or SaveFile.sha256_hex(bytes) != digest:
+		return null
+	var image := Image.new()
+	if image.load_jpg_from_buffer(bytes) != OK:
+		return null
+	var texture := ImageTexture.create_from_image(image)
+	_preview_cache[slot_id] = {"sha256": digest, "modified": modified, "texture": texture}
+	return texture
 
 
 ## Lee y valida una ranura sin aplicar nada. Devuelve {"status": SaveFormat.Status,
@@ -425,6 +476,8 @@ func delete_slot(slot_id: String) -> Dictionary:
 	var error := SaveFile.remove(get_slot_path(slot_id))
 	if error != OK:
 		return _refuse("No se pudo eliminar la partida (%s)." % error_string(error))
+	SaveFile.remove(get_preview_path(slot_id))
+	_preview_cache.erase(slot_id)
 	if slot_id == _active_slot:
 		_clear_active_slot()
 	slot_deleted.emit(slot_id)
@@ -526,6 +579,7 @@ func _import_legacy_autosave() -> void:
 		return
 	newest["meta"]["slot"] = target
 	newest["meta"]["reason"] = "importada"
+	newest["meta"].erase("preview")
 	if SaveFile.write_atomic(get_slot_path(target), SaveFormat.to_text(newest)) != OK:
 		return
 	var flag := FileAccess.open(marker, FileAccess.WRITE)
@@ -595,9 +649,25 @@ func _begin_write(slot_id: String, kind: String, reason: String, sections: Dicti
 	_writing_save_id = meta["save_id"]
 	_writing_kind = kind
 	save_started.emit(slot_id)
-	var text := SaveFormat.to_text(document)
-	_write_task = WorkerThreadPool.add_task(_write_in_background.bind(get_slot_path(slot_id), text), false, "Guardar partida")
+	_capture_and_write(slot_id, document)
 	return {"ok": true, "error": ""}
+
+
+## El estado ya está tomado; aquí se fotografía la escena (dos fotogramas como mucho) y se
+## pasa todo al hilo de escritura. La foto la hace este autoload, que nunca se libera, para
+## que un cambio de escena no deje la escritura a medias.
+func _capture_and_write(slot_id: String, document: Dictionary) -> void:
+	var image: Image = null
+	var source: Dictionary = _preview_source.call() if _preview_source.is_valid() else {}
+	var viewport := SavePreview.build_viewport(source.get("camera"), float(source.get("fog", 0.0)))
+	if viewport != null:
+		add_child(viewport)
+		await RenderingServer.frame_post_draw
+		await RenderingServer.frame_post_draw
+		image = SavePreview.read_image(viewport)
+		viewport.queue_free()
+	var job := _write_in_background.bind(get_slot_path(slot_id), get_preview_path(slot_id), document, image)
+	_write_task = WorkerThreadPool.add_task(job, false, "Guardar partida")
 
 
 ## Estado que se guarda al salir: el actual o, en mitad de una conversación, el de justo
@@ -612,8 +682,17 @@ func _is_in_transition() -> bool:
 	return GameState.get_player_lock_reasons().has(TRANSITION_LOCK)
 
 
-func _write_in_background(path: String, text: String) -> void:
-	var error := SaveFile.write_atomic(path, text)
+## Primero la imagen y después la partida, que guarda su huella: si algo falla a medias, la
+## partida nunca apunta a una imagen que no sea la suya.
+func _write_in_background(path: String, preview_path: String, document: Dictionary, image: Image) -> void:
+	var meta: Dictionary = document["meta"]
+	if image != null:
+		var bytes := image.save_jpg_to_buffer(SavePreview.JPG_QUALITY)
+		if not bytes.is_empty() and SaveFile.write_atomic_bytes(preview_path, bytes) == OK:
+			meta["preview"] = {"file": preview_path.get_file(), "sha256": SaveFile.sha256_hex(bytes)}
+	if not meta.has("preview"):
+		SaveFile.remove(preview_path)
+	var error := SaveFile.write_atomic(path, SaveFormat.to_text(document))
 	_on_write_done.call_deferred(error)
 
 

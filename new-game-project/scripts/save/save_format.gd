@@ -128,7 +128,22 @@ static func _validate_meta(meta: Dictionary) -> String:
 		meta["reason"] = ""
 	if meta.has("save_id") and not meta["save_id"] is String:
 		meta.erase("save_id")
+	if meta.has("preview") and not _is_valid_preview(meta["preview"]):
+		meta.erase("preview")
 	return ""
+
+
+## La imagen de la ranura se describe con el nombre de un archivo de la misma carpeta y su
+## huella; cualquier otra cosa se descarta y la ranura se muestra sin imagen.
+static func _is_valid_preview(preview: Variant) -> bool:
+	if not preview is Dictionary:
+		return false
+	var file: Variant = preview.get("file")
+	var digest: Variant = preview.get("sha256")
+	if not file is String or not digest is String:
+		return false
+	var name_ok := (file as String).is_valid_filename() and (file as String).get_extension() == "jpg"
+	return name_ok and (digest as String).length() == 64 and (digest as String).is_valid_hex_number()
 
 
 static func _validate_state(state: Dictionary) -> Dictionary:

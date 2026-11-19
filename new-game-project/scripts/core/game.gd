@@ -37,6 +37,7 @@ func _ready() -> void:
 	EventBus.rest_requested.connect(_on_rest_requested)
 	EventBus.story_action.connect(_on_story_action)
 	SaveSystem.register_section("player", _capture_player, _restore_player)
+	SaveSystem.register_preview_source(_preview_source)
 	var snapshot := SaveSystem.take_pending_load()
 	if snapshot.is_empty():
 		_start_new_game()
@@ -53,6 +54,7 @@ func _ready() -> void:
 func _exit_tree() -> void:
 	SaveSystem.end_session(self)
 	SaveSystem.unregister_section("player", self)
+	SaveSystem.unregister_preview_source(self)
 
 
 func _process(delta: float) -> void:
@@ -116,6 +118,11 @@ func _capture_player() -> Dictionary:
 
 func _restore_player(data: Dictionary) -> void:
 	_saved_pose = data
+
+
+## Cámara y niebla actuales, para que la imagen de cada guardado sea la escena real.
+func _preview_source() -> Dictionary:
+	return {"camera": camera.camera, "fog": _post_fx.get_fog_amount()}
 
 
 ## Se aplica después de construir el escenario, que coloca al detective en la entrada.

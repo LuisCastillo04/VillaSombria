@@ -11,9 +11,14 @@ const BACKUP_SUFFIX := ".bak"
 
 ## Escribe `text` en `path` sin dejar nunca el archivo definitivo a medias.
 static func write_atomic(path: String, text: String) -> Error:
+	return write_atomic_bytes(path, text.to_utf8_buffer())
+
+
+## Igual que `write_atomic`, para datos binarios como la imagen de una ranura.
+static func write_atomic_bytes(path: String, data: PackedByteArray) -> Error:
 	var temp_path := path + TEMP_SUFFIX
 	var backup_path := path + BACKUP_SUFFIX
-	var error := _write_verified(temp_path, text)
+	var error := _write_verified(temp_path, data)
 	if error != OK:
 		_remove_if_exists(temp_path)
 		return error
@@ -71,20 +76,28 @@ static func remove(path: String) -> Error:
 	return result
 
 
-static func _write_verified(path: String, text: String) -> Error:
+static func _write_verified(path: String, data: PackedByteArray) -> Error:
 	var file := FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
 		return FileAccess.get_open_error()
-	file.store_string(text)
+	file.store_buffer(data)
 	file.flush()
 	var error := file.get_error()
 	file.close()
 	if error != OK:
 		return error
 	# Releer evita dar por buena una escritura incompleta, por ejemplo con el disco lleno.
-	if FileAccess.get_file_as_string(path) != text:
+	if FileAccess.get_file_as_bytes(path) != data:
 		return ERR_FILE_CORRUPT
 	return OK
+
+
+## Huella SHA-256 en hexadecimal, para comprobar que una imagen es la de su partida.
+static func sha256_hex(data: PackedByteArray) -> String:
+	var context := HashingContext.new()
+	context.start(HashingContext.HASH_SHA256)
+	context.update(data)
+	return context.finish().hex_encode()
 
 
 static func _remove_if_exists(path: String) -> Error:
