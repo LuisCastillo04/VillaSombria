@@ -23,25 +23,34 @@ var _cards: Dictionary = {}
 var _hypothesis_suspect := ""
 
 @onready var _root: Control = $Root
-@onready var _suspects: HBoxContainer = $Root/Layout/Suspects
-@onready var _scroll: ScrollContainer = $Root/Layout/Body/CardArea/CardScroll
-@onready var _grid: GridContainer = $Root/Layout/Body/CardArea/CardScroll/Cards
-@onready var _strings: Control = $Root/Layout/Body/CardArea/Strings
-@onready var _slot_a: RichTextLabel = $Root/Layout/Body/Side/Box/SlotA
-@onready var _slot_b: RichTextLabel = $Root/Layout/Body/Side/Box/SlotB
-@onready var _link_button: Button = $Root/Layout/Body/Side/Box/Link
-@onready var _result: RichTextLabel = $Root/Layout/Body/Side/Box/Result
-@onready var _note_panel: PanelContainer = $Root/NotePanel
-@onready var _note_title: Label = $Root/NotePanel/Box/Title
-@onready var _note_status: OptionButton = $Root/NotePanel/Box/Status
-@onready var _note_text: TextEdit = $Root/NotePanel/Box/Text
-@onready var _note_save: Button = $Root/NotePanel/Box/Save
+@onready var _dim: ColorRect = $Root/Dim
+@onready var _board: BoardFrame = $Root/Board
+@onready var _shield: Control = $Root/Shield
+@onready var _suspects: HBoxContainer = $Root/Board/Suspects
+@onready var _scroll: ScrollContainer = $Root/Board/CardArea/CardScroll
+@onready var _grid: GridContainer = $Root/Board/CardArea/CardScroll/Cards
+@onready var _strings: Control = $Root/Board/CardArea/Strings
+@onready var _slot_a: RichTextLabel = $Root/Board/Side/Box/SlotA
+@onready var _slot_b: RichTextLabel = $Root/Board/Side/Box/SlotB
+@onready var _link_button: Button = $Root/Board/Side/Box/Link
+@onready var _result: RichTextLabel = $Root/Board/Side/Box/Result
+@onready var _note_panel: PanelContainer = $Root/Board/NotePanel
+@onready var _note_title: Label = $Root/Board/NotePanel/Box/Title
+@onready var _note_status: OptionButton = $Root/Board/NotePanel/Box/Status
+@onready var _note_text: TextEdit = $Root/Board/NotePanel/Box/Text
+@onready var _note_save: Button = $Root/Board/NotePanel/Box/Save
 
 
 func _ready() -> void:
 	_root.theme = UiTheme.get_theme()
+	_dim.color = BoardStyle.DIM
+	_board.set_parts(_suspects, $Root/Board/CardArea, $Root/Board/Side, _note_panel)
+	_board.header.close_pressed.connect(close)
+	_root.resized.connect(_layout)
+	_shield.hide()
 	_root.hide()
 	_note_panel.hide()
+	_layout()
 	_link_button.pressed.connect(link_selected)
 	_note_save.pressed.connect(save_hypothesis)
 	for label in BoardInfo.status_labels():
@@ -55,8 +64,10 @@ func open() -> void:
 	GameState.lock_player("tablero")
 	_selection.clear()
 	_result.text = HINT
+	_board.header.refresh_keys()
 	_root.show()
 	_note_panel.hide()
+	_layout()
 	_rebuild()
 
 
@@ -78,6 +89,21 @@ func _input(event: InputEvent) -> void:
 	elif event.is_action_pressed("open_board") and not is_editing():
 		get_viewport().set_input_as_handled()
 		close()
+
+
+func get_board() -> BoardFrame:
+	return _board
+
+
+## El tablero ocupa la pantalla con un margen y sin pasar de un ancho máximo, centrado.
+func _layout() -> void:
+	var screen := _root.size
+	var width := minf(screen.x - BoardStyle.FRAME_MARGIN.x * 2.0, BoardStyle.FRAME_MAX_WIDTH)
+	var height := screen.y - BoardStyle.FRAME_MARGIN.y * 2.0
+	_board.position = Vector2((screen.x - width) * 0.5, BoardStyle.FRAME_MARGIN.y)
+	_board.size = Vector2(width, height)
+	_board.pivot_offset = _board.size * 0.5
+	_board.relayout()
 
 
 # --- Selección y relaciones ---
