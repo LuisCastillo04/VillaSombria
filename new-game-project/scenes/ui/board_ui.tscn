@@ -44,10 +44,6 @@ offset_bottom = 1046.0
 mouse_filter = 2
 script = ExtResource("3")
 
-[node name="Suspects" type="HBoxContainer" parent="Root/Board"]
-layout_mode = 0
-theme_override_constants/separation = 12
-
 [node name="CardArea" type="Control" parent="Root/Board"]
 clip_contents = true
 layout_mode = 0

@@ -21,12 +21,12 @@ var is_open := false
 var _selection: Array[String] = []
 var _cards: Dictionary = {}
 var _hypothesis_suspect := ""
+var _suspect_row: BoardSuspectRow
 
 @onready var _root: Control = $Root
 @onready var _dim: ColorRect = $Root/Dim
 @onready var _board: BoardFrame = $Root/Board
 @onready var _shield: Control = $Root/Shield
-@onready var _suspects: HBoxContainer = $Root/Board/Suspects
 @onready var _scroll: ScrollContainer = $Root/Board/CardArea/CardScroll
 @onready var _grid: GridContainer = $Root/Board/CardArea/CardScroll/Cards
 @onready var _strings: Control = $Root/Board/CardArea/Strings
@@ -44,7 +44,9 @@ var _hypothesis_suspect := ""
 func _ready() -> void:
 	_root.theme = UiTheme.get_theme()
 	_dim.color = BoardStyle.DIM
-	_board.set_parts(_suspects, $Root/Board/CardArea, $Root/Board/Side, _note_panel)
+	_suspect_row = BoardSuspectRow.new()
+	_suspect_row.suspect_pressed.connect(open_hypothesis)
+	_board.set_parts(_suspect_row, $Root/Board/CardArea, $Root/Board/Side, _note_panel)
 	_board.header.close_pressed.connect(close)
 	_root.resized.connect(_layout)
 	_shield.hide()
@@ -66,7 +68,7 @@ func open() -> void:
 	_result.text = HINT
 	_board.header.refresh_keys()
 	_root.show()
-	_note_panel.hide()
+	close_hypothesis()
 	_layout()
 	_rebuild()
 
@@ -93,6 +95,10 @@ func _input(event: InputEvent) -> void:
 
 func get_board() -> BoardFrame:
 	return _board
+
+
+func get_suspect_row() -> BoardSuspectRow:
+	return _suspect_row
 
 
 ## El tablero ocupa la pantalla con un margen y sin pasar de un ancho máximo, centrado.
@@ -165,24 +171,7 @@ func _rebuild() -> void:
 
 
 func _build_suspects() -> void:
-	for child in _suspects.get_children():
-		_suspects.remove_child(child)
-		child.queue_free()
-	for suspect in BoardInfo.suspects():
-		var card := Button.new()
-		var status: String = suspect["status"]
-		card.text = "%s\n%s" % [suspect["short"], suspect["status_label"]]
-		card.icon = load(suspect["portrait"])
-		card.expand_icon = true
-		card.custom_minimum_size = Vector2(290.0, 104.0)
-		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		card.add_theme_font_size_override("font_size", 18)
-		if status == "descartado":
-			card.modulate = Color(0.72, 0.72, 0.72)
-		elif status == "principal":
-			card.add_theme_color_override("font_color", UiTheme.STAMP)
-		card.pressed.connect(open_hypothesis.bind(suspect["id"]))
-		_suspects.add_child(card)
+	_suspect_row.refresh()
 
 
 func _build_cards() -> void:
@@ -262,14 +251,17 @@ func open_hypothesis(suspect_id: String) -> void:
 	_note_status.select(Investigation.HYPOTHESIS_STATUSES.find(hypothesis["status"]))
 	_note_text.text = hypothesis["note"]
 	_note_panel.show()
+	_suspect_row.set_selected(suspect_id)
 
 
 func close_hypothesis() -> void:
 	_note_panel.hide()
+	_suspect_row.set_selected("")
 
 
 func save_hypothesis() -> void:
 	var status := Investigation.HYPOTHESIS_STATUSES[_note_status.selected]
 	if Investigation.set_hypothesis(_hypothesis_suspect, status, _note_text.text):
-		_note_panel.hide()
+		close_hypothesis()
 		_build_suspects()
+		_suspect_row.get_card(_hypothesis_suspect).pulse()
