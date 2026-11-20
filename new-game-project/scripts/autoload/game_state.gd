@@ -48,11 +48,15 @@ func set_flag(flag: String) -> void:
 ## Bloquea el control del jugador. Cada sistema usa su propio motivo, de modo que
 ## cerrar un panel no libera el control si otro sigue abierto.
 func lock_player(reason: String) -> void:
+	if _player_locks.has(reason):
+		return
 	_player_locks[reason] = true
+	EventBus.player_locks_changed.emit()
 
 
 func unlock_player(reason: String) -> void:
-	_player_locks.erase(reason)
+	if _player_locks.erase(reason):
+		EventBus.player_locks_changed.emit()
 
 
 func is_player_locked() -> bool:
@@ -66,7 +70,10 @@ func get_player_lock_reasons() -> Array[String]:
 
 
 func clear_player_locks() -> void:
+	if _player_locks.is_empty():
+		return
 	_player_locks.clear()
+	EventBus.player_locks_changed.emit()
 
 
 func to_dict() -> Dictionary:

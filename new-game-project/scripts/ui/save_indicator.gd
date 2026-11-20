@@ -8,6 +8,8 @@ enum State { HIDDEN, SAVING, SAVED, FAILED }
 
 const FAILED_COLOR := Color("d0574f")
 const HAND_TURNS_PER_SECOND := 0.75
+## Distancia del aviso a la esquina inferior derecha.
+const DEFAULT_MARGIN := 32.0
 
 ## Tiempo mínimo del aviso «Guardando…», para que no sea un parpadeo.
 var min_saving_seconds := 0.6
@@ -53,6 +55,17 @@ func _process(delta: float) -> void:
 
 func is_showing() -> bool:
 	return _badge.visible
+
+
+## Distancia del aviso al borde inferior. El HUD de exploración la sube mientras su barra de teclas
+## ocupa el pie de la pantalla, para que el aviso no la tape, y la devuelve al salir.
+func set_bottom_margin(pixels: float) -> void:
+	_badge.offset_top = -pixels
+	_badge.offset_bottom = -pixels
+
+
+func get_bottom_margin() -> float:
+	return -_badge.offset_bottom
 
 
 func get_title() -> String:
