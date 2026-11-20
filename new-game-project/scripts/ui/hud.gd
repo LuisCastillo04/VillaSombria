@@ -15,34 +15,38 @@ var _layout_queued := false
 @onready var _root: Control = $Root
 @onready var _location: HudLocationPanel = $Root/Exploration/LocationPanel
 @onready var _objective: HudObjectivePanel = $Root/Exploration/ObjectivePanel
-@onready var _controls_bar: Label = $Root/Exploration/ControlsBar
-@onready var _prompt: PanelContainer = $Root/Exploration/Prompt
-@onready var _prompt_label: Label = $Root/Exploration/Prompt/PromptLabel
+@onready var _controls: HudControlsBar = $Root/Exploration/ControlsBar
+@onready var _prompt: HudPrompt = $Root/Exploration/Prompt
 @onready var _toasts: VBoxContainer = $Root/Toasts
 
 
 func _ready() -> void:
 	_root.theme = UiTheme.get_theme()
-	_style_labels()
-	_prompt.hide()
-	_refresh_controls()
+	# El aviso de guardado sube para no tapar la barra de teclas.
+	SaveIndicator.set_bottom_margin(HudStyle.BOTTOM_MARGIN + HudStyle.BAR_HEIGHT + HudStyle.PANEL_GAP)
 	EventBus.interaction_focus_changed.connect(_on_focus_changed)
 	EventBus.notification_requested.connect(_on_notification)
 	EventBus.time_changed.connect(_on_time_changed)
 	EventBus.location_changed.connect(_on_location_changed)
 	EventBus.objectives_changed.connect(_refresh_objective.bind(true))
 	_root.resized.connect(_queue_layout)
-	for panel: Control in [_location, _objective]:
+	for panel: Control in [_location, _objective, _controls, _prompt]:
 		panel.minimum_size_changed.connect(_queue_layout)
 	_refresh_location(GameState.location_id, false)
 	_refresh_date(false)
 	_refresh_objective(false)
+	_controls.set_wait_available(HudInfo.can_wait())
 	_layout()
+
+
+func _exit_tree() -> void:
+	SaveIndicator.set_bottom_margin(SaveIndicator.DEFAULT_MARGIN)
 
 
 ## Vuelve a leer las teclas del InputMap, por si cambió alguna asignación.
 func refresh_controls() -> void:
-	_refresh_controls()
+	if _controls.refresh():
+		_queue_layout()
 
 
 func get_location_panel() -> HudLocationPanel:
@@ -53,9 +57,12 @@ func get_objective_panel() -> HudObjectivePanel:
 	return _objective
 
 
-func _style_labels() -> void:
-	_controls_bar.add_theme_color_override("font_color", Color(0.85, 0.83, 0.76, 0.85))
-	_controls_bar.add_theme_font_size_override("font_size", 18)
+func get_controls_bar() -> HudControlsBar:
+	return _controls
+
+
+func get_prompt() -> HudPrompt:
+	return _prompt
 
 
 # --- Colocación ---
@@ -69,8 +76,9 @@ func _queue_layout() -> void:
 
 
 ## Coloca las piezas según el tamaño de la pantalla: el lugar arriba a la izquierda, el objetivo
-## arriba a la derecha y las notificaciones bajo el objetivo. El objetivo cede ancho antes de
-## pisar el panel del lugar.
+## arriba a la derecha con las notificaciones debajo, la barra de teclas centrada al pie y el aviso
+## de interacción sobre ella. El objetivo cede ancho antes de pisar el panel del lugar, y la barra
+## se compacta o prescinde de teclas secundarias antes de salirse de la pantalla.
 func _layout() -> void:
 	_layout_queued = false
 	var view := _root.size
@@ -87,6 +95,13 @@ func _layout() -> void:
 		toasts_top = _objective.position.y + objective_size.y + HudStyle.PANEL_GAP
 	_toasts.position = Vector2(view.x - HudStyle.SCREEN_MARGIN - HudStyle.TOAST_WIDTH, toasts_top)
 	_toasts.size = Vector2(HudStyle.TOAST_WIDTH, 0.0)
+	var bar_width := minf(view.x - HudStyle.SCREEN_MARGIN * 2.0, HudStyle.BAR_MAX_WIDTH)
+	_controls.fit_width(bar_width)
+	_controls.size = Vector2(bar_width, _controls.get_combined_minimum_size().y)
+	_controls.position = Vector2((view.x - bar_width) * 0.5, view.y - HudStyle.BOTTOM_MARGIN - _controls.size.y)
+	var prompt_size := _prompt.get_combined_minimum_size()
+	_prompt.size = prompt_size
+	_prompt.position = Vector2((view.x - prompt_size.x) * 0.5, _controls.position.y - HudStyle.PANEL_GAP - prompt_size.y)
 
 
 # --- Lugar, fecha y objetivo ---
@@ -102,6 +117,7 @@ func _refresh_location(location_id: String, animate: bool) -> void:
 func _on_time_changed(_day: int, _minutes: int) -> void:
 	_refresh_date(true)
 	_refresh_objective(true)
+	_controls.set_wait_available(HudInfo.can_wait())
 
 
 func _refresh_date(animate: bool) -> void:
@@ -124,18 +140,13 @@ func _refresh_objective(animate: bool) -> void:
 
 # --- Teclas y aviso de interacción ---
 
-func _refresh_controls() -> void:
-	var parts := PackedStringArray()
-	for hint: Dictionary in HudInfo.CONTROL_HINTS:
-		var keys := HudInfo.hint_keys(hint)
-		if not keys.is_empty():
-			parts.append("[%s] %s" % ["".join(keys), hint["label"]])
-	_controls_bar.text = "   ".join(parts)
-
-
+## Con algo al alcance aparece el aviso y la tecla de interactuar de la barra se enciende.
 func _on_focus_changed(prompt: String) -> void:
-	_prompt.visible = not prompt.is_empty()
-	_prompt_label.text = "[%s]  %s" % [HudInfo.action_key("interact"), prompt]
+	_controls.set_interaction_available(not prompt.is_empty())
+	if prompt.is_empty():
+		_prompt.hide_prompt()
+	else:
+		_prompt.show_prompt(prompt, HudInfo.action_key("interact"))
 
 
 # --- Notificaciones ---

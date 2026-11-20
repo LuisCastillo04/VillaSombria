@@ -49,7 +49,7 @@ const OBJECTIVE_ICON := 44.0
 const BANNER_HEIGHT := 34.0
 const BAR_HEIGHT := 62.0
 const BAR_MAX_WIDTH := 1808.0
-const BAR_ICON := 46.0
+const BAR_ICON := 52.0
 const TOAST_WIDTH := 440.0
 const TOAST_LIMIT := 4
 ## Marco fino de la pantalla, separado del borde.

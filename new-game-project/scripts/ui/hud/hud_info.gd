@@ -43,6 +43,11 @@ static func current_objective() -> String:
 	return ""
 
 
+## Si el detective puede dejar pasar una hora: el reloj se detiene al llegar a su tope del día.
+static func can_wait() -> bool:
+	return not GameClock.is_at_limit()
+
+
 ## Teclas que se muestran para una entrada de `CONTROL_HINTS`: la primera alternativa del InputMap.
 ## Vacío si la acción no existe o no tiene ninguna tecla asignada.
 static func hint_keys(hint: Dictionary) -> PackedStringArray:
