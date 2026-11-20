@@ -97,7 +97,7 @@ func _build_sections() -> void:
 		JournalObjectivesSection.new(),
 		JournalCluesSection.new(),
 		JournalTestimoniesSection.new(),
-		JournalBasicSection.new("Sospechosos", "antifaz", JournalBasicSection.Kind.SUSPECTS),
+		JournalSuspectsSection.new(),
 		JournalBasicSection.new("Deducciones", "cerebro", JournalBasicSection.Kind.DEDUCTIONS),
 	]
 	var definitions: Array[Dictionary] = []
