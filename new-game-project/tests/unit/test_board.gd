@@ -21,15 +21,16 @@ func after_each() -> void:
 
 
 func _press_card(item_id: String) -> void:
-	(board._cards[item_id] as Button).button_pressed = true
+	board.select_item(item_id)
 
 
 func test_cards_show_only_what_the_player_knows() -> void:
 	Investigation.discover_clue("reloj_despacho")
 	board.open()
 	await wait_physics_frames(2)
-	check(board._cards.has("reloj_despacho"), "las pistas halladas aparecen")
-	check(not board._cards.has("copia_telegrama"), "las no halladas no aparecen")
+	var ids := BoardInfo.items().map(func(item: Dictionary) -> String: return item["id"])
+	check(ids.has("reloj_despacho"), "las pistas halladas aparecen")
+	check(not ids.has("copia_telegrama"), "las no halladas no aparecen")
 	check(GameState.is_player_locked(), "el tablero bloquea el movimiento")
 	board.close()
 	check(not GameState.is_player_locked(), "cerrarlo devuelve el control")
@@ -40,17 +41,19 @@ func test_linking_real_contradiction_through_the_ui() -> void:
 	Investigation.discover_clue("copia_telegrama")
 	board.open()
 	await wait_physics_frames(2)
-	check(board._link_button.disabled, "sin selección no se puede relacionar")
+	check(not board.can_link(), "sin selección no se puede relacionar")
 	_press_card("reloj_despacho")
 	_press_card("copia_telegrama")
-	check(not board._link_button.disabled, "con dos elementos se puede relacionar")
+	check(board.can_link(), "con dos elementos se puede relacionar")
 	var before := GameClock.minutes
-	board._link_button.pressed.emit()
+	var outcome := board.link_selected()
 	await wait_physics_frames(2)
+	check_equal(outcome["result"], Investigation.LinkResult.NEW, "la relación es nueva")
 	check(GameState.deductions.has("d_hora_falsa"), "la relación real se registra")
-	check(board._cards.has("d_hora_falsa"), "la deducción se convierte en tarjeta utilizable")
-	check(board._result.text.contains("El reloj miente"), "se muestra la conclusión")
-	check(GameClock.minutes > before, "deducir consume tiempo")
+	var ids := BoardInfo.items().map(func(item: Dictionary) -> String: return item["id"])
+	check(ids.has("d_hora_falsa"), "la deducción se convierte en tarjeta utilizable")
+	check(board.get_selection().is_empty(), "la selección se vacía")
+	check_equal(GameClock.minutes, before + BoardUi.LINK_MINUTES, "deducir consume tiempo")
 
 
 func test_wrong_link_gives_no_deduction() -> void:
@@ -60,9 +63,9 @@ func test_wrong_link_gives_no_deduction() -> void:
 	await wait_physics_frames(2)
 	_press_card("foto_clara")
 	_press_card("carta_amor")
-	board._link_button.pressed.emit()
+	var outcome := board.link_selected()
+	check_equal(outcome["result"], Investigation.LinkResult.NONE, "no hay relación")
 	check(GameState.deductions.is_empty(), "sin relación no se registra nada")
-	check(board._result.text.contains("ninguna relación"), "el tablero lo comunica")
 
 
 func test_third_selection_replaces_the_oldest() -> void:
@@ -73,18 +76,16 @@ func test_third_selection_replaces_the_oldest() -> void:
 	_press_card("foto_clara")
 	_press_card("carta_amor")
 	_press_card("reloj_despacho")
-	check_equal(board._selection.size(), 2, "sólo se comparan dos elementos")
-	check(not board._selection.has("foto_clara"), "se descarta el más antiguo")
-	check(not (board._cards["foto_clara"] as Button).button_pressed, "su tarjeta se desmarca")
+	check_equal(board.get_selection(), ["carta_amor", "reloj_despacho"] as Array[String], "sólo se comparan dos elementos y se descarta el más antiguo")
 
 
 func test_hypothesis_is_saved() -> void:
 	board.open()
 	await wait_physics_frames(2)
-	board._open_hypothesis("marcos")
+	board.open_hypothesis("marcos")
 	board._note_status.select(2)
 	board._note_text.text = "Debe dinero y mintió."
-	board._save_hypothesis()
+	board.save_hypothesis()
 	var saved: Dictionary = GameState.hypotheses["marcos"]
 	check_equal(saved["status"], "principal", "estado guardado")
 	check_equal(saved["note"], "Debe dinero y mintió.", "nota guardada")

@@ -2,6 +2,10 @@ class_name BoardUi
 extends CanvasLayer
 ## Tablero de deducción. El jugador compara dos elementos del expediente y el sistema
 ## comprueba si existe una relación real; las relaciones halladas se unen con hilo rojo.
+##
+## Este nodo coordina: abre y cierra el tablero, lleva la selección de los dos elementos que se
+## comparan y pide la relación a `Investigation.try_link`, y anota las hipótesis con
+## `Investigation.set_hypothesis`. Los datos que muestra los lee `BoardInfo`.
 
 const CARD_SIZE := Vector2(230.0, 112.0)
 const KIND_COLORS := {
@@ -9,10 +13,9 @@ const KIND_COLORS := {
 	"testimonio": Color("c9d3da"),
 	"deduccion": Color("e2bcb0"),
 }
-const KIND_LABELS := {"pista": "PRUEBA", "testimonio": "DECLARACIÓN", "deduccion": "DEDUCCIÓN"}
-const STATUS_ORDER: Array[String] = ["", "sospechoso", "principal", "descartado"]
 ## Minutos que lleva establecer una relación nueva. El expediente los cita en sus reglas del tiempo.
 const LINK_MINUTES := 15
+const HINT := "Selecciona dos elementos y comprueba si guardan relación."
 
 var is_open := false
 var _selection: Array[String] = []
@@ -39,10 +42,10 @@ func _ready() -> void:
 	_root.theme = UiTheme.get_theme()
 	_root.hide()
 	_note_panel.hide()
-	_link_button.pressed.connect(_on_link_pressed)
-	_note_save.pressed.connect(_save_hypothesis)
-	for status in STATUS_ORDER:
-		_note_status.add_item(JournalUi.STATUS_LABELS[status])
+	_link_button.pressed.connect(link_selected)
+	_note_save.pressed.connect(save_hypothesis)
+	for label in BoardInfo.status_labels():
+		_note_status.add_item(label)
 	_strings.draw.connect(_draw_strings)
 	_scroll.get_v_scroll_bar().value_changed.connect(func(_value: float) -> void: _strings.queue_redraw())
 
@@ -51,7 +54,7 @@ func open() -> void:
 	is_open = true
 	GameState.lock_player("tablero")
 	_selection.clear()
-	_result.text = "Selecciona dos elementos y comprueba si guardan relación."
+	_result.text = HINT
 	_root.show()
 	_note_panel.hide()
 	_rebuild()
@@ -68,13 +71,63 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()
-		if _note_panel.visible:
-			_note_panel.hide()
+		if is_editing():
+			close_hypothesis()
 		else:
 			close()
-	elif event.is_action_pressed("open_board") and not _note_panel.visible:
+	elif event.is_action_pressed("open_board") and not is_editing():
 		get_viewport().set_input_as_handled()
 		close()
+
+
+# --- Selección y relaciones ---
+
+## Elementos elegidos para comparar, del más antiguo al más reciente.
+func get_selection() -> Array[String]:
+	return _selection.duplicate()
+
+
+## Elige o suelta un elemento. Sólo se comparan dos: un tercero sustituye al más antiguo.
+func select_item(item_id: String, selected: bool = true) -> void:
+	if selected:
+		if _selection.has(item_id) or not Investigation.has_item(item_id):
+			return
+		if _selection.size() >= 2:
+			var oldest: String = _selection.pop_front()
+			if _cards.has(oldest):
+				(_cards[oldest] as Button).set_pressed_no_signal(false)
+		_selection.append(item_id)
+	else:
+		_selection.erase(item_id)
+	if _cards.has(item_id):
+		(_cards[item_id] as Button).set_pressed_no_signal(selected)
+	_refresh_slots()
+
+
+func can_link() -> bool:
+	return BoardInfo.can_link(_selection)
+
+
+## Pide a la investigación si los dos elementos elegidos guardan relación y muestra el resultado.
+func link_selected() -> Dictionary:
+	if not can_link():
+		return {"result": Investigation.LinkResult.MISSING_ITEM, "deduction": ""}
+	var outcome := Investigation.try_link(_selection[0], _selection[1])
+	match outcome["result"]:
+		Investigation.LinkResult.NEW:
+			var deduction: Dictionary = GameData.deductions[outcome["deduction"]]
+			_result.text = "[b]%s[/b]\n%s" % [deduction["title"], deduction["text"]]
+			GameClock.advance(LINK_MINUTES)
+			_selection.clear()
+			_rebuild()
+		Investigation.LinkResult.ALREADY_KNOWN:
+			var known: Dictionary = GameData.deductions[outcome["deduction"]]
+			_result.text = "Ya estableciste esta relación: [b]%s[/b]." % known["title"]
+		Investigation.LinkResult.MISSING_ITEM:
+			_result.text = "Uno de los elementos ya no está en el expediente."
+		_:
+			_result.text = "No encuentro ninguna relación concluyente entre estos dos elementos."
+	return outcome
 
 
 func _rebuild() -> void:
@@ -89,12 +142,11 @@ func _build_suspects() -> void:
 	for child in _suspects.get_children():
 		_suspects.remove_child(child)
 		child.queue_free()
-	for suspect_id in GameData.get_suspects():
+	for suspect in BoardInfo.suspects():
 		var card := Button.new()
-		var hypothesis: Dictionary = GameState.hypotheses.get(suspect_id, {})
-		var status: String = hypothesis.get("status", "")
-		card.text = "%s\n%s" % [GameData.characters[suspect_id]["short"], JournalUi.STATUS_LABELS[status]]
-		card.icon = load(GameData.characters[suspect_id]["portrait"])
+		var status: String = suspect["status"]
+		card.text = "%s\n%s" % [suspect["short"], suspect["status_label"]]
+		card.icon = load(suspect["portrait"])
 		card.expand_icon = true
 		card.custom_minimum_size = Vector2(290.0, 104.0)
 		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -103,7 +155,7 @@ func _build_suspects() -> void:
 			card.modulate = Color(0.72, 0.72, 0.72)
 		elif status == "principal":
 			card.add_theme_color_override("font_color", UiTheme.STAMP)
-		card.pressed.connect(_open_hypothesis.bind(suspect_id))
+		card.pressed.connect(open_hypothesis.bind(suspect["id"]))
 		_suspects.add_child(card)
 
 
@@ -112,17 +164,17 @@ func _build_cards() -> void:
 		_grid.remove_child(child)
 		child.queue_free()
 	_cards.clear()
-	for item in Investigation.get_board_items():
+	for item in BoardInfo.items():
 		var card := Button.new()
 		card.custom_minimum_size = CARD_SIZE
 		card.toggle_mode = true
-		card.text = "%s\n%s" % [KIND_LABELS[item["kind"]], item["title"]]
+		card.text = "%s\n%s" % [item["kind_label"], item["title"]]
 		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		card.clip_text = true
 		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		card.add_theme_font_size_override("font_size", 16)
 		_style_card(card, item["kind"])
-		card.toggled.connect(_on_card_toggled.bind(item["id"]))
+		card.toggled.connect(func(pressed: bool) -> void: select_item(item["id"], pressed))
 		_grid.add_child(card)
 		_cards[item["id"]] = card
 
@@ -137,66 +189,28 @@ func _style_card(card: Button, kind: String) -> void:
 	card.add_theme_color_override("font_hover_pressed_color", UiTheme.STAMP)
 
 
-func _on_card_toggled(pressed: bool, item_id: String) -> void:
-	if pressed:
-		if _selection.size() >= 2:
-			var oldest: String = _selection.pop_front()
-			(_cards[oldest] as Button).set_pressed_no_signal(false)
-		_selection.append(item_id)
-	else:
-		_selection.erase(item_id)
-	_refresh_slots()
-
-
 func _refresh_slots() -> void:
 	_slot_a.text = _describe_slot(0)
 	_slot_b.text = _describe_slot(1)
-	_link_button.disabled = _selection.size() < 2
+	_link_button.disabled = not can_link()
 
 
 func _describe_slot(index: int) -> String:
 	if index >= _selection.size():
 		return "[i]Elemento %d: sin seleccionar[/i]" % (index + 1)
-	var item := Investigation.get_item(_selection[index])
+	var item := BoardInfo.describe(_selection[index])
 	return "[b]%s[/b]\n%s" % [item["title"], item["text"]]
-
-
-func _on_link_pressed() -> void:
-	var outcome := Investigation.try_link(_selection[0], _selection[1])
-	match outcome["result"]:
-		Investigation.LinkResult.NEW:
-			var deduction: Dictionary = GameData.deductions[outcome["deduction"]]
-			_result.text = "[b]%s[/b]\n%s" % [deduction["title"], deduction["text"]]
-			GameClock.advance(LINK_MINUTES)
-			_selection.clear()
-			_rebuild()
-		Investigation.LinkResult.ALREADY_KNOWN:
-			var known: Dictionary = GameData.deductions[outcome["deduction"]]
-			_result.text = "Ya estableciste esta relación: [b]%s[/b]." % known["title"]
-		_:
-			_result.text = "No encuentro ninguna relación concluyente entre estos dos elementos."
 
 
 ## Une con hilo rojo las tarjetas de cada deducción, de chincheta a chincheta. Las
 ## chinchetas van en el borde superior para que el hilo no tape el texto.
 func _draw_strings() -> void:
-	for deduction_id in GameState.deductions:
-		var pair := _visible_pair(deduction_id)
-		if pair.is_empty():
-			continue
-		var from_point := _pin_position(_cards[pair[0]])
-		var to_point := _pin_position(_cards[pair[1]])
+	for relation in BoardInfo.relations(_cards.keys()):
+		var from_point := _pin_position(_cards[relation["from"]])
+		var to_point := _pin_position(_cards[relation["to"]])
 		_strings.draw_line(from_point, to_point, Color(0.62, 0.1, 0.09, 0.6), 2.0, true)
 		_strings.draw_circle(from_point, 5.0, UiTheme.STAMP)
 		_strings.draw_circle(to_point, 5.0, UiTheme.STAMP)
-
-
-## Primera combinación de una deducción cuyas dos tarjetas están en el tablero.
-func _visible_pair(deduction_id: String) -> Array:
-	for pair: Array in GameData.deductions[deduction_id]["pairs"]:
-		if _cards.has(pair[0]) and _cards.has(pair[1]):
-			return pair
-	return []
 
 
 func _pin_position(card: Button) -> Vector2:
@@ -204,19 +218,32 @@ func _pin_position(card: Button) -> Vector2:
 	return rect.position + Vector2(rect.size.x * 0.5, 7.0) - _strings.get_global_rect().position
 
 
-func _open_hypothesis(suspect_id: String) -> void:
+# --- Hipótesis ---
+
+func is_editing() -> bool:
+	return _note_panel.visible
+
+
+func get_editing_suspect() -> String:
+	return _hypothesis_suspect if is_editing() else ""
+
+
+## Abre la hipótesis de un sospechoso con lo que el jugador anotó.
+func open_hypothesis(suspect_id: String) -> void:
 	_hypothesis_suspect = suspect_id
-	var hypothesis: Dictionary = GameState.hypotheses.get(suspect_id, {})
+	var hypothesis := Investigation.get_hypothesis(suspect_id)
 	_note_title.text = "Hipótesis sobre %s" % GameData.get_character_name(suspect_id)
-	_note_status.select(STATUS_ORDER.find(hypothesis.get("status", "")))
-	_note_text.text = hypothesis.get("note", "")
+	_note_status.select(Investigation.HYPOTHESIS_STATUSES.find(hypothesis["status"]))
+	_note_text.text = hypothesis["note"]
 	_note_panel.show()
 
 
-func _save_hypothesis() -> void:
-	GameState.hypotheses[_hypothesis_suspect] = {
-		"status": STATUS_ORDER[_note_status.selected],
-		"note": _note_text.text,
-	}
+func close_hypothesis() -> void:
 	_note_panel.hide()
-	_build_suspects()
+
+
+func save_hypothesis() -> void:
+	var status := Investigation.HYPOTHESIS_STATUSES[_note_status.selected]
+	if Investigation.set_hypothesis(_hypothesis_suspect, status, _note_text.text):
+		_note_panel.hide()
+		_build_suspects()

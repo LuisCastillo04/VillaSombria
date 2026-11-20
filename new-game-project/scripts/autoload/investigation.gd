@@ -5,6 +5,9 @@ extends Node
 enum LinkResult { NONE, NEW, ALREADY_KNOWN, MISSING_ITEM }
 
 const CLUE_MINUTES := 5
+## Valoraciones que el jugador puede dar a un sospechoso en el tablero, en el orden en que se
+## ofrecen. La cadena vacía es «sin valorar»; los rótulos están en `JournalInfo.STATUS_LABELS`.
+const HYPOTHESIS_STATUSES: Array[String] = ["", "sospechoso", "principal", "descartado"]
 
 
 ## Registra una pista una sola vez. Devuelve si era nueva.
@@ -88,6 +91,27 @@ func get_board_items() -> Array[Dictionary]:
 		for item_id in collection:
 			items.append(get_item(item_id))
 	return items
+
+
+## Hipótesis del jugador sobre un sospechoso: {"status", "note"}, vacías si aún no anotó nada.
+func get_hypothesis(suspect_id: String) -> Dictionary:
+	var saved: Dictionary = GameState.hypotheses.get(suspect_id, {})
+	return {"status": str(saved.get("status", "")), "note": str(saved.get("note", ""))}
+
+
+## Anota la valoración y la hipótesis del jugador sobre un sospechoso. Sólo admite sospechosos del
+## caso y valoraciones de `HYPOTHESIS_STATUSES`, y recorta la nota al largo que aceptan las partidas
+## guardadas. Devuelve si se anotó.
+func set_hypothesis(suspect_id: String, status: String, note: String) -> bool:
+	if not GameData.get_suspects().has(suspect_id):
+		push_warning("Hipótesis rechazada: «%s» no es un sospechoso del caso." % suspect_id)
+		return false
+	if not HYPOTHESIS_STATUSES.has(status):
+		push_warning("Hipótesis rechazada: la valoración «%s» no existe." % status)
+		return false
+	GameState.hypotheses[suspect_id] = {"status": status, "note": note.strip_edges().left(SaveFormat.MAX_NOTE_LENGTH)}
+	EventBus.hypothesis_changed.emit(suspect_id)
+	return true
 
 
 ## Valora la acusación. Devuelve {"ok": bool, "reason": String}.

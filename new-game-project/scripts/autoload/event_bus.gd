@@ -14,6 +14,8 @@ signal player_locks_changed
 signal clue_discovered(clue_id: String)
 signal testimony_recorded(testimony_id: String)
 signal deduction_made(deduction_id: String)
+## El jugador ha anotado o cambiado su valoración o su hipótesis sobre un sospechoso.
+signal hypothesis_changed(suspect_id: String)
 signal flag_set(flag: String)
 
 signal time_changed(day: int, minutes: int)

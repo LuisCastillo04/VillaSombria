@@ -79,6 +79,25 @@ func test_deduction_can_chain_into_another() -> void:
 	check_equal(chained["deduction"], "d_coartada_cae", "una deducción sirve como prueba de la siguiente")
 
 
+func test_hypotheses_are_validated_and_announced() -> void:
+	var changed: Array[String] = []
+	var listener := func(suspect_id: String) -> void: changed.append(suspect_id)
+	EventBus.hypothesis_changed.connect(listener)
+	check_equal(Investigation.get_hypothesis("lucia"), {"status": "", "note": ""}, "sin anotar, sin valorar y sin nota")
+	check(Investigation.set_hypothesis("lucia", "principal", "  Mintió sobre la escalera.
+"), "se anota una hipótesis válida")
+	check_equal(Investigation.get_hypothesis("lucia"), {"status": "principal", "note": "Mintió sobre la escalera."}, "se guarda sin espacios sobrantes")
+	check_equal(GameState.hypotheses["lucia"]["status"], "principal", "en el estado de la partida")
+	check(not Investigation.set_hypothesis("lucia", "culpable", "x"), "una valoración inexistente se rechaza")
+	check(not Investigation.set_hypothesis("rosa", "sospechoso", "x"), "quien no es sospechoso no se valora")
+	check_equal(GameState.hypotheses["lucia"]["status"], "principal", "lo rechazado no cambia nada")
+	check(not GameState.hypotheses.has("rosa"), "ni anota a nadie más")
+	Investigation.set_hypothesis("lucia", "", "x".repeat(SaveFormat.MAX_NOTE_LENGTH + 50))
+	check_equal(Investigation.get_hypothesis("lucia")["note"].length(), SaveFormat.MAX_NOTE_LENGTH, "la nota no pasa del largo que admiten las partidas")
+	check_equal(changed, ["lucia", "lucia"] as Array[String], "cada cambio aceptado se anuncia")
+	EventBus.hypothesis_changed.disconnect(listener)
+
+
 func test_accusation_of_innocent_explains_why_not() -> void:
 	var verdict := Investigation.evaluate_accusation("marcos", "transferencia", "d_bodega", "d_brandy")
 	check(not verdict["ok"], "Marcos es inocente")
