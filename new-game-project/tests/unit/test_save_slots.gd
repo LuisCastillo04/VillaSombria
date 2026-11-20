@@ -253,8 +253,25 @@ func test_previous_autosaves_are_imported_once() -> void:
 	check_equal(SaveSystem.get_slot_info("manual_2")["status"], SaveFormat.Status.EMPTY, "no se vuelve a importar")
 
 
+func test_visited_places_survive_a_reload() -> void:
+	_prepare_state(600)
+	TownMap.reset()
+	EventBus.location_changed.emit("plaza")
+	EventBus.location_changed.emit("archivo")
+	await save_and_wait("manual_1")
+	var sections: Dictionary = SaveSystem.read_slot("manual_1")["document"]["sections"]
+	check_equal(sections.get("map", {}).get("visited", []), ["archivo", "plaza"], "la partida guarda los lugares visitados")
+	TownMap.reset()
+	SaveSystem.apply_sections(sections)
+	check_equal(TownMap.get_visited_ids(), PackedStringArray(["archivo", "plaza"]), "y se recuperan al cargar")
+	sections.erase("map")
+	SaveSystem.apply_sections(sections)
+	check(TownMap.get_visited_ids().is_empty(), "una partida anterior al mapa carga sin lugares visitados")
+
+
 func test_new_game_does_not_inherit_previous_state() -> void:
 	_prepare_state(1300, "reloj_despacho")
+	EventBus.location_changed.emit("archivo")
 	GameState.set_flag("ortega_briefing")
 	GameState.play_seconds = 999.0
 	GameClock.day = 3
@@ -266,5 +283,6 @@ func test_new_game_does_not_inherit_previous_state() -> void:
 	check_equal(GameClock.day, 1, "día uno")
 	check(GameState.play_seconds < 5.0, "el tiempo jugado empieza de cero")
 	check_equal(game.current_location.location_id, "estacion", "empieza en la estación")
+	check_equal(TownMap.get_visited_ids(), PackedStringArray(["estacion"]), "sin los lugares visitados de la otra partida")
 	check_equal(_minutes_in("manual_1"), 1300, "la partida guardada sigue intacta")
 	await _free_game(game)

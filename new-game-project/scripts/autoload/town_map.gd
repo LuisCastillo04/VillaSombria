@@ -9,10 +9,12 @@ extends Node
 ##   sitio falso.
 ##
 ## También decide qué lugares se muestran (existen, se conocen y tienen chincheta), qué objetivos
-## pendientes se cumplen en cada uno y qué lugares ha pisado ya el detective.
+## pendientes se cumplen en cada uno y qué lugares ha pisado ya el detective. Esto último se guarda
+## con la partida en la sección `map`; lo demás se deduce del estado y no se guarda.
 
 signal visited_changed
 
+const SAVE_SECTION := "map"
 const DEFAULT_CANVAS := Vector2(1600.0, 1000.0)
 ## Distancia, en metros, a partir de la cual una posición fuera del área transitable se considera
 ## corregida al llevarla al borde.
@@ -32,6 +34,7 @@ var _visited: Dictionary = {}
 
 func _ready() -> void:
 	load_data(GameData.map)
+	SaveSystem.register_section(SAVE_SECTION, to_dict, from_dict)
 	EventBus.location_changed.connect(_on_location_changed)
 
 
@@ -237,7 +240,7 @@ func get_objective_place_ids() -> PackedStringArray:
 	return ids
 
 
-# --- Lugares visitados ------------------------------------------------------------------
+# --- Lugares visitados (se guardan con la partida) ---------------------------------------
 
 func is_visited(place_id: String) -> bool:
 	return _visited.has(place_id)
@@ -254,6 +257,22 @@ func reset() -> void:
 	if _visited.is_empty():
 		return
 	_visited.clear()
+	visited_changed.emit()
+
+
+func to_dict() -> Dictionary:
+	return {"visited": Array(get_visited_ids())}
+
+
+## Las partidas anteriores al mapa no traen la sección y empiezan sin lugares visitados; el lugar
+## donde se reanuda se marca al construir el escenario. Se ignora lo que no sea un lugar conocido.
+func from_dict(data: Dictionary) -> void:
+	_visited.clear()
+	var visited: Variant = data.get("visited", [])
+	if visited is Array:
+		for place_id: Variant in visited:
+			if place_id is String and _place_by_id.has(place_id):
+				_visited[place_id] = true
 	visited_changed.emit()
 
 
