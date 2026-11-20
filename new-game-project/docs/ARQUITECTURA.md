@@ -19,7 +19,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `data/` | Historia y reglas en JSON |
 | `assets/siluetas/` | Siluetas SVG de los interrogatorios |
 | `assets/shaders/` | Empedrado, brillo, contraluz, postproceso y pergamino |
-| `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús, del expediente y de los lugares del HUD, perilla de volumen e interruptor; `assets/ui/expediente/`, los grabados sepia del expediente |
+| `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús, del expediente y de los lugares del HUD, perilla de volumen e interruptor; `assets/ui/expediente/`, los grabados sepia del expediente; `assets/ui/tablero/`, el rincón del corcho y las marcas del selector del tablero |
 | `scenes/main/` | Menú principal y escena de juego |
 | `scenes/actors/` | Detective y NPC |
 | `scenes/world/locations/` | Los cinco escenarios y el campo de pruebas |
@@ -31,7 +31,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
 | `scripts/world/` | Kits de construcción, interactivos y escenarios |
-| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente |
+| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente; `scripts/ui/board/`, las piezas del tablero de deducción |
 | `tests/unit/` | Pruebas automatizadas |
 | `tests/persistencia/` | Guardar y cargar en otro proceso; cierre real de la ventana |
 | `tests/visual/` | Herramientas de captura y de rendimiento |
@@ -45,7 +45,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `GameData` | Carga los JSON de `data/` |
 | `GameState` | Estado guardable: marcas, pistas, testimonios, deducciones e hipótesis |
 | `GameClock` | Día y hora; el tiempo sólo avanza con acciones del jugador |
-| `Investigation` | Registro sin duplicados, deducciones y evaluación de la acusación |
+| `Investigation` | Registro sin duplicados, deducciones, hipótesis validadas (`get_hypothesis`, `set_hypothesis`) y evaluación de la acusación |
 | `DialogueManager` | Flujo de conversaciones y escenas, sin interfaz |
 | `StoryDirector` | Objetivos, eventos por hora, escenas al entrar en un lugar, descanso |
 | `SaveSystem` | Cinco ranuras en `user://saves/`, ranura activa, flujo único de escritura, autoguardado y carga; ver [GUARDADO.md](GUARDADO.md) |
@@ -81,7 +81,7 @@ Game
 ├── DialogueUi
 ├── ClueInspector
 ├── JournalUi          expediente: carpeta, pestañas y cinco secciones; ver EXPEDIENTE.md
-├── BoardUi
+├── BoardUi            tablero: sospechosos, corcho, comparación e hipótesis; ver TABLERO.md
 ├── AccusationUi
 ├── PauseMenu
 ├── CaseClosedUi
@@ -110,6 +110,7 @@ Game
 | `location_change_requested`, `location_changed` | Se pide y se completa un cambio de lugar |
 | `player_locks_changed` | Cambian los bloqueos del control del jugador (`GameState.lock_player`) |
 | `clue_discovered`, `testimony_recorded`, `deduction_made` | Avanza la investigación |
+| `hypothesis_changed` | El jugador anota o cambia una hipótesis en el tablero (`Investigation.set_hypothesis`) |
 | `flag_set`, `objectives_changed` | Cambia el progreso |
 | `time_changed`, `day_changed` | Avanza el calendario |
 | `story_action` | Los datos piden una acción: abrir la acusación, iniciar el epílogo, cerrar el caso |
@@ -154,7 +155,9 @@ Una pregunta puede llevar `variants` para responder según el estado, y una esce
   o concédela desde un diálogo.
 - **NPC:** añade su entrada en `characters.json`, su rutina en `schedules.json` y su archivo en
   `data/dialogues/`.
-- **Deducción:** añádela a `data/deductions.json`; el tablero la detecta sola.
+- **Deducción:** añádela a `data/deductions.json`; el tablero la detecta sola y dibuja su hilo.
+- **Sospechoso:** `"suspect": true` en su entrada de `characters.json`; el tablero y el expediente
+  le dan ficha sin tocar código.
 - **Estado que deba guardarse:** si es una decisión o un hecho de la historia, usa una marca
   desde los datos; si es un sistema nuevo, registra una sección. Ver [GUARDADO.md](GUARDADO.md).
 
@@ -179,6 +182,18 @@ piezas (`JournalFolder`, `JournalTabs`, `JournalList`, `JournalDetail`, `Journal
 `JournalEmptyState`...) y su estilo (`JournalStyle`) son reutilizables. Las secciones se crean una
 vez y se ponen al día con `EventBus`. Detalle, recorrido con teclado y pruebas en
 [EXPEDIENTE.md](EXPEDIENTE.md).
+
+## Tablero de deducción
+
+`BoardUi` (`scenes/ui/board_ui.tscn`) es un tablero de cuero con la fila de sospechosos, un corcho
+con las fichas de lo descubierto e hilos rojos, y la columna «Comparar elementos». Sólo coordina:
+`BoardInfo` lee los datos sin cambiar nada, la relación la decide `Investigation.try_link` y las
+hipótesis se anotan con `Investigation.set_hypothesis`, que las valida y emite
+`EventBus.hypothesis_changed`. Las piezas (`BoardFrame`, `BoardSuspectCard`, `BoardCanvas`,
+`BoardEvidenceCard`, `BoardConnections`, `BoardComparisonPanel`, `BoardHypothesisEditor`...) y su
+estilo (`BoardStyle`) están en `scripts/ui/board/` y reutilizan las del expediente y el HUD. Los
+hilos sólo unen deducciones registradas y pasan por detrás del papel. Detalle, recorrido con
+teclado y pruebas en [TABLERO.md](TABLERO.md).
 
 ## Menús
 
