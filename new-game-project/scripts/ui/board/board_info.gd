@@ -47,14 +47,19 @@ static func status_labels() -> PackedStringArray:
 # --- Elementos del tablero ---
 
 ## Elementos con los que el jugador puede trabajar, en orden de hallazgo dentro de cada tipo, con
-## lo que necesita su ficha: rótulo del tipo, título y una línea breve (categoría, declarante o tipo
-## de deducción).
+## lo que necesita su ficha: rótulo del tipo, título corto y una línea breve (categoría, declarante o
+## tipo de deducción). En las declaraciones, el título es el tema y la línea, quién declara.
 static func items() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for item in Investigation.get_board_items():
 		var entry := item.duplicate()
 		entry["kind_label"] = KIND_LABELS.get(item["kind"], "")
+		entry["card_title"] = item["title"]
 		entry["subtitle"] = _subtitle(item)
+		if item["kind"] == "testimonio":
+			var testimony: Dictionary = GameData.testimonies.get(item["id"], {})
+			entry["card_title"] = str(testimony.get("topic", item["title"]))
+			entry["subtitle"] = GameData.get_character_name(item.get("tag", ""))
 		result.append(entry)
 	return result
 

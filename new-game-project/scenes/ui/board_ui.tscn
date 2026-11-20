@@ -44,34 +44,6 @@ offset_bottom = 1046.0
 mouse_filter = 2
 script = ExtResource("3")
 
-[node name="CardArea" type="Control" parent="Root/Board"]
-clip_contents = true
-layout_mode = 0
-
-[node name="CardScroll" type="ScrollContainer" parent="Root/Board/CardArea"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-horizontal_scroll_mode = 0
-
-[node name="Cards" type="GridContainer" parent="Root/Board/CardArea/CardScroll"]
-layout_mode = 2
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 12
-columns = 5
-
-[node name="Strings" type="Control" parent="Root/Board/CardArea"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
 [node name="Side" type="PanelContainer" parent="Root/Board"]
 layout_mode = 0
 

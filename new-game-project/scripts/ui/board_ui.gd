@@ -7,29 +7,20 @@ extends CanvasLayer
 ## comparan y pide la relación a `Investigation.try_link`, y anota las hipótesis con
 ## `Investigation.set_hypothesis`. Los datos que muestra los lee `BoardInfo`.
 
-const CARD_SIZE := Vector2(230.0, 112.0)
-const KIND_COLORS := {
-	"pista": Color("e0d3b3"),
-	"testimonio": Color("c9d3da"),
-	"deduccion": Color("e2bcb0"),
-}
 ## Minutos que lleva establecer una relación nueva. El expediente los cita en sus reglas del tiempo.
 const LINK_MINUTES := 15
 const HINT := "Selecciona dos elementos y comprueba si guardan relación."
 
 var is_open := false
 var _selection: Array[String] = []
-var _cards: Dictionary = {}
 var _hypothesis_suspect := ""
 var _suspect_row: BoardSuspectRow
+var _canvas: BoardCanvas
 
 @onready var _root: Control = $Root
 @onready var _dim: ColorRect = $Root/Dim
 @onready var _board: BoardFrame = $Root/Board
 @onready var _shield: Control = $Root/Shield
-@onready var _scroll: ScrollContainer = $Root/Board/CardArea/CardScroll
-@onready var _grid: GridContainer = $Root/Board/CardArea/CardScroll/Cards
-@onready var _strings: Control = $Root/Board/CardArea/Strings
 @onready var _slot_a: RichTextLabel = $Root/Board/Side/Box/SlotA
 @onready var _slot_b: RichTextLabel = $Root/Board/Side/Box/SlotB
 @onready var _link_button: Button = $Root/Board/Side/Box/Link
@@ -46,7 +37,9 @@ func _ready() -> void:
 	_dim.color = BoardStyle.DIM
 	_suspect_row = BoardSuspectRow.new()
 	_suspect_row.suspect_pressed.connect(open_hypothesis)
-	_board.set_parts(_suspect_row, $Root/Board/CardArea, $Root/Board/Side, _note_panel)
+	_canvas = BoardCanvas.new()
+	_canvas.item_toggled.connect(select_item)
+	_board.set_parts(_suspect_row, _canvas, $Root/Board/Side, _note_panel)
 	_board.header.close_pressed.connect(close)
 	_root.resized.connect(_layout)
 	_shield.hide()
@@ -57,8 +50,6 @@ func _ready() -> void:
 	_note_save.pressed.connect(save_hypothesis)
 	for label in BoardInfo.status_labels():
 		_note_status.add_item(label)
-	_strings.draw.connect(_draw_strings)
-	_scroll.get_v_scroll_bar().value_changed.connect(func(_value: float) -> void: _strings.queue_redraw())
 
 
 func open() -> void:
@@ -101,6 +92,10 @@ func get_suspect_row() -> BoardSuspectRow:
 	return _suspect_row
 
 
+func get_investigation_canvas() -> BoardCanvas:
+	return _canvas
+
+
 ## El tablero ocupa la pantalla con un margen y sin pasar de un ancho máximo, centrado.
 func _layout() -> void:
 	var screen := _root.size
@@ -122,17 +117,13 @@ func get_selection() -> Array[String]:
 ## Elige o suelta un elemento. Sólo se comparan dos: un tercero sustituye al más antiguo.
 func select_item(item_id: String, selected: bool = true) -> void:
 	if selected:
-		if _selection.has(item_id) or not Investigation.has_item(item_id):
-			return
-		if _selection.size() >= 2:
-			var oldest: String = _selection.pop_front()
-			if _cards.has(oldest):
-				(_cards[oldest] as Button).set_pressed_no_signal(false)
-		_selection.append(item_id)
+		if not _selection.has(item_id) and Investigation.has_item(item_id):
+			if _selection.size() >= 2:
+				_selection.pop_front()
+			_selection.append(item_id)
 	else:
 		_selection.erase(item_id)
-	if _cards.has(item_id):
-		(_cards[item_id] as Button).set_pressed_no_signal(selected)
+	_canvas.set_selection(_selection)
 	_refresh_slots()
 
 
@@ -164,44 +155,13 @@ func link_selected() -> Dictionary:
 
 func _rebuild() -> void:
 	_build_suspects()
-	_build_cards()
+	_canvas.refresh()
+	_canvas.set_selection(_selection, false)
 	_refresh_slots()
-	await get_tree().process_frame
-	_strings.queue_redraw()
 
 
 func _build_suspects() -> void:
 	_suspect_row.refresh()
-
-
-func _build_cards() -> void:
-	for child in _grid.get_children():
-		_grid.remove_child(child)
-		child.queue_free()
-	_cards.clear()
-	for item in BoardInfo.items():
-		var card := Button.new()
-		card.custom_minimum_size = CARD_SIZE
-		card.toggle_mode = true
-		card.text = "%s\n%s" % [item["kind_label"], item["title"]]
-		card.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		card.clip_text = true
-		card.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		card.add_theme_font_size_override("font_size", 16)
-		_style_card(card, item["kind"])
-		card.toggled.connect(func(pressed: bool) -> void: select_item(item["id"], pressed))
-		_grid.add_child(card)
-		_cards[item["id"]] = card
-
-
-func _style_card(card: Button, kind: String) -> void:
-	var color: Color = KIND_COLORS[kind]
-	card.add_theme_stylebox_override("normal", UiTheme.paper_box(color, color.darkened(0.25), 8))
-	card.add_theme_stylebox_override("hover", UiTheme.paper_box(color.lightened(0.15), UiTheme.AMBER, 8))
-	card.add_theme_stylebox_override("pressed", UiTheme.paper_box(color.lightened(0.1), UiTheme.STAMP, 8))
-	card.add_theme_stylebox_override("hover_pressed", UiTheme.paper_box(color.lightened(0.1), UiTheme.STAMP, 8))
-	card.add_theme_color_override("font_pressed_color", UiTheme.STAMP)
-	card.add_theme_color_override("font_hover_pressed_color", UiTheme.STAMP)
 
 
 func _refresh_slots() -> void:
@@ -215,22 +175,6 @@ func _describe_slot(index: int) -> String:
 		return "[i]Elemento %d: sin seleccionar[/i]" % (index + 1)
 	var item := BoardInfo.describe(_selection[index])
 	return "[b]%s[/b]\n%s" % [item["title"], item["text"]]
-
-
-## Une con hilo rojo las tarjetas de cada deducción, de chincheta a chincheta. Las
-## chinchetas van en el borde superior para que el hilo no tape el texto.
-func _draw_strings() -> void:
-	for relation in BoardInfo.relations(_cards.keys()):
-		var from_point := _pin_position(_cards[relation["from"]])
-		var to_point := _pin_position(_cards[relation["to"]])
-		_strings.draw_line(from_point, to_point, Color(0.62, 0.1, 0.09, 0.6), 2.0, true)
-		_strings.draw_circle(from_point, 5.0, UiTheme.STAMP)
-		_strings.draw_circle(to_point, 5.0, UiTheme.STAMP)
-
-
-func _pin_position(card: Button) -> Vector2:
-	var rect := card.get_global_rect()
-	return rect.position + Vector2(rect.size.x * 0.5, 7.0) - _strings.get_global_rect().position
 
 
 # --- Hipótesis ---
