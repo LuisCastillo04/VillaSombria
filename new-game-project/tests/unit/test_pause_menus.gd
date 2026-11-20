@@ -3,7 +3,7 @@ extends TestCase
 ## reales de Settings, las teclas del InputMap, lo previsto visible pero inerte y la navegación
 ## con teclado y mando entre pantallas.
 
-const PAUSE_OPTIONS: Array[String] = ["Continuar", "Guardar partida", "Cargar partida", "Configuración", "Controles", "Guardar y volver al menú"]
+const PAUSE_OPTIONS: Array[String] = ["Continuar", "Mapa", "Guardar partida", "Cargar partida", "Configuración", "Controles", "Guardar y volver al menú"]
 
 var game: Game
 var pause: PauseMenu

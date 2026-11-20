@@ -67,7 +67,7 @@ offset_top = -46.0
 offset_right = 900.0
 offset_bottom = -16.0
 grow_vertical = 0
-text = "[WASD] Moverse   [Mayús] Correr   [E] Interactuar   [J] Expediente   [B] Tablero   [T] Esperar   [Esc] Pausa"
+text = "[WASD] Moverse   [Mayús] Correr   [E] Interactuar   [J] Expediente   [B] Tablero   [M] Mapa   [T] Esperar   [Esc] Pausa"
 
 [node name="PromptPanel" type="PanelContainer" parent="Root"]
 layout_mode = 1
