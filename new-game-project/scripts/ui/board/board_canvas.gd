@@ -93,7 +93,7 @@ func _init() -> void:
 	_content.draw.connect(_draw_content)
 	_scroll.add_child(_content)
 	_connections = BoardConnections.new()
-	_connections.setup(get_pin_position)
+	_connections.setup(get_pin_position, _occluders)
 	_content.add_child(_connections)
 	_empty = BoardStyle.make_label("", BoardStyle.italic_font(), BoardStyle.EMPTY_SIZE, BoardStyle.INK, true)
 	_empty.name = "Empty"
@@ -134,15 +134,37 @@ func refresh() -> void:
 		card.moved.connect(_connections.queue_redraw)
 		_content.add_child(card)
 		_cards[entry["id"]] = card
+	# Los hilos, por encima de las fichas: ellos mismos se ocultan donde pasarían por detrás del papel.
+	_content.move_child(_connections, -1)
 	_arrange()
 	_connections.set_relations(BoardInfo.relations(_cards.keys()))
 	_restore_scroll.call_deferred(scroll_value)
 
 
-## Marca las fichas elegidas para comparar, en orden: la primera es el elemento 1.
+## Marca las fichas elegidas para comparar, en orden: la primera es el elemento 1. Las fichas que ya
+## tienen una relación registrada con una elegida avivan su chincheta.
 func set_selection(ids: Array[String], animate: bool = true) -> void:
+	var related := {}
+	for relation in _connections.get_relations():
+		if ids.has(relation["from"]):
+			related[relation["to"]] = true
+		if ids.has(relation["to"]):
+			related[relation["from"]] = true
 	for id: String in _cards:
-		(_cards[id] as BoardEvidenceCard).set_slot(ids.find(id) + 1, animate)
+		var card: BoardEvidenceCard = _cards[id]
+		card.set_slot(ids.find(id) + 1, animate)
+		card.related = related.has(id)
+	_connections.set_focus(ids)
+
+
+## Una relación recién registrada: su hilo se tiende poco a poco y la ficha de la deducción nueva
+## destella, a la vista.
+func animate_relation(deduction_id: String) -> void:
+	_connections.animate_relation(deduction_id)
+	var card: BoardEvidenceCard = _cards.get(deduction_id)
+	if card != null:
+		card.pulse()
+		reveal.call_deferred(deduction_id)
 
 
 func get_card(item_id: String) -> BoardEvidenceCard:
@@ -170,6 +192,13 @@ func get_group_titles() -> PackedStringArray:
 
 func get_placeholders() -> Array[Rect2]:
 	return _placeholders.duplicate()
+
+
+## Fichas y rótulos: los hilos pasan por detrás de ellos.
+func _occluders() -> Array:
+	var items: Array = _cards.values()
+	items.append_array(_labels.values())
+	return items
 
 
 func get_connections() -> BoardConnections:
@@ -278,6 +307,10 @@ func _arrange() -> void:
 			_placeholders.append(Rect2(Vector2(left + column * (card_size.x + gap.x), top), card_size))
 			column += 1
 		y = maxf(y, top + card_size.y + padding.y)
+	var decorative: Array[PackedVector2Array] = []
+	for index in range(1, _placeholders.size()):
+		decorative.append(PackedVector2Array([_placeholder_pin(_placeholders[index - 1]), _placeholder_pin(_placeholders[index])]))
+	_connections.set_decorative(decorative)
 	_empty.visible = _items.is_empty()
 	if _empty.visible:
 		var width := minf(inner_width * 0.8, 620.0)
@@ -327,6 +360,11 @@ func _group_label(text: String) -> Label:
 func _draw_content() -> void:
 	for rect in _placeholders:
 		BoardOrnaments.draw_placeholder(_content, rect)
+		BoardOrnaments.draw_pin(_content, _placeholder_pin(rect), BoardStyle.BRASS, 5.0)
+
+
+static func _placeholder_pin(rect: Rect2) -> Vector2:
+	return Vector2(rect.get_center().x, rect.position.y + 1.0)
 
 
 func _place_decor() -> void:

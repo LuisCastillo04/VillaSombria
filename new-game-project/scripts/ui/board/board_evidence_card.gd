@@ -12,7 +12,8 @@ extends Button
 signal moved
 
 const PARCHMENT_SHADER := preload("res://assets/shaders/parchment.gdshader")
-const PIN_OFFSET := Vector2(0.0, 11.0)
+## La chincheta sujeta el borde superior: el hilo sale de ella por encima del papel, sin cruzar textos.
+const PIN_OFFSET := Vector2(0.0, 1.0)
 const MAX_TILT := 1.4
 const TITLE_LINES := 2
 
@@ -33,6 +34,12 @@ var lift := 0.0:
 		_back.queue_redraw()
 		queue_redraw()
 		moved.emit()
+## Destello dorado al aparecer una deducción nueva, de 0 a 1.
+var flash := 0.0:
+	set(value):
+		flash = value
+		_back.queue_redraw()
+		queue_redraw()
 
 var _back: Control
 var _paper: ColorRect
@@ -134,6 +141,14 @@ func set_slot(value: int, animate: bool = true) -> void:
 	queue_redraw()
 
 
+## Destello dorado breve: la ficha acaba de llegar al tablero.
+func pulse() -> void:
+	if not is_inside_tree():
+		return
+	flash = 1.0
+	create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN).tween_property(self, "flash", 0.0, BoardStyle.PULSE_SECONDS * 1.6)
+
+
 ## Chincheta de la ficha en las coordenadas de su padre, con la inclinación y el levantamiento.
 func get_pin_position() -> Vector2:
 	return get_transform() * (Vector2(size.x * 0.5, 0.0) + PIN_OFFSET)
@@ -177,9 +192,10 @@ func _draw_back() -> void:
 	var depth := 1.0 + lift * 1.6
 	_back.draw_rect(Rect2(rect.position + Vector2(3.0, 5.0) * depth, rect.size), Color(0.0, 0.0, 0.0, 0.28 + lift * 0.08))
 	_back.draw_rect(Rect2(rect.position + Vector2(1.0, 2.0) * depth, rect.size), Color(0.0, 0.0, 0.0, 0.22))
-	if lift > 0.0:
+	var light := maxf(lift, flash)
+	if light > 0.0:
 		for ring in 3:
-			_back.draw_rect(rect.grow(2.0 + ring * 2.5), Color(BoardStyle.GOLD_LIGHT, 0.26 * lift * (1.0 - ring / 3.0)))
+			_back.draw_rect(rect.grow(2.0 + ring * 2.5), Color(BoardStyle.GOLD_LIGHT, 0.26 * light * (1.0 - ring / 3.0)))
 
 
 func _draw() -> void:
@@ -190,8 +206,8 @@ func _draw() -> void:
 		border = BoardStyle.GOLD_DARK
 	draw_rect(rect.grow(-0.5), border, false, 1.2, true)
 	draw_rect(rect.grow(-4.0), Color(BoardStyle.PARCHMENT_EDGE, 0.35), false, 1.0, true)
-	if lift > 0.0:
-		draw_rect(rect.grow(0.5), Color(BoardStyle.GOLD_LIGHT, lift), false, 3.0, true)
+	if maxf(lift, flash) > 0.0:
+		draw_rect(rect.grow(0.5), Color(BoardStyle.GOLD_LIGHT, maxf(lift, flash)), false, 3.0, true)
 	# Esquina doblada, abajo a la derecha.
 	var fold := 14.0
 	var corner := rect.end

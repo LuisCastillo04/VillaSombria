@@ -40,6 +40,7 @@ func _ready() -> void:
 	EventBus.clue_discovered.connect(_on_state_changed.unbind(1))
 	EventBus.testimony_recorded.connect(_on_state_changed.unbind(1))
 	EventBus.deduction_made.connect(_on_state_changed.unbind(1))
+	EventBus.hypothesis_changed.connect(_on_state_changed.unbind(1))
 	EventBus.objectives_changed.connect(_on_state_changed)
 	EventBus.time_changed.connect(_on_state_changed.unbind(2))
 	EventBus.day_changed.connect(_on_state_changed.unbind(1))

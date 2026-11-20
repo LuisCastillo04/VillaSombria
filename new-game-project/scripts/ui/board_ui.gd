@@ -21,6 +21,7 @@ var _comparison: BoardComparisonPanel
 var _editor: BoardHypothesisEditor
 var _toast: HudToast
 var _toast_tween: Tween
+var _refresh_pending := false
 
 @onready var _root: Control = $Root
 @onready var _dim: ColorRect = $Root/Dim
@@ -45,6 +46,11 @@ func _ready() -> void:
 	_board.set_parts(_suspect_row, _canvas, _comparison, _editor)
 	_board.header.close_pressed.connect(close)
 	_root.resized.connect(_layout)
+	# Si la investigación cambia con el tablero abierto, el tablero se pone al día solo.
+	EventBus.clue_discovered.connect(_on_items_changed.unbind(1))
+	EventBus.testimony_recorded.connect(_on_items_changed.unbind(1))
+	EventBus.deduction_made.connect(_on_items_changed.unbind(1))
+	EventBus.hypothesis_changed.connect(_on_hypothesis_changed)
 	_shield.hide()
 	_root.hide()
 	_layout()
@@ -157,8 +163,36 @@ func link_selected() -> Dictionary:
 		GameClock.advance(LINK_MINUTES)
 		_selection.clear()
 		_rebuild()
+		_canvas.animate_relation(outcome["deduction"])
 	_comparison.show_outcome(outcome)
 	return outcome
+
+
+## Algo nuevo en la investigación: las fichas se rehacen (una vez por fotograma) sólo si cambia lo que
+## hay que prender en el corcho.
+func _on_items_changed() -> void:
+	if not is_open or _refresh_pending:
+		return
+	_refresh_pending = true
+	_refresh_items.call_deferred()
+
+
+func _refresh_items() -> void:
+	_refresh_pending = false
+	if not is_open:
+		return
+	var ids := PackedStringArray(BoardInfo.items().map(func(item: Dictionary) -> String: return item["id"]))
+	if ids == _canvas.get_item_ids():
+		return
+	_selection.assign(_selection.filter(func(item_id: String) -> bool: return Investigation.has_item(item_id)))
+	_canvas.refresh()
+	_canvas.set_selection(_selection, false)
+	_refresh_slots()
+
+
+func _on_hypothesis_changed(_suspect_id: String) -> void:
+	if is_open:
+		_build_suspects()
 
 
 func _on_remove_requested(index: int) -> void:

@@ -26,10 +26,10 @@ static func draw_knot(canvas: CanvasItem, center: Vector2, radius: float = 8.0) 
 	draw_pin(canvas, center, BoardStyle.BRASS, radius)
 
 
-## Curva de un hilo tendido entre dos chinchetas: cae un poco por su peso, más cuanto más largo.
-static func thread_points(from: Vector2, to: Vector2, sag_ratio: float = 0.07) -> PackedVector2Array:
+## Curva de un hilo tendido entre dos chinchetas: bien tenso, apenas cede un poco en los largos.
+static func thread_points(from: Vector2, to: Vector2, sag_ratio: float = 0.025) -> PackedVector2Array:
 	var distance := from.distance_to(to)
-	var sag := clampf(distance * sag_ratio, 4.0, 46.0)
+	var sag := clampf(distance * sag_ratio, 0.0, 16.0)
 	var control := (from + to) * 0.5 + Vector2(0.0, sag)
 	var points := PackedVector2Array()
 	for step in THREAD_SEGMENTS + 1:
@@ -43,7 +43,12 @@ static func thread_points(from: Vector2, to: Vector2, sag_ratio: float = 0.07) -
 static func draw_thread(canvas: CanvasItem, from: Vector2, to: Vector2, color: Color, width: float, progress: float = 1.0, dashed: bool = false) -> void:
 	var points := thread_points(from, to)
 	if progress < 1.0:
-		points = _partial(points, clampf(progress, 0.0, 1.0))
+		points = partial(points, clampf(progress, 0.0, 1.0))
+	draw_thread_path(canvas, points, color, width, dashed)
+
+
+## Un tramo de hilo ya calculado: sombra, cuerpo más oscuro, color y un brillo fino.
+static func draw_thread_path(canvas: CanvasItem, points: PackedVector2Array, color: Color, width: float, dashed: bool = false) -> void:
 	if points.size() < 2:
 		return
 	var shadow := PackedVector2Array()
@@ -60,6 +65,27 @@ static func draw_thread(canvas: CanvasItem, from: Vector2, to: Vector2, color: C
 	for point in points:
 		shine.append(point + Vector2(-0.4, -0.5))
 	canvas.draw_polyline(shine, Color(1.0, 0.78, 0.72, 0.28 * color.a), maxf(width * 0.3, 0.8), true)
+
+
+## Puntos de una curva repartidos cada `step` píxeles, para decidir tramo a tramo qué se ve.
+static func resample(points: PackedVector2Array, step: float) -> PackedVector2Array:
+	var result := PackedVector2Array()
+	if points.is_empty():
+		return result
+	result.append(points[0])
+	var carry := 0.0
+	for index in range(1, points.size()):
+		var from := points[index - 1]
+		var to := points[index]
+		var length := from.distance_to(to)
+		var along := step - carry
+		while along <= length:
+			result.append(from.lerp(to, along / maxf(length, 0.001)))
+			along += step
+		carry = length - (along - step)
+	if result[result.size() - 1] != points[points.size() - 1]:
+		result.append(points[points.size() - 1])
+	return result
 
 
 ## Hueco libre del corcho para pruebas futuras: papel tenue, borde a trazos y una cruz. Es sólo un
@@ -82,7 +108,8 @@ static func draw_coffee_ring(canvas: CanvasItem, center: Vector2, radius: float,
 	canvas.draw_arc(center + Vector2(1.5, -1.0), radius + 1.8, 4.1, 5.6, 16, Color(color, color.a * 0.5), 1.0, true)
 
 
-static func _partial(points: PackedVector2Array, progress: float) -> PackedVector2Array:
+## La parte inicial de una curva, de 0 (nada) a 1 (entera).
+static func partial(points: PackedVector2Array, progress: float) -> PackedVector2Array:
 	var total := 0.0
 	for index in range(1, points.size()):
 		total += points[index - 1].distance_to(points[index])
