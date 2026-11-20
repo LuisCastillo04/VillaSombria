@@ -15,7 +15,16 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="DatePanel" type="PanelContainer" parent="Root"]
+[node name="Exploration" type="Control" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="LocationPanel" type="PanelContainer" parent="Root/Exploration"]
 layout_mode = 1
 offset_left = 24.0
 offset_top = 20.0
@@ -23,17 +32,17 @@ offset_right = 470.0
 offset_bottom = 110.0
 mouse_filter = 2
 
-[node name="Box" type="VBoxContainer" parent="Root/DatePanel"]
+[node name="Box" type="VBoxContainer" parent="Root/Exploration/LocationPanel"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Place" type="Label" parent="Root/DatePanel/Box"]
+[node name="Place" type="Label" parent="Root/Exploration/LocationPanel/Box"]
 layout_mode = 2
 
-[node name="Date" type="Label" parent="Root/DatePanel/Box"]
+[node name="Date" type="Label" parent="Root/Exploration/LocationPanel/Box"]
 layout_mode = 2
 
-[node name="ObjectivePanel" type="PanelContainer" parent="Root"]
+[node name="ObjectivePanel" type="PanelContainer" parent="Root/Exploration"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -45,19 +54,19 @@ offset_bottom = 110.0
 grow_horizontal = 0
 mouse_filter = 2
 
-[node name="Box" type="VBoxContainer" parent="Root/ObjectivePanel"]
+[node name="Box" type="VBoxContainer" parent="Root/Exploration/ObjectivePanel"]
 layout_mode = 2
 mouse_filter = 2
 
-[node name="Title" type="Label" parent="Root/ObjectivePanel/Box"]
+[node name="Title" type="Label" parent="Root/Exploration/ObjectivePanel/Box"]
 layout_mode = 2
 text = "OBJETIVO"
 
-[node name="Objective" type="Label" parent="Root/ObjectivePanel/Box"]
+[node name="Objective" type="Label" parent="Root/Exploration/ObjectivePanel/Box"]
 layout_mode = 2
 autowrap_mode = 3
 
-[node name="Keys" type="Label" parent="Root"]
+[node name="ControlsBar" type="Label" parent="Root/Exploration"]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -67,9 +76,8 @@ offset_top = -46.0
 offset_right = 900.0
 offset_bottom = -16.0
 grow_vertical = 0
-text = "[WASD] Moverse   [Mayús] Correr   [E] Interactuar   [J] Expediente   [B] Tablero   [M] Mapa   [T] Esperar   [Esc] Pausa"
 
-[node name="PromptPanel" type="PanelContainer" parent="Root"]
+[node name="Prompt" type="PanelContainer" parent="Root/Exploration"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
@@ -84,12 +92,12 @@ grow_horizontal = 2
 grow_vertical = 0
 mouse_filter = 2
 
-[node name="PromptLabel" type="Label" parent="Root/PromptPanel"]
+[node name="PromptLabel" type="Label" parent="Root/Exploration/Prompt"]
 layout_mode = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ToastStack" type="VBoxContainer" parent="Root"]
+[node name="Toasts" type="VBoxContainer" parent="Root"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
