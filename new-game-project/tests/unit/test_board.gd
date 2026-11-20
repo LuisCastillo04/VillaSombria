@@ -83,9 +83,10 @@ func test_hypothesis_is_saved() -> void:
 	board.open()
 	await wait_physics_frames(2)
 	board.open_hypothesis("marcos")
-	board._note_status.select(2)
-	board._note_text.text = "Debe dinero y mintió."
-	board.save_hypothesis()
+	var editor := board.get_editor()
+	editor.get_status_option().select(2)
+	editor.get_text_edit().text = "Debe dinero y mintió."
+	editor.get_save_button().pressed.emit()
 	var saved: Dictionary = GameState.hypotheses["marcos"]
 	check_equal(saved["status"], "principal", "estado guardado")
 	check_equal(saved["note"], "Debe dinero y mintió.", "nota guardada")

@@ -44,30 +44,6 @@ offset_bottom = 1046.0
 mouse_filter = 2
 script = ExtResource("3")
 
-[node name="NotePanel" type="PanelContainer" parent="Root/Board"]
-visible = false
-layout_mode = 0
-
-[node name="Box" type="VBoxContainer" parent="Root/Board/NotePanel"]
-layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="Title" type="Label" parent="Root/Board/NotePanel/Box"]
-layout_mode = 2
-
-[node name="Status" type="OptionButton" parent="Root/Board/NotePanel/Box"]
-layout_mode = 2
-
-[node name="Text" type="TextEdit" parent="Root/Board/NotePanel/Box"]
-layout_mode = 2
-size_flags_vertical = 3
-placeholder_text = "Escribe aquí tu hipótesis..."
-wrap_mode = 1
-
-[node name="Save" type="Button" parent="Root/Board/NotePanel/Box"]
-layout_mode = 2
-text = "Guardar hipótesis"
-
 [node name="Shield" type="Control" parent="Root"]
 visible = false
 layout_mode = 1

@@ -311,7 +311,8 @@ static func apply_text_edit(text_edit: TextEdit) -> void:
 	text_edit.add_theme_stylebox_override("normal", normal)
 	text_edit.add_theme_stylebox_override("focus", focus)
 	text_edit.add_theme_stylebox_override("read_only", normal)
-	text_edit.add_theme_font_override("font", body_font())
+	# En cursiva, como una nota escrita a mano en el cuaderno.
+	text_edit.add_theme_font_override("font", italic_font())
 	text_edit.add_theme_font_size_override("font_size", NOTE_SIZE)
 	text_edit.add_theme_color_override("font_color", CREAM)
 	text_edit.add_theme_color_override("font_placeholder_color", Color(CREAM, 0.55))

@@ -12,20 +12,20 @@ const LINK_MINUTES := 15
 
 var is_open := false
 var _selection: Array[String] = []
-var _hypothesis_suspect := ""
+## Hipótesis que el jugador dejó a medias, por sospechoso: {status, note}. Duran mientras dure la
+## partida en curso; nunca se guardan en el archivo, que sólo recoge lo que se guarda a propósito.
+var _drafts: Dictionary = {}
 var _suspect_row: BoardSuspectRow
 var _canvas: BoardCanvas
 var _comparison: BoardComparisonPanel
+var _editor: BoardHypothesisEditor
+var _toast: HudToast
+var _toast_tween: Tween
 
 @onready var _root: Control = $Root
 @onready var _dim: ColorRect = $Root/Dim
 @onready var _board: BoardFrame = $Root/Board
 @onready var _shield: Control = $Root/Shield
-@onready var _note_panel: PanelContainer = $Root/Board/NotePanel
-@onready var _note_title: Label = $Root/Board/NotePanel/Box/Title
-@onready var _note_status: OptionButton = $Root/Board/NotePanel/Box/Status
-@onready var _note_text: TextEdit = $Root/Board/NotePanel/Box/Text
-@onready var _note_save: Button = $Root/Board/NotePanel/Box/Save
 
 
 func _ready() -> void:
@@ -38,16 +38,16 @@ func _ready() -> void:
 	_comparison = BoardComparisonPanel.new()
 	_comparison.link_pressed.connect(link_selected)
 	_comparison.remove_requested.connect(_on_remove_requested)
-	_board.set_parts(_suspect_row, _canvas, _comparison, _note_panel)
+	_editor = BoardHypothesisEditor.new()
+	_editor.save_requested.connect(func(_status: String, _note: String) -> void: save_hypothesis())
+	_editor.close_requested.connect(close_hypothesis)
+	_editor.discard_requested.connect(_on_discard_requested)
+	_board.set_parts(_suspect_row, _canvas, _comparison, _editor)
 	_board.header.close_pressed.connect(close)
 	_root.resized.connect(_layout)
 	_shield.hide()
 	_root.hide()
-	_note_panel.hide()
 	_layout()
-	_note_save.pressed.connect(save_hypothesis)
-	for label in BoardInfo.status_labels():
-		_note_status.add_item(label)
 
 
 func open() -> void:
@@ -62,6 +62,7 @@ func open() -> void:
 
 
 func close() -> void:
+	close_hypothesis(false)
 	is_open = false
 	GameState.unlock_player("tablero")
 	_root.hide()
@@ -76,9 +77,19 @@ func _input(event: InputEvent) -> void:
 			close_hypothesis()
 		else:
 			close()
+	elif _is_save_shortcut(event) and is_editing():
+		get_viewport().set_input_as_handled()
+		save_hypothesis()
 	elif event.is_action_pressed("open_board") and not is_editing():
+		# Con el panel de hipótesis abierto, la B se escribe en la nota.
 		get_viewport().set_input_as_handled()
 		close()
+
+
+## Ctrl + Intro guarda la hipótesis sin soltar el teclado.
+static func _is_save_shortcut(event: InputEvent) -> bool:
+	var key := event as InputEventKey
+	return key != null and key.pressed and not key.echo and key.ctrl_pressed and (key.keycode == KEY_ENTER or key.keycode == KEY_KP_ENTER)
 
 
 func get_board() -> BoardFrame:
@@ -95,6 +106,10 @@ func get_investigation_canvas() -> BoardCanvas:
 
 func get_comparison() -> BoardComparisonPanel:
 	return _comparison
+
+
+func get_editor() -> BoardHypothesisEditor:
+	return _editor
 
 
 ## El tablero ocupa la pantalla con un margen y sin pasar de un ancho máximo, centrado.
@@ -159,7 +174,7 @@ func _rebuild() -> void:
 
 
 func _build_suspects() -> void:
-	_suspect_row.refresh()
+	_suspect_row.refresh(_drafts.keys())
 
 
 func _refresh_slots() -> void:
@@ -172,32 +187,99 @@ func _refresh_slots() -> void:
 # --- Hipótesis ---
 
 func is_editing() -> bool:
-	return _note_panel.visible
+	return _editor.is_open
 
 
 func get_editing_suspect() -> String:
-	return _hypothesis_suspect if is_editing() else ""
+	return _editor.suspect_id if is_editing() else ""
 
 
-## Abre la hipótesis de un sospechoso con lo que el jugador anotó.
+func has_draft(suspect_id: String) -> bool:
+	return _drafts.has(suspect_id)
+
+
+## Abre la hipótesis de un sospechoso con lo que el jugador anotó, o con su borrador si dejó uno a
+## medias. Si ya estaba anotando otra, la deja como borrador.
 func open_hypothesis(suspect_id: String) -> void:
-	_hypothesis_suspect = suspect_id
-	var hypothesis := Investigation.get_hypothesis(suspect_id)
-	_note_title.text = "Hipótesis sobre %s" % GameData.get_character_name(suspect_id)
-	_note_status.select(Investigation.HYPOTHESIS_STATUSES.find(hypothesis["status"]))
-	_note_text.text = hypothesis["note"]
-	_note_panel.show()
+	if is_editing():
+		if _editor.suspect_id == suspect_id:
+			return
+		_keep_draft()
+	var entry: Dictionary = {}
+	for suspect in BoardInfo.suspects():
+		if suspect["id"] == suspect_id:
+			entry = suspect
+	if entry.is_empty():
+		return
+	_editor.open_for(entry, Investigation.get_hypothesis(suspect_id), _drafts.get(suspect_id, {}))
 	_suspect_row.set_selected(suspect_id)
 
 
-func close_hypothesis() -> void:
-	_note_panel.hide()
+## Cierra el panel de hipótesis sin cerrar el tablero. Lo que no se haya guardado queda como borrador.
+func close_hypothesis(animate: bool = true) -> void:
+	if not is_editing():
+		return
+	_keep_draft()
+	_editor.close(animate)
 	_suspect_row.set_selected("")
+	_refresh_drafts()
 
 
+## Anota la valoración y la nota del panel en la partida, pone al día la ficha del sospechoso y lo
+## confirma con un destello y un aviso breve.
 func save_hypothesis() -> void:
-	var status := Investigation.HYPOTHESIS_STATUSES[_note_status.selected]
-	if Investigation.set_hypothesis(_hypothesis_suspect, status, _note_text.text):
-		close_hypothesis()
-		_build_suspects()
-		_suspect_row.get_card(_hypothesis_suspect).pulse()
+	if not is_editing():
+		return
+	var suspect_id := _editor.suspect_id
+	var values := _editor.get_values()
+	if not Investigation.set_hypothesis(suspect_id, values["status"], values["note"]):
+		return
+	_drafts.erase(suspect_id)
+	_editor.close()
+	_suspect_row.set_selected("")
+	_build_suspects()
+	var card := _suspect_row.get_card(suspect_id)
+	if card != null:
+		card.pulse()
+	_show_toast("Hipótesis guardada", "%s · %s" % [GameData.get_character_name(suspect_id), BoardInfo.status_label(values["status"])])
+
+
+func _keep_draft() -> void:
+	if _editor.is_dirty():
+		_drafts[_editor.suspect_id] = _editor.get_values()
+	else:
+		_drafts.erase(_editor.suspect_id)
+
+
+func _on_discard_requested() -> void:
+	_drafts.erase(_editor.suspect_id)
+	_refresh_drafts()
+
+
+func _refresh_drafts() -> void:
+	for card in _suspect_row.get_cards():
+		card.set_draft(_drafts.has(card.suspect_id))
+
+
+## Aviso breve sobre el corcho, en el pergamino de los avisos del HUD.
+func _show_toast(title: String, body: String) -> void:
+	if _toast != null:
+		_toast.queue_free()
+	if _toast_tween != null:
+		_toast_tween.kill()
+	_toast = HudToast.new(title, body, "historia")
+	_toast.name = "Toast"
+	_board.add_child(_toast)
+	var canvas := _board.get_canvas_rect()
+	_toast.reset_size()
+	_toast.position = Vector2(canvas.get_center().x - _toast.size.x * 0.5, canvas.position.y + 26.0)
+	_toast.modulate.a = 0.0
+	_toast_tween = create_tween()
+	_toast_tween.tween_property(_toast, "modulate:a", 1.0, 0.2)
+	_toast_tween.tween_interval(BoardStyle.TOAST_SECONDS)
+	_toast_tween.tween_property(_toast, "modulate:a", 0.0, 0.35)
+	_toast_tween.tween_callback(_toast.queue_free)
+
+
+func get_toast() -> HudToast:
+	return _toast if is_instance_valid(_toast) else null

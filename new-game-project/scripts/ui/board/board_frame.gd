@@ -14,6 +14,8 @@ const RADIUS := 14.0
 const WELL_INSET := 14.0
 ## Margen mínimo entre el panel de hipótesis y el borde del corcho.
 const EDITOR_MARGIN := Vector2(24.0, 18.0)
+## Centro horizontal preferido del panel de hipótesis, en proporción del ancho del corcho.
+const EDITOR_CENTER := 0.64
 
 var header: BoardHeader
 var seal: JournalSeal
@@ -124,8 +126,12 @@ func relayout() -> void:
 	var side_width := clampf(body.size.x * BoardStyle.SIDE_RATIO, BoardStyle.SIDE_MIN_WIDTH, BoardStyle.SIDE_MAX_WIDTH)
 	_canvas_rect = Rect2(body.position, Vector2(maxf(body.size.x - side_width - BoardStyle.BODY_GAP, 0.0), body.size.y))
 	_side_rect = Rect2(Vector2(_canvas_rect.end.x + BoardStyle.BODY_GAP, body.position.y), Vector2(side_width, body.size.y))
+	# El panel de hipótesis se abre algo a la derecha del corcho, como en un tablero de verdad: deja a
+	# la vista la primera columna de fichas, sin salirse nunca del corcho.
 	var editor_size := BoardStyle.EDITOR_SIZE.min(_canvas_rect.size - EDITOR_MARGIN * 2.0).max(Vector2.ZERO)
-	_editor_rect = Rect2(_canvas_rect.get_center() - editor_size * 0.5, editor_size)
+	var editor_x := _canvas_rect.position.x + _canvas_rect.size.x * EDITOR_CENTER - editor_size.x * 0.5
+	editor_x = clampf(editor_x, _canvas_rect.position.x + EDITOR_MARGIN.x, _canvas_rect.end.x - EDITOR_MARGIN.x - editor_size.x)
+	_editor_rect = Rect2(Vector2(editor_x, _canvas_rect.get_center().y - editor_size.y * 0.5), editor_size)
 	_place(suspects, _row_rect)
 	_place(canvas, _canvas_rect)
 	_place(side, _side_rect)
