@@ -98,7 +98,7 @@ func _build_sections() -> void:
 		JournalCluesSection.new(),
 		JournalTestimoniesSection.new(),
 		JournalSuspectsSection.new(),
-		JournalBasicSection.new("Deducciones", "cerebro", JournalBasicSection.Kind.DEDUCTIONS),
+		JournalDeductionsSection.new(),
 	]
 	var definitions: Array[Dictionary] = []
 	for index in _sections.size():
