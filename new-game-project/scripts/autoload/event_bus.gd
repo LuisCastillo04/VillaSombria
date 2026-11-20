@@ -7,6 +7,9 @@ signal interaction_focus_changed(prompt: String)
 signal notification_requested(title: String, body: String, kind: String)
 signal location_change_requested(location_id: String, spawn_id: String)
 signal location_changed(location_id: String)
+## Cambian los bloqueos del control del jugador (conversación, transición, pantallas). Los motivos
+## activos están en `GameState.get_player_lock_reasons()`.
+signal player_locks_changed
 
 signal clue_discovered(clue_id: String)
 signal testimony_recorded(testimony_id: String)
