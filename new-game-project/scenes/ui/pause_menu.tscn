@@ -14,6 +14,8 @@
 [ext_resource type="Texture2D" path="res://assets/ui/iconos/engranaje.svg" id="12"]
 [ext_resource type="Texture2D" path="res://assets/ui/iconos/mando.svg" id="13"]
 [ext_resource type="Texture2D" path="res://assets/ui/iconos/salir.svg" id="14"]
+[ext_resource type="PackedScene" path="res://scenes/ui/map_screen.tscn" id="15"]
+[ext_resource type="Texture2D" path="res://assets/ui/iconos/mapa.svg" id="16"]
 
 [node name="PauseMenu" type="CanvasLayer"]
 layer = 20
@@ -84,6 +86,14 @@ script = ExtResource("7")
 compact = true
 separator = false
 
+[node name="Map" type="Button" parent="Root/Center/Panel/Box"]
+layout_mode = 2
+text = "Mapa"
+icon = ExtResource("16")
+script = ExtResource("7")
+compact = true
+separator = false
+
 [node name="Save" type="Button" parent="Root/Center/Panel/Box"]
 layout_mode = 2
 text = "Guardar partida"
@@ -130,6 +140,10 @@ visible = false
 layout_mode = 1
 
 [node name="ControlsMenu" parent="Root" instance=ExtResource("4")]
+visible = false
+layout_mode = 1
+
+[node name="MapScreen" parent="Root" instance=ExtResource("15")]
 visible = false
 layout_mode = 1
 

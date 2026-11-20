@@ -19,6 +19,7 @@ participación en diseño, programación, narrativa y dirección.
 - Expediente con pistas, testimonios, sospechosos y deducciones.
 - Tablero de deducción que comprueba relaciones reales entre pruebas y declaraciones.
 - Calendario de tres días con rutinas de personajes. Nada se pierde por llegar tarde.
+- Mapa del pueblo que sigue la posición real del detective, con los lugares y los objetivos del día.
 - Acusación final con motivo, oportunidad y medios. Equivocarse no termina la partida.
 - Cinco ranuras de partida con imagen real de cada guardado. El autoguardado sigue la ranura en
   la que guardaste o que cargaste, y cerrar la ventana o pulsar Alt + F4 guarda antes de salir.
@@ -55,6 +56,7 @@ Desde la terminal:
 | 1 a 9, ratón o Intro | Elegir una pregunta |
 | J o Tab | Abrir el expediente |
 | B | Abrir el tablero de deducción |
+| M | Abrir el mapa del pueblo |
 | T | Dejar pasar una hora |
 | Esc | Pausa |
 
@@ -86,6 +88,7 @@ Si Godot no está en la ruta de Steam por defecto, define antes la variable `GOD
 - [Plan de desarrollo](new-game-project/docs/PLAN_DESARROLLO.md)
 - [Arquitectura](new-game-project/docs/ARQUITECTURA.md)
 - [Guardado](new-game-project/docs/GUARDADO.md): ranura activa, autoguardado, salida, imágenes y cómo ampliarlo
+- [Mapa](new-game-project/docs/MAPA.md): posición del detective, calibración, lugares y cómo ampliarlo
 - [Historia](new-game-project/docs/HISTORIA.md) (contiene la solución del caso)
 - [Recursos](new-game-project/docs/RECURSOS.md): origen y condiciones de los recursos
 

@@ -26,6 +26,7 @@ const CATEGORIES: Array[Dictionary] = [
 	{"title": "Menús", "icon": "lista", "rows": [
 		{"label": "Abrir o cerrar el expediente", "actions": ["open_journal"]},
 		{"label": "Abrir o cerrar el tablero", "actions": ["open_board"]},
+		{"label": "Abrir o cerrar el mapa", "actions": ["open_map"]},
 		{"label": "Pausar el juego", "actions": ["pause"]},
 		{"label": "Moverse por los menús", "together": ["ui_up", "ui_left", "ui_down", "ui_right"]},
 		{"label": "Volver atrás", "actions": ["ui_cancel"]},

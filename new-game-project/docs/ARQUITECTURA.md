@@ -27,10 +27,11 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/autoload/` | Sistemas globales |
 | `scripts/core/` | Escena de juego, condiciones y efectos |
 | `scripts/save/` | Formato de las partidas, escritura segura e imagen de cada ranura |
+| `scripts/map/` | Calibración, zonas y lugares del mapa del pueblo |
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
 | `scripts/world/` | Kits de construcción, interactivos y escenarios |
-| `scripts/ui/` | Interfaz |
+| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa |
 | `tests/unit/` | Pruebas automatizadas |
 | `tests/persistencia/` | Guardar y cargar en otro proceso; cierre real de la ventana |
 | `tests/visual/` | Herramientas de captura y de rendimiento |
@@ -52,6 +53,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `ExitManager` | Cierre controlado: la X, Alt + F4 y los botones de salida guardan antes de salir |
 | `Settings` | Volumen, pantalla completa y sincronización vertical |
 | `AudioManager` | Sonido sintetizado al arrancar |
+| `TownMap` | Mapa del pueblo: lugares, calibración, posición del detective en el mapa y lugares visitados; ver [MAPA.md](MAPA.md) |
 
 ## Escenas
 
@@ -170,8 +172,10 @@ congelado por `get_tree().paused`. Los fundidos funcionan en pausa porque `Pause
 | `CategoryMenu` | `MenuScreen` con pestañas (`CategoryTab`) y páginas desplazables; base de las dos siguientes |
 | `SettingsMenu` | Audio y Gráficos con los ajustes reales de `Settings`; Jugabilidad prevista |
 | `ControlsMenu` | Teclas leídas del InputMap al abrir, en filas `BindingRow` con `KeyCap`; nombres en `InputLabels` |
+| `MapScreen` | Mapa del pueblo sobre la pausa, con M o con la opción «Mapa»; ver [MAPA.md](MAPA.md) |
 
-Escape cierra siempre la pantalla de arriba: expediente o configuración → pausa → juego. Al
+Escape cierra siempre la pantalla de arriba: expediente o configuración → pausa → juego. El mapa
+abierto con M vuelve directamente al juego; abierto desde la pausa, a la pausa. Al
 volver, el foco regresa a la opción que abrió la pantalla. Las pestañas se recorren con
 arriba y abajo y cambian la página; a la derecha se entra en la página y a la izquierda se
 vuelve a su pestaña.

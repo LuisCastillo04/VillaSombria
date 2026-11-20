@@ -33,6 +33,7 @@ var _saved_pose: Dictionary = {}
 func _ready() -> void:
 	camera.target = player
 	player.camera_yaw = camera.get_yaw()
+	_pause.set_map_target(player)
 	EventBus.location_change_requested.connect(go_to)
 	EventBus.rest_requested.connect(_on_rest_requested)
 	EventBus.story_action.connect(_on_story_action)
@@ -70,6 +71,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("open_board"):
 		get_viewport().set_input_as_handled()
 		_board.open()
+	elif event.is_action_pressed("open_map"):
+		get_viewport().set_input_as_handled()
+		_pause.open_map()
 	elif event.is_action_pressed("wait_time"):
 		get_viewport().set_input_as_handled()
 		_wait_an_hour()
@@ -98,6 +102,7 @@ func go_to(location_id: String, spawn_id: String) -> void:
 func _start_new_game() -> void:
 	GameState.reset()
 	GameClock.reset()
+	TownMap.reset()
 	_load_location(NEW_GAME_LOCATION, NEW_GAME_SPAWN)
 	_notify_state()
 	SaveSystem.begin_session(self)
