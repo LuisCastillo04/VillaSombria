@@ -32,6 +32,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Sistema de guardado | Hecho | Pruebas, reinicio en dos procesos, cierre real de la ventana y capturas; ver [GUARDADO.md](GUARDADO.md) |
 | Rediseño del menú principal | Hecho | Pruebas de navegación y capturas a 1280×720, 1920×1080, 2560×1080 y 1024×768 |
 | Rediseño de pausa, configuración y controles | Hecho | Pruebas de navegación, ajustes e InputMap; capturas a 1920×1080, 1600×900 y 1280×720 |
+| Mapa del pueblo | Hecho | Dibujo comparado con las colisiones reales, recorridos con entradas reales, carga de partidas y capturas a 1920×1080, 2560×1080, 1280×720 y 1024×768; ver [MAPA.md](MAPA.md) |
 
 Diferencias con el encargo:
 
@@ -46,8 +47,9 @@ Diferencias con el encargo:
 guarda una partida en un proceso de Godot para cargarla en otro nuevo. Con `-ConVentana` además
 comprueba las imágenes de las ranuras y cierra la ventana real con la X y con Alt + F4.
 
-Último resultado: 186 pruebas correctas, 0 fallos; el reinicio, las imágenes y los dos cierres
-de la ventana, correctos.
+Último resultado: 214 pruebas correctas, 0 fallos, y el reinicio en dos procesos, correcto. Las
+comprobaciones con ventana (imágenes y cierres) no se repitieron tras añadir el mapa, que no las
+afecta.
 
 | Archivo | Cubre |
 | --- | --- |
@@ -71,6 +73,8 @@ de la ventana, correctos.
 | `test_save_menus` | Guardar, sobrescribir, eliminar y cargar desde la pausa y el menú principal |
 | `test_main_menu` | Plaza en marcha detrás del menú, orden e iconos de las opciones, «Continuar» según las partidas, navegación con teclado, mando y ratón, foco de los paneles |
 | `test_pause_menus` | Pausa sobre el escenario, ranura activa real, Escape por niveles, volumen y gráficos reales, teclas del InputMap, opciones previstas inertes, pestañas con teclado |
+| `test_map` | Calibración del mapa, dibujo frente a colisiones reales, puertas y calle Mayor, posiciones exactas en exteriores y por edificio en interiores, objetivos, lugares visitados, datos dañados |
+| `test_map_screen` | El mapa en el juego: posición al empezar, al caminar, al entrar y salir, al cargar; tamaños de pantalla, pausa, teclado, ratón y selección |
 | `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
 | `persistencia/cierre` | Con ventana: cerrar con la X o Alt + F4 guarda en la ranura activa |
 | `visual/vista_previa` | Con ventana: la imagen de cada ranura es la escena guardada, sin la pausa |
@@ -100,6 +104,8 @@ arranca desde él sin errores en modo sin ventana.
   animaciones del expediente y del indicador.
 - **Alt + F4 en un `.exe`:** se probó con el juego ejecutándose en el motor del editor, enviando
   la pulsación a su ventana; falta repetirlo con el ejecutable exportado.
+- **El mapa en movimiento.** La pulsación y el deslizamiento del marcador, el rombo y la entrada
+  de la pantalla se comprobaron con pruebas y capturas fijas, no viéndolos ni con un mando real.
 - **La tasa de fotogramas en primer plano.** Ver el apartado siguiente.
 
 ## Rendimiento

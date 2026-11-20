@@ -147,6 +147,7 @@ SaveSystem.register_section("clave", funcion_que_devuelve_un_diccionario, funcio
 | `state` | `SaveSystem`, sobre `GameState` | Marcas, pistas, testimonios, deducciones, preguntas hechas, hipótesis, lugar, intentos de acusación, tiempo jugado |
 | `clock` | `SaveSystem`, sobre `GameClock` | Día y minuto del calendario |
 | `player` | `Game` | Lugar, posición y orientación del detective |
+| `map` | `TownMap` | Lugares del mapa que el detective ya ha pisado; ver [MAPA.md](MAPA.md#guardado) |
 
 El juego no tiene un inventario aparte: las pistas del expediente cumplen esa función y se
 guardan en `state`. Al cargar, las secciones se restauran en el orden en que se registraron; una
