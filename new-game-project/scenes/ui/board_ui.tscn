@@ -44,44 +44,6 @@ offset_bottom = 1046.0
 mouse_filter = 2
 script = ExtResource("3")
 
-[node name="Side" type="PanelContainer" parent="Root/Board"]
-layout_mode = 0
-
-[node name="Box" type="VBoxContainer" parent="Root/Board/Side"]
-layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Title" type="Label" parent="Root/Board/Side/Box"]
-layout_mode = 2
-text = "Comparar elementos"
-
-[node name="SlotA" type="RichTextLabel" parent="Root/Board/Side/Box"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 18
-theme_override_font_sizes/bold_font_size = 20
-theme_override_font_sizes/italics_font_size = 18
-bbcode_enabled = true
-
-[node name="SlotB" type="RichTextLabel" parent="Root/Board/Side/Box"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 18
-theme_override_font_sizes/bold_font_size = 20
-theme_override_font_sizes/italics_font_size = 18
-bbcode_enabled = true
-
-[node name="Link" type="Button" parent="Root/Board/Side/Box"]
-layout_mode = 2
-text = "Relacionar"
-
-[node name="Result" type="RichTextLabel" parent="Root/Board/Side/Box"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_font_sizes/normal_font_size = 18
-theme_override_font_sizes/bold_font_size = 21
-bbcode_enabled = true
-
 [node name="NotePanel" type="PanelContainer" parent="Root/Board"]
 visible = false
 layout_mode = 0

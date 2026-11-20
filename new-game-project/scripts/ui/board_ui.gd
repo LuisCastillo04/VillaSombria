@@ -9,22 +9,18 @@ extends CanvasLayer
 
 ## Minutos que lleva establecer una relación nueva. El expediente los cita en sus reglas del tiempo.
 const LINK_MINUTES := 15
-const HINT := "Selecciona dos elementos y comprueba si guardan relación."
 
 var is_open := false
 var _selection: Array[String] = []
 var _hypothesis_suspect := ""
 var _suspect_row: BoardSuspectRow
 var _canvas: BoardCanvas
+var _comparison: BoardComparisonPanel
 
 @onready var _root: Control = $Root
 @onready var _dim: ColorRect = $Root/Dim
 @onready var _board: BoardFrame = $Root/Board
 @onready var _shield: Control = $Root/Shield
-@onready var _slot_a: RichTextLabel = $Root/Board/Side/Box/SlotA
-@onready var _slot_b: RichTextLabel = $Root/Board/Side/Box/SlotB
-@onready var _link_button: Button = $Root/Board/Side/Box/Link
-@onready var _result: RichTextLabel = $Root/Board/Side/Box/Result
 @onready var _note_panel: PanelContainer = $Root/Board/NotePanel
 @onready var _note_title: Label = $Root/Board/NotePanel/Box/Title
 @onready var _note_status: OptionButton = $Root/Board/NotePanel/Box/Status
@@ -39,14 +35,16 @@ func _ready() -> void:
 	_suspect_row.suspect_pressed.connect(open_hypothesis)
 	_canvas = BoardCanvas.new()
 	_canvas.item_toggled.connect(select_item)
-	_board.set_parts(_suspect_row, _canvas, $Root/Board/Side, _note_panel)
+	_comparison = BoardComparisonPanel.new()
+	_comparison.link_pressed.connect(link_selected)
+	_comparison.remove_requested.connect(_on_remove_requested)
+	_board.set_parts(_suspect_row, _canvas, _comparison, _note_panel)
 	_board.header.close_pressed.connect(close)
 	_root.resized.connect(_layout)
 	_shield.hide()
 	_root.hide()
 	_note_panel.hide()
 	_layout()
-	_link_button.pressed.connect(link_selected)
 	_note_save.pressed.connect(save_hypothesis)
 	for label in BoardInfo.status_labels():
 		_note_status.add_item(label)
@@ -56,7 +54,6 @@ func open() -> void:
 	is_open = true
 	GameState.lock_player("tablero")
 	_selection.clear()
-	_result.text = HINT
 	_board.header.refresh_keys()
 	_root.show()
 	close_hypothesis()
@@ -96,6 +93,10 @@ func get_investigation_canvas() -> BoardCanvas:
 	return _canvas
 
 
+func get_comparison() -> BoardComparisonPanel:
+	return _comparison
+
+
 ## El tablero ocupa la pantalla con un margen y sin pasar de un ancho máximo, centrado.
 func _layout() -> void:
 	var screen := _root.size
@@ -131,26 +132,23 @@ func can_link() -> bool:
 	return BoardInfo.can_link(_selection)
 
 
-## Pide a la investigación si los dos elementos elegidos guardan relación y muestra el resultado.
+## Pide a la investigación si los dos elementos elegidos guardan relación y muestra el resultado. Una
+## deducción nueva lleva su tiempo, se convierte en una ficha más y su hilo aparece en el corcho.
 func link_selected() -> Dictionary:
 	if not can_link():
 		return {"result": Investigation.LinkResult.MISSING_ITEM, "deduction": ""}
 	var outcome := Investigation.try_link(_selection[0], _selection[1])
-	match outcome["result"]:
-		Investigation.LinkResult.NEW:
-			var deduction: Dictionary = GameData.deductions[outcome["deduction"]]
-			_result.text = "[b]%s[/b]\n%s" % [deduction["title"], deduction["text"]]
-			GameClock.advance(LINK_MINUTES)
-			_selection.clear()
-			_rebuild()
-		Investigation.LinkResult.ALREADY_KNOWN:
-			var known: Dictionary = GameData.deductions[outcome["deduction"]]
-			_result.text = "Ya estableciste esta relación: [b]%s[/b]." % known["title"]
-		Investigation.LinkResult.MISSING_ITEM:
-			_result.text = "Uno de los elementos ya no está en el expediente."
-		_:
-			_result.text = "No encuentro ninguna relación concluyente entre estos dos elementos."
+	if outcome["result"] == Investigation.LinkResult.NEW:
+		GameClock.advance(LINK_MINUTES)
+		_selection.clear()
+		_rebuild()
+	_comparison.show_outcome(outcome)
 	return outcome
+
+
+func _on_remove_requested(index: int) -> void:
+	if index >= 1 and index <= _selection.size():
+		select_item(_selection[index - 1], false)
 
 
 func _rebuild() -> void:
@@ -165,16 +163,10 @@ func _build_suspects() -> void:
 
 
 func _refresh_slots() -> void:
-	_slot_a.text = _describe_slot(0)
-	_slot_b.text = _describe_slot(1)
-	_link_button.disabled = not can_link()
-
-
-func _describe_slot(index: int) -> String:
-	if index >= _selection.size():
-		return "[i]Elemento %d: sin seleccionar[/i]" % (index + 1)
-	var item := BoardInfo.describe(_selection[index])
-	return "[b]%s[/b]\n%s" % [item["title"], item["text"]]
+	var entries: Array[Dictionary] = []
+	for item_id in _selection:
+		entries.append(BoardInfo.describe(item_id))
+	_comparison.show_selection(entries, can_link())
 
 
 # --- Hipótesis ---
