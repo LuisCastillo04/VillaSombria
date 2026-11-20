@@ -6,6 +6,8 @@ extends JournalPage
 ## sitio, de modo que nunca tapa una ficha.
 
 const ART_MAX_HEIGHT := 330.0
+## Margen que se deja por encima y por debajo de una ficha al desplazar la lista hasta ella.
+const REVEAL_MARGIN := 12.0
 
 var banner: JournalBanner
 ## Bajo la cinta: lo que la sección quiera poner (la fecha del día, por ejemplo).
@@ -37,7 +39,8 @@ func _init(title: String = "", icon_name: String = "") -> void:
 	scroll = ScrollContainer.new()
 	scroll.name = "Scroll"
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	scroll.follow_focus = true
+	# El desplazamiento lo lleva `reveal`, que deja ver la ficha entera con su brillo.
+	scroll.follow_focus = false
 	JournalStyle.style_scroll(scroll)
 	_box.add_child(scroll)
 	content = VBoxContainer.new()
@@ -75,6 +78,22 @@ func set_title(title: String) -> void:
 func set_empty_text(text: String) -> void:
 	empty_note.text = text
 	empty_note.visible = not text.is_empty()
+
+
+## Desplaza la lista lo justo para que `control` se vea entero, con su brillo y su anillo de foco.
+## La primera ficha deja la lista arriba del todo.
+func reveal(control: Control) -> void:
+	if control == null or not control.is_inside_tree() or not scroll.is_inside_tree():
+		return
+	var origin := (content.get_parent() as Control).global_position.y
+	var top := control.global_position.y - origin - REVEAL_MARGIN
+	var bottom := control.global_position.y - origin + control.size.y + REVEAL_MARGIN
+	if top <= REVEAL_MARGIN:
+		scroll.scroll_vertical = 0
+	elif top < scroll.scroll_vertical:
+		scroll.scroll_vertical = int(top)
+	elif bottom > scroll.scroll_vertical + scroll.size.y:
+		scroll.scroll_vertical = int(ceilf(bottom - scroll.size.y))
 
 
 ## Altura libre bajo la lista: la que puede ocupar el grabado.

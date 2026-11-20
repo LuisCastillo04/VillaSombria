@@ -77,6 +77,7 @@ func _show_entries(entries: Array[Dictionary], banner_title: String, empty_text:
 	list.set_entries(entries)
 	column.set_empty_text(empty_text if entries.is_empty() else "")
 	_show_selected()
+	reveal_selected()
 
 
 func _show_selected() -> void:
@@ -100,6 +101,23 @@ func _show_empty() -> void:
 
 func _on_selection_changed(_entry_id: String) -> void:
 	_show_selected()
+	detail.fade_in()
+	reveal_selected()
+
+
+## Desplaza la lista hasta la ficha elegida, cuando ya está colocada.
+func reveal_selected() -> void:
+	if list != null and is_inside_tree():
+		_reveal_later()
+
+
+## Las fichas con dos líneas se miden en el fotograma siguiente: se espera a que la lista tenga su
+## altura definitiva antes de desplazarla.
+func _reveal_later() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if list != null and is_inside_tree() and list.get_selected_item() != null:
+		column.reveal(list.get_selected_item())
 
 
 # --- Navegación ---
@@ -110,7 +128,10 @@ func get_list() -> JournalList:
 
 ## Lleva el foco a la ficha elegida. Devuelve si había dónde ponerlo.
 func focus_content() -> bool:
-	return list != null and list.focus_selected()
+	if list == null or not list.focus_selected():
+		return false
+	reveal_selected()
+	return true
 
 
 ## Elige la ficha anterior o siguiente.
