@@ -11,6 +11,8 @@ const KIND_COLORS := {
 }
 const KIND_LABELS := {"pista": "PRUEBA", "testimonio": "DECLARACIÓN", "deduccion": "DEDUCCIÓN"}
 const STATUS_ORDER: Array[String] = ["", "sospechoso", "principal", "descartado"]
+## Minutos que lleva establecer una relación nueva. El expediente los cita en sus reglas del tiempo.
+const LINK_MINUTES := 15
 
 var is_open := false
 var _selection: Array[String] = []
@@ -165,7 +167,7 @@ func _on_link_pressed() -> void:
 		Investigation.LinkResult.NEW:
 			var deduction: Dictionary = GameData.deductions[outcome["deduction"]]
 			_result.text = "[b]%s[/b]\n%s" % [deduction["title"], deduction["text"]]
-			GameClock.advance(15)
+			GameClock.advance(LINK_MINUTES)
 			_selection.clear()
 			_rebuild()
 		Investigation.LinkResult.ALREADY_KNOWN:

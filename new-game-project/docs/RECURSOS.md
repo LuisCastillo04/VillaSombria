@@ -13,6 +13,8 @@ Todo el contenido actual se genera en el propio repositorio:
 | Geometría y escenarios | Primitivas generadas por código (`scripts/world/`) |
 | Personajes 3D | Modelo procedural (`scripts/actors/character_model.gd`) |
 | Siluetas de los interrogatorios | SVG generados con `tools/generar_siluetas.py` |
+| Grabados sepia del expediente | SVG generados con `tools/generar_grabados.py` |
+| Iconos de la interfaz | SVG escritos a mano en el repositorio (`assets/ui/iconos/`) |
 | Materiales y efectos | Shaders propios (`assets/shaders/`) |
 | Sonido y música | Síntesis al arrancar (`scripts/autoload/audio_manager.gd`) |
 | Fuentes | Fuentes del sistema; no se incluyen archivos de fuentes |

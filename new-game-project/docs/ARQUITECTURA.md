@@ -19,7 +19,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `data/` | Historia y reglas en JSON |
 | `assets/siluetas/` | Siluetas SVG de los interrogatorios |
 | `assets/shaders/` | Empedrado, brillo, contraluz, postproceso y pergamino |
-| `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús, del expediente y de los lugares del HUD, perilla de volumen e interruptor |
+| `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús, del expediente y de los lugares del HUD, perilla de volumen e interruptor; `assets/ui/expediente/`, los grabados sepia del expediente |
 | `scenes/main/` | Menú principal y escena de juego |
 | `scenes/actors/` | Detective y NPC |
 | `scenes/world/locations/` | Los cinco escenarios y el campo de pruebas |
@@ -31,11 +31,11 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
 | `scripts/world/` | Kits de construcción, interactivos y escenarios |
-| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD |
+| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente |
 | `tests/unit/` | Pruebas automatizadas |
 | `tests/persistencia/` | Guardar y cargar en otro proceso; cierre real de la ventana |
 | `tests/visual/` | Herramientas de captura y de rendimiento |
-| `tools/` | Verificación y generación de siluetas |
+| `tools/` | Verificación y generación de siluetas y de los grabados del expediente |
 
 ## Autoloads
 
@@ -80,7 +80,7 @@ Game
 ├── Hud                lugar, objetivo, teclas y avisos; ver HUD.md
 ├── DialogueUi
 ├── ClueInspector
-├── JournalUi
+├── JournalUi          expediente: carpeta, pestañas y cinco secciones; ver EXPEDIENTE.md
 ├── BoardUi
 ├── AccusationUi
 ├── PauseMenu
@@ -167,6 +167,18 @@ el HUD se actualiza con las señales de `EventBus`. Se retira mientras el jugado
 control (conversaciones, transiciones, pantallas, pausa) y vuelve al recuperarlo. Las piezas
 (`ParchmentPanel`, `NoirPlate`, `HudKeyHint`, `CinematicFrame`...) y su estilo (`HudStyle`) son
 reutilizables. Detalle, ampliaciones y pruebas en [HUD.md](HUD.md).
+
+## Expediente
+
+`JournalUi` (`scenes/ui/journal_ui.tscn`) es una carpeta de cuero con cinco secciones: objetivos,
+pistas, testimonios, sospechosos y deducciones. Sólo presenta: `JournalInfo` lee los datos de
+`StoryDirector`, `GameState`, `GameData`, `GameClock` e `InputLabels` sin cambiar nada, así que
+el expediente no tiene estado que guardar. Cada sección hereda de `JournalSection` (lista a la
+izquierda, ficha a la derecha) y sólo dice de dónde salen sus datos y cómo se pinta su ficha; las
+piezas (`JournalFolder`, `JournalTabs`, `JournalList`, `JournalDetail`, `JournalPhoto`,
+`JournalEmptyState`...) y su estilo (`JournalStyle`) son reutilizables. Las secciones se crean una
+vez y se ponen al día con `EventBus`. Detalle, recorrido con teclado y pruebas en
+[EXPEDIENTE.md](EXPEDIENTE.md).
 
 ## Menús
 

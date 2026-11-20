@@ -10,7 +10,7 @@ extends Node
 ##   --day=N --time=HH:MM  fija el calendario
 ##   --seed=todo           concede todas las pistas y testimonios
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
-##   --open=clue:id | journal:n | board | accusation | pause | closed | save | load | confirm
+##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar]
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
 ##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta)
@@ -125,7 +125,10 @@ func _open_panel(game: Game, what: String) -> void:
 		"clue":
 			EventBus.clue_inspection_requested.emit(parts[1])
 		"journal":
-			game.get_node("JournalUi").open(int(parts[1]))
+			var journal: JournalUi = game.get_node("JournalUi")
+			journal.open(int(parts[1]))
+			if parts.size() > 2:
+				journal.get_section(int(parts[1])).get_list().select(parts[2])
 		"board":
 			game.get_node("BoardUi").open()
 		"accusation":

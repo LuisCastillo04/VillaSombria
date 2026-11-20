@@ -34,6 +34,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Rediseño de pausa, configuración y controles | Hecho | Pruebas de navegación, ajustes e InputMap; capturas a 1920×1080, 1600×900 y 1280×720 |
 | Mapa del pueblo | Hecho | Dibujo comparado con las colisiones reales, recorridos con entradas reales, carga de partidas y capturas a 1920×1080, 2560×1080, 1280×720 y 1024×768; ver [MAPA.md](MAPA.md) |
 | Rediseño del HUD de exploración | Hecho | Pruebas con la escena de juego real (datos, barra, visibilidad, proporciones) y capturas en los cinco escenarios a 1280×720, 1366×768, 1600×900, 1920×1080, 1024×768 y 2560×1080; ver [HUD.md](HUD.md) |
+| Rediseño del expediente | Hecho | Pruebas con la escena de juego real (datos de las cinco secciones, estados vacíos, teclado y ratón, restauración, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1024×768; ver [EXPEDIENTE.md](EXPEDIENTE.md) |
 
 Diferencias con el encargo:
 
@@ -48,7 +49,7 @@ Diferencias con el encargo:
 guarda una partida en un proceso de Godot para cargarla en otro nuevo. Con `-ConVentana` además
 comprueba las imágenes de las ranuras y cierra la ventana real con la X y con Alt + F4.
 
-Último resultado, con `-ConVentana` tras el rediseño del HUD: 233 pruebas correctas, 0 fallos; el
+Último resultado, con `-ConVentana` tras el rediseño del expediente: 254 pruebas correctas, 0 fallos; el
 reinicio en dos procesos, las imágenes de las ranuras y el cierre real con la X y con Alt + F4,
 correctos. El paso «Importación» sale fallido por el `Code.exe` del editor (ver Problemas
 conocidos).
@@ -78,6 +79,7 @@ conocidos).
 | `test_map` | Calibración del mapa, dibujo frente a colisiones reales, puertas y calle Mayor, posiciones exactas en exteriores y por edificio en interiores, objetivos, lugares visitados, datos dañados |
 | `test_map_screen` | El mapa en el juego: posición al empezar, al caminar, al entrar y salir, al cargar; tamaños de pantalla, pausa, teclado, ratón y selección |
 | `test_hud` | HUD de exploración: lugar, fecha y objetivo reales, barra según el InputMap y el estado, retirada en transiciones, conversaciones y pausa, proporciones de pantalla, ratón y foco, capas, avisos e indicador de guardado |
+| `test_journal` | Expediente: apertura y cierre con las teclas reales, datos reales de las cinco secciones, estados vacíos, nada sin descubrir, teclado y ratón, restauración sin reconstruir, proporciones de pantalla y partida cargada |
 | `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
 | `persistencia/cierre` | Con ventana: cerrar con la X o Alt + F4 guarda en la ranura activa |
 | `visual/vista_previa` | Con ventana: la imagen de cada ranura es la escena guardada, sin la pausa |
@@ -111,6 +113,8 @@ arranca desde él sin errores en modo sin ventana.
   de la pantalla se comprobaron con pruebas y capturas fijas, no viéndolos ni con un mando real.
 - **El HUD en movimiento.** Los fundidos, el deslizamiento al aparecer y el destello de los
   objetivos nuevos se comprobaron con pruebas y capturas fijas, no viéndolos jugando.
+- **El expediente en movimiento.** Los fundidos de apertura, cierre, sección y ficha se
+  comprobaron con pruebas y capturas fijas, no viéndolos jugando; tampoco con un mando real.
 - **La tasa de fotogramas en primer plano.** Ver el apartado siguiente.
 
 ## Rendimiento
