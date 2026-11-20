@@ -22,9 +22,13 @@ const DISABLED_TEXT := Color("8d7c68")
 
 const ICONS := "res://assets/ui/iconos/%s.svg"
 
+const DISPLAY_FONTS: Array[String] = ["Palatino Linotype", "Book Antiqua", "Palatino", "Georgia", "Times New Roman", "Liberation Serif", "serif"]
+
 static var _serif_regular: SystemFont
 static var _serif_italic: SystemFont
 static var _display: SystemFont
+static var _display_regular: SystemFont
+static var _display_italic: SystemFont
 
 
 static func serif_bold() -> Font:
@@ -52,10 +56,30 @@ static func serif_italic() -> Font:
 ## de los años cuarenta y encaja con la época; si el sistema no la tiene, se usa Georgia.
 static func display_serif() -> Font:
 	if _display == null:
-		_display = SystemFont.new()
-		_display.font_names = PackedStringArray(["Palatino Linotype", "Book Antiqua", "Palatino", "Georgia", "Times New Roman", "Liberation Serif", "serif"])
-		_display.font_weight = 700
+		_display = _display_font(700, false)
 	return _display
+
+
+## La misma familia en redonda, para textos corridos que acompañan a los rótulos (el HUD).
+static func display_serif_regular() -> Font:
+	if _display_regular == null:
+		_display_regular = _display_font(400, false)
+	return _display_regular
+
+
+## La misma familia en cursiva, para fechas y notas al pie de un rótulo.
+static func display_serif_italic() -> Font:
+	if _display_italic == null:
+		_display_italic = _display_font(400, true)
+	return _display_italic
+
+
+static func _display_font(weight: int, italic: bool) -> SystemFont:
+	var font := SystemFont.new()
+	font.font_names = PackedStringArray(DISPLAY_FONTS)
+	font.font_weight = weight
+	font.font_italic = italic
+	return font
 
 
 static func icon(icon_name: String) -> Texture2D:
