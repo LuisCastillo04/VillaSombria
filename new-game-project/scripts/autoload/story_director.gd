@@ -17,7 +17,7 @@ func get_objectives() -> Array[Dictionary]:
 			continue
 		if not Conditions.check(objective.get("visible", {})):
 			continue
-		var entry := {"text": objective["text"], "done": Conditions.check(objective["done"])}
+		var entry := {"id": objective.get("id", ""), "text": objective["text"], "done": Conditions.check(objective["done"])}
 		if entry["done"]:
 			finished.append(entry)
 		else:

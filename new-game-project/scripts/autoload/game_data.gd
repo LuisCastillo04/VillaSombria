@@ -11,6 +11,8 @@ var schedules: Dictionary = {}
 var locations: Dictionary = {}
 var story: Dictionary = {}
 var scenes: Dictionary = {}
+## Lugares y calibración del mapa del pueblo; los interpreta TownMap.
+var map: Dictionary = {}
 
 var _dialogues: Dictionary = {}
 
@@ -24,6 +26,7 @@ func _ready() -> void:
 	locations = _read("locations.json")
 	story = _read("story.json")
 	scenes = _read("dialogues/escenas.json")
+	map = _read("map.json")
 
 
 func _exit_tree() -> void:
