@@ -95,7 +95,7 @@ func _input(event: InputEvent) -> void:
 func _build_sections() -> void:
 	_sections = [
 		JournalObjectivesSection.new(),
-		JournalBasicSection.new("Pistas", "lupa", JournalBasicSection.Kind.CLUES),
+		JournalCluesSection.new(),
 		JournalBasicSection.new("Testimonios", "testigos", JournalBasicSection.Kind.TESTIMONIES),
 		JournalBasicSection.new("Sospechosos", "antifaz", JournalBasicSection.Kind.SUSPECTS),
 		JournalBasicSection.new("Deducciones", "cerebro", JournalBasicSection.Kind.DEDUCTIONS),
