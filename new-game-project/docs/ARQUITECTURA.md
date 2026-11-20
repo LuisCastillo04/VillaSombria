@@ -19,7 +19,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `data/` | Historia y reglas en JSON |
 | `assets/siluetas/` | Siluetas SVG de los interrogatorios |
 | `assets/shaders/` | Empedrado, brillo, contraluz, postproceso y pergamino |
-| `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús y del expediente, perilla de volumen e interruptor |
+| `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús, del expediente y de los lugares del HUD, perilla de volumen e interruptor |
 | `scenes/main/` | Menú principal y escena de juego |
 | `scenes/actors/` | Detective y NPC |
 | `scenes/world/locations/` | Los cinco escenarios y el campo de pruebas |
@@ -31,7 +31,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
 | `scripts/world/` | Kits de construcción, interactivos y escenarios |
-| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa |
+| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD |
 | `tests/unit/` | Pruebas automatizadas |
 | `tests/persistencia/` | Guardar y cargar en otro proceso; cierre real de la ventana |
 | `tests/visual/` | Herramientas de captura y de rendimiento |
@@ -77,7 +77,7 @@ Game
 ├── Player
 ├── CameraRig          cámara ortográfica
 ├── PostFx             niebla, viñeta y grano
-├── Hud
+├── Hud                lugar, objetivo, teclas y avisos; ver HUD.md
 ├── DialogueUi
 ├── ClueInspector
 ├── JournalUi
@@ -108,6 +108,7 @@ Game
 | `interaction_focus_changed` | Cambia el elemento al alcance |
 | `notification_requested` | Hay que mostrar un aviso |
 | `location_change_requested`, `location_changed` | Se pide y se completa un cambio de lugar |
+| `player_locks_changed` | Cambian los bloqueos del control del jugador (`GameState.lock_player`) |
 | `clue_discovered`, `testimony_recorded`, `deduction_made` | Avanza la investigación |
 | `flag_set`, `objectives_changed` | Cambia el progreso |
 | `time_changed`, `day_changed` | Avanza el calendario |
@@ -147,6 +148,8 @@ Una pregunta puede llevar `variants` para responder según el estado, y una esce
   Así se integrarán los retratos generados con IA; ver [RECURSOS.md](RECURSOS.md).
 - **Voces:** aún no hay soporte. El diseño previsto es un campo opcional por línea de diálogo
   con la ruta del audio, que se ignora si el archivo no existe.
+- **Lugar:** su entrada en `data/locations.json` con `name`, `icon` (icono del HUD), `scene` y
+  `outdoor`. Ver [HUD.md](HUD.md).
 - **Pista:** añádela a `data/clues.json` y colócala con `add_interactable(ClueObject.new("id"), posición)`
   o concédela desde un diálogo.
 - **NPC:** añade su entrada en `characters.json`, su rutina en `schedules.json` y su archivo en
@@ -154,6 +157,16 @@ Una pregunta puede llevar `variants` para responder según el estado, y una esce
 - **Deducción:** añádela a `data/deductions.json`; el tablero la detecta sola.
 - **Estado que deba guardarse:** si es una decisión o un hecho de la historia, usa una marca
   desde los datos; si es un sistema nuevo, registra una sección. Ver [GUARDADO.md](GUARDADO.md).
+
+## HUD de exploración
+
+`Hud` (`scenes/ui/hud.tscn`) muestra el lugar con la fecha, el objetivo pendiente, una barra con
+las teclas reales del InputMap, el aviso de interacción, las notificaciones y un marco fino. Sólo
+presenta: `HudInfo` lee los datos de `GameData`, `GameClock`, `StoryDirector` e `InputLabels`, y
+el HUD se actualiza con las señales de `EventBus`. Se retira mientras el jugador no tiene el
+control (conversaciones, transiciones, pantallas, pausa) y vuelve al recuperarlo. Las piezas
+(`ParchmentPanel`, `NoirPlate`, `HudKeyHint`, `CinematicFrame`...) y su estilo (`HudStyle`) son
+reutilizables. Detalle, ampliaciones y pruebas en [HUD.md](HUD.md).
 
 ## Menús
 

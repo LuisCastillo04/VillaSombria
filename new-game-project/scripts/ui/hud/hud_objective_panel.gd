@@ -50,6 +50,11 @@ func get_line_count() -> int:
 	return _label.get_line_count()
 
 
+## Si se ve el objetivo completo, sin líneas ocultas.
+func is_text_complete() -> bool:
+	return _label.get_visible_line_count() >= _label.get_line_count()
+
+
 ## Ancho total del panel. El texto se reparte en el espacio que queda tras la lupa y el filete.
 func set_panel_width(width: float) -> void:
 	custom_minimum_size.x = width

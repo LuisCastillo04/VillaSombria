@@ -194,8 +194,8 @@ visibilidad de las chinchetas se deducen del estado, como en el resto del juego.
 | Intro, botón de aceptar | Selecciona la chincheta señalada |
 
 M no hace nada durante una conversación, una transición, el expediente, el tablero o la
-acusación, igual que J y B. La tecla aparece en Configuración › Controles, que lee el InputMap, y en
-la línea de teclas del HUD.
+acusación, igual que J y B. La tecla aparece en Configuración › Controles y en la barra de teclas
+del HUD, que leen el InputMap.
 
 ## Tamaño de pantalla y pantallas táctiles
 
