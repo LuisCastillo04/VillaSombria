@@ -141,9 +141,11 @@ func _set_shown(shown: bool) -> void:
 	if _reveal_tween != null:
 		_reveal_tween.kill()
 	if shown:
-		# Las teclas pudieron cambiar en la configuración mientras el HUD no se veía.
-		refresh_controls()
+		# Las teclas pudieron cambiar en la configuración mientras el HUD no se veía, y oculto
+		# ningún panel avisa de que su contenido cambió de tamaño: se recoloca todo antes de volver.
+		_controls.refresh()
 		_exploration.show()
+		_layout()
 	# Avanza aunque el árbol esté en pausa: el HUD se retira mientras aparece el menú de pausa.
 	_reveal_tween = create_tween().set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	_reveal_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT if shown else Tween.EASE_IN)
@@ -227,6 +229,7 @@ func _on_location_changed(location_id: String) -> void:
 
 func _refresh_location(location_id: String, animate: bool) -> void:
 	_location.set_location(HudInfo.location_name(location_id), HudInfo.location_icon(location_id), animate and _shown)
+	_queue_layout()
 
 
 func _on_time_changed(_day: int, _minutes: int) -> void:
@@ -252,7 +255,7 @@ func _refresh_objective(animate: bool) -> void:
 	var changed := _objective.set_objective(objective, animate and had_objective and _shown)
 	if changed and animate and _started and not _shown:
 		_flash_pending = true
-	if not had_objective:
+	if changed or not had_objective:
 		_queue_layout()
 
 
