@@ -1,16 +1,13 @@
 class_name JournalUi
 extends CanvasLayer
-## Expediente del detective: objetivos, pistas, testimonios, sospechosos y deducciones.
+## Expediente del detective: objetivos, pistas, testimonios, sospechosos y deducciones. Los datos
+## los lee `JournalInfo`; aquí sólo se presentan.
 
 enum Tab { OBJECTIVES, CLUES, TESTIMONIES, SUSPECTS, DEDUCTIONS }
 
 const TAB_TITLES: Array[String] = ["Objetivos", "Pistas", "Testimonios", "Sospechosos", "Deducciones"]
-const STATUS_LABELS := {
-	"": "Sin valorar",
-	"sospechoso": "Sospechoso",
-	"descartado": "Descartado",
-	"principal": "Principal sospechoso",
-}
+## Lo usa también el tablero para las valoraciones de los sospechosos.
+const STATUS_LABELS := JournalInfo.STATUS_LABELS
 
 var is_open := false
 var _current_tab := Tab.OBJECTIVES
@@ -76,80 +73,62 @@ func _on_tab_changed(tab: int) -> void:
 
 
 func _fill_objectives() -> void:
-	_add_header(StoryDirector.get_day_title())
-	var text := "[b]%s[/b]\n\n" % StoryDirector.get_day_title()
-	for objective in StoryDirector.get_objectives():
-		var mark := "[x]" if bool(objective["done"]) else "[ ]"
-		_add_note("%s %s" % [mark, objective["text"]])
-	text += "Pistas: %d de %d\n" % [GameState.clues.size(), GameData.clues.size()]
-	text += "Testimonios: %d\n" % GameState.testimonies.size()
-	text += "Deducciones: %d de %d\n\n" % [GameState.deductions.size(), GameData.deductions.size()]
-	text += "El tiempo sólo avanza con tus acciones: ninguna prueba se pierde por llegar tarde. Cada personaje sigue su rutina; consulta su paradero en la pestaña Sospechosos."
+	_add_header(JournalInfo.day_title())
+	var text := "[b]%s[/b]\n\n" % JournalInfo.day_title()
+	for objective in JournalInfo.objectives():
+		var done: bool = objective["state"] == JournalInfo.ObjectiveState.DONE
+		_add_note("%s %s" % ["[x]" if done else "[ ]", objective["text"]])
+	var stats := JournalInfo.stats()
+	text += "Pistas: %d de %d\n" % [stats["clues"], stats["clues_total"]]
+	text += "Testimonios: %d\n" % stats["testimonies"]
+	text += "Deducciones: %d de %d\n\n" % [stats["deductions"], stats["deductions_total"]]
+	for rule in JournalInfo.time_rules():
+		var key: String = rule.get("key", "")
+		text += ("[%s] " % key if not key.is_empty() else "") + rule["text"] + "\n"
 	_show_detail(text, null)
 
 
 func _fill_clues() -> void:
-	if GameState.clues.is_empty():
+	var clues := JournalInfo.clues()
+	if clues.is_empty():
 		_add_note("Aún no hay pistas registradas.")
 		return
-	for clue_id in GameState.clues:
-		var clue: Dictionary = GameData.clues[clue_id]
-		var text := "[b]%s[/b]\n[i]%s · %s[/i]\n\n%s" % [
-			clue["name"],
-			ClueInspector.CATEGORY_LABELS.get(clue["category"], "PRUEBA"),
-			clue["where"],
-			clue["description"],
-		]
-		_add_entry(clue["name"], text, null)
+	for clue in clues:
+		var text := "[b]%s[/b]\n[i]%s · %s[/i]\n\n%s" % [clue["title"], clue["category"], clue["where"], clue["text"]]
+		_add_entry(clue["title"], text, null)
 
 
 func _fill_testimonies() -> void:
-	if GameState.testimonies.is_empty():
+	var testimonies := JournalInfo.testimonies()
+	if testimonies.is_empty():
 		_add_note("Aún no hay declaraciones registradas.")
 		return
-	for character_id: String in GameData.characters:
-		var header_added := false
-		for testimony_id in GameState.testimonies:
-			var testimony: Dictionary = GameData.testimonies[testimony_id]
-			if testimony["speaker"] != character_id:
-				continue
-			if not header_added:
-				_add_header(GameData.get_character_name(character_id))
-				header_added = true
-			var text := "[b]%s[/b]\n[i]%s[/i]\n\n«%s»" % [
-				GameData.get_character_name(character_id),
-				testimony["topic"],
-				testimony["text"],
-			]
-			_add_entry(testimony["topic"], text, _portrait_of(character_id))
+	var speaker := ""
+	for testimony in testimonies:
+		if testimony["speaker"] != speaker:
+			speaker = testimony["speaker"]
+			_add_header(testimony["name"])
+		var text := "[b]%s[/b]\n[i]%s[/i]\n\n«%s»" % [testimony["name"], testimony["topic"], testimony["text"]]
+		_add_entry(testimony["topic"], text, _portrait_of(testimony["portrait"]))
 
 
 func _fill_suspects() -> void:
-	for suspect_id in GameData.get_suspects():
-		var character: Dictionary = GameData.characters[suspect_id]
-		var hypothesis: Dictionary = GameState.hypotheses.get(suspect_id, {})
-		var status: String = hypothesis.get("status", "")
+	for suspect in JournalInfo.suspects():
 		var text := "[b]%s[/b]\n[i]%s[/i]\n\n%s\n\n[b]Paradero:[/b] %s\n[b]Valoración:[/b] %s" % [
-			character["name"],
-			character["role"],
-			character["bio"],
-			StoryDirector.describe_whereabouts(suspect_id),
-			STATUS_LABELS.get(status, status),
+			suspect["name"], suspect["role"], suspect["bio"], suspect["whereabouts"], suspect["status_label"],
 		]
-		var note: String = hypothesis.get("note", "")
-		if not note.is_empty():
-			text += "\n[b]Hipótesis:[/b] %s" % note
-		_add_entry(character["name"], text, _portrait_of(suspect_id))
+		if not String(suspect["note"]).is_empty():
+			text += "\n[b]Hipótesis:[/b] %s" % suspect["note"]
+		_add_entry(suspect["name"], text, _portrait_of(suspect["portrait"]))
 
 
 func _fill_deductions() -> void:
-	if GameState.deductions.is_empty():
-		_add_note("Aún no hay deducciones. Relaciona pruebas y testimonios en el tablero [B].")
+	var deductions := JournalInfo.deductions()
+	if deductions.is_empty():
+		_add_note("Aún no hay deducciones. Relaciona pruebas y testimonios en el tablero [%s]." % JournalInfo.key_name("open_board"))
 		return
-	for deduction_id in GameState.deductions:
-		var deduction: Dictionary = GameData.deductions[deduction_id]
-		var kind := "Contradicción" if deduction["kind"] == "contradiccion" else "Conexión"
-		_add_entry(deduction["title"], "[b]%s[/b]\n[i]%s[/i]\n\n%s" % [deduction["title"], kind, deduction["text"]], null)
+	for deduction in deductions:
+		_add_entry(deduction["title"], "[b]%s[/b]\n[i]%s[/i]\n\n%s" % [deduction["title"], deduction["kind_label"], deduction["text"]], null)
 
 
 func _add_header(text: String) -> void:
@@ -187,5 +166,5 @@ func _show_detail(text: String, portrait: Texture2D) -> void:
 	_portrait.visible = portrait != null
 
 
-func _portrait_of(character_id: String) -> Texture2D:
-	return load(GameData.characters[character_id]["portrait"]) as Texture2D
+func _portrait_of(path: String) -> Texture2D:
+	return load(path) as Texture2D if ResourceLoader.exists(path) else null
