@@ -25,9 +25,14 @@ static func location_name(location_id: String) -> String:
 	return GameData.locations.get(location_id, {}).get("name", "")
 
 
-## Fecha del día en curso y hora del reloj narrativo.
+## Nombre del icono del lugar (campo `icon` de `data/locations.json`), o vacío si no tiene.
+static func location_icon(location_id: String) -> String:
+	return GameData.locations.get(location_id, {}).get("icon", "")
+
+
+## Fecha del día en curso y hora del reloj narrativo: «Domingo 17 de octubre de 1948 — 08:00».
 static func date_text() -> String:
-	return "%s  ·  %s" % [StoryDirector.get_day_title(), GameClock.format_time()]
+	return "%s — %s" % [StoryDirector.get_day_title(), GameClock.format_time()]
 
 
 ## Primer objetivo pendiente del día, o texto vacío si no queda ninguno.
