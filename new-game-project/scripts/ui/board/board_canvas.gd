@@ -110,9 +110,10 @@ func _init() -> void:
 	resized.connect(_on_resized)
 
 
-## Vuelve a leer lo que ha descubierto el jugador y prende sus fichas. Conserva el desplazamiento.
-func refresh() -> void:
-	var scroll_value := _scroll.scroll_vertical
+## Vuelve a leer lo que ha descubierto el jugador y prende sus fichas. Con `keep_scroll`, conserva
+## el desplazamiento (al registrar una deducción); si no, vuelve arriba (al abrir el tablero).
+func refresh(keep_scroll: bool = true) -> void:
+	var scroll_value := _scroll.scroll_vertical if keep_scroll else 0
 	_items = BoardInfo.items()
 	_empty.text = EMPTY_TEXT % BoardInfo.key_name("interact")
 	for card: BoardEvidenceCard in _cards.values():

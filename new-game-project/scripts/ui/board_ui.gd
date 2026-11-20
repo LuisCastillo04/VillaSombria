@@ -70,7 +70,7 @@ func open() -> void:
 	_root.show()
 	_shield.hide()
 	_layout()
-	_rebuild()
+	_rebuild(false)
 	_focus_first()
 	_animate_open()
 
@@ -219,6 +219,10 @@ func link_selected() -> Dictionary:
 		_selection.clear()
 		_rebuild()
 		_canvas.animate_relation(outcome["deduction"])
+		# Las fichas se han rehecho: el foco pasa a la deducción nueva para seguir con el teclado.
+		var card := _canvas.get_card(outcome["deduction"])
+		if card != null:
+			card.grab_focus()
 	_comparison.show_outcome(outcome)
 	return outcome
 
@@ -255,9 +259,9 @@ func _on_remove_requested(index: int) -> void:
 		select_item(_selection[index - 1], false)
 
 
-func _rebuild() -> void:
+func _rebuild(keep_scroll: bool = true) -> void:
 	_build_suspects()
-	_canvas.refresh()
+	_canvas.refresh(keep_scroll)
 	_canvas.set_selection(_selection, false)
 	_refresh_slots()
 
