@@ -1,11 +1,13 @@
 class_name BoardUi
 extends CanvasLayer
 ## Tablero de deducción. El jugador compara dos elementos del expediente y el sistema
-## comprueba si existe una relación real; las relaciones halladas se unen con hilo rojo.
+## comprueba si existe una relación real; las relaciones halladas se unen con hilo rojo. Arriba, los
+## sospechosos: pulsar uno abre su hipótesis.
 ##
-## Este nodo coordina: abre y cierra el tablero, lleva la selección de los dos elementos que se
-## comparan y pide la relación a `Investigation.try_link`, y anota las hipótesis con
-## `Investigation.set_hypothesis`. Los datos que muestra los lee `BoardInfo`.
+## Este nodo sólo coordina: abre y cierra el tablero (con un fundido breve), atiende el teclado, lleva
+## la selección de los dos elementos que se comparan, pide la relación a `Investigation.try_link` y
+## anota las hipótesis con `Investigation.set_hypothesis`. Lo que se ve lo pintan las piezas de
+## `scripts/ui/board/` con los datos que lee `BoardInfo`; ver `docs/TABLERO.md`.
 
 ## Minutos que lleva establecer una relación nueva. El expediente los cita en sus reglas del tiempo.
 const LINK_MINUTES := 15
@@ -22,6 +24,9 @@ var _editor: BoardHypothesisEditor
 var _toast: HudToast
 var _toast_tween: Tween
 var _refresh_pending := false
+var _transition: Tween
+## Ficha de sospechoso que abrió el panel de hipótesis: el foco vuelve a ella al cerrarlo.
+var _editing_from := ""
 
 @onready var _root: Control = $Root
 @onready var _dim: ColorRect = $Root/Dim
@@ -61,17 +66,25 @@ func open() -> void:
 	GameState.lock_player("tablero")
 	_selection.clear()
 	_board.header.refresh_keys()
+	close_hypothesis(false)
 	_root.show()
-	close_hypothesis()
+	_shield.hide()
 	_layout()
 	_rebuild()
+	_focus_first()
+	_animate_open()
 
 
 func close() -> void:
+	if not is_open:
+		return
 	close_hypothesis(false)
 	is_open = false
 	GameState.unlock_player("tablero")
-	_root.hide()
+	var focused := _root.get_viewport().gui_get_focus_owner()
+	if focused != null and _root.is_ancestor_of(focused):
+		focused.release_focus()
+	_animate_close()
 
 
 func _input(event: InputEvent) -> void:
@@ -116,6 +129,48 @@ func get_comparison() -> BoardComparisonPanel:
 
 func get_editor() -> BoardHypothesisEditor:
 	return _editor
+
+
+# --- Foco y animaciones ---
+
+## Al abrir, el foco va a la primera ficha del corcho o, si no hay, al primer sospechoso.
+func _focus_first() -> void:
+	var cards := _canvas.get_cards()
+	if not cards.is_empty():
+		cards[0].grab_focus()
+	elif not _suspect_row.get_cards().is_empty():
+		_suspect_row.get_cards()[0].grab_focus()
+
+
+## Fundido y el tablero crece de `OPEN_SCALE` a su tamaño, como el expediente.
+func _animate_open() -> void:
+	if _transition != null:
+		_transition.kill()
+	_root.modulate.a = 0.0
+	_board.scale = Vector2.ONE * BoardStyle.OPEN_SCALE
+	_transition = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_transition.tween_property(_root, "modulate:a", 1.0, BoardStyle.OPEN_SECONDS)
+	_transition.tween_property(_board, "scale", Vector2.ONE, BoardStyle.OPEN_SECONDS)
+
+
+## Se desvanece y después se oculta. Mientras tanto, una capa transparente recoge los clics para que
+## nada del tablero responda ya cerrado; si se vuelve a abrir a medias, la apertura manda.
+func _animate_close() -> void:
+	if _transition != null:
+		_transition.kill()
+	_shield.show()
+	_transition = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	_transition.tween_property(_root, "modulate:a", 0.0, BoardStyle.CLOSE_SECONDS)
+	_transition.tween_callback(_finish_close)
+
+
+func _finish_close() -> void:
+	if is_open:
+		return
+	_root.hide()
+	_shield.hide()
+	_root.modulate.a = 1.0
+	_board.scale = Vector2.ONE
 
 
 ## El tablero ocupa la pantalla con un margen y sin pasar de un ancho máximo, centrado.
@@ -247,6 +302,7 @@ func open_hypothesis(suspect_id: String) -> void:
 		return
 	_editor.open_for(entry, Investigation.get_hypothesis(suspect_id), _drafts.get(suspect_id, {}))
 	_suspect_row.set_selected(suspect_id)
+	_editing_from = suspect_id
 
 
 ## Cierra el panel de hipótesis sin cerrar el tablero. Lo que no se haya guardado queda como borrador.
@@ -257,6 +313,7 @@ func close_hypothesis(animate: bool = true) -> void:
 	_editor.close(animate)
 	_suspect_row.set_selected("")
 	_refresh_drafts()
+	_return_focus()
 
 
 ## Anota la valoración y la nota del panel en la partida, pone al día la ficha del sospechoso y lo
@@ -275,7 +332,16 @@ func save_hypothesis() -> void:
 	var card := _suspect_row.get_card(suspect_id)
 	if card != null:
 		card.pulse()
+	_return_focus()
 	_show_toast("Hipótesis guardada", "%s · %s" % [GameData.get_character_name(suspect_id), BoardInfo.status_label(values["status"])])
+
+
+## Al cerrar el panel de hipótesis, el foco vuelve a la ficha del sospechoso que lo abrió.
+func _return_focus() -> void:
+	var card := _suspect_row.get_card(_editing_from)
+	_editing_from = ""
+	if is_open and card != null and card.is_visible_in_tree():
+		card.grab_focus()
 
 
 func _keep_draft() -> void:

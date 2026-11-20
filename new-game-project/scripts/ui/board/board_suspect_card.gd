@@ -15,11 +15,15 @@ extends Button
 const PARCHMENT_SHADER := preload("res://assets/shaders/parchment.gdshader")
 const GLOW_SIZE := 7.0
 const RADIUS := 4.0
+## Por debajo de este ancho (pantallas 4:3 o muchos sospechosos), la ficha se compacta: silueta más
+## estrecha, letra algo menor y la valoración en dos líneas si hace falta.
+const COMPACT_WIDTH := 270.0
 
 var suspect_id := ""
 var status := ""
 var selected := false
 var has_draft := false
+var compact := false
 
 ## Brillo dorado de la selección y destello al guardar, de 0 a 1. Los animan las transiciones.
 var glow := 0.0:
@@ -110,7 +114,6 @@ func setup(entry: Dictionary) -> void:
 	suspect_id = entry.get("id", "")
 	name = "Suspect_%s" % suspect_id
 	_name.text = entry.get("short", entry.get("name", ""))
-	tooltip_text = ""
 	_portrait.texture = JournalInfo.portrait(entry.get("portrait", ""), JournalInfo.PORTRAIT_BUST)
 	_paper_material.set_shader_parameter("seed", float(hash(suspect_id) % 89) * 0.41)
 	set_status(entry.get("status", ""))
@@ -120,6 +123,7 @@ func setup(entry: Dictionary) -> void:
 func set_status(new_status: String) -> void:
 	status = new_status
 	_status.text = BoardInfo.status_label(status)
+	tooltip_text = "%s · %s" % [_name.text, _status.text]
 	var discarded := status == "descartado"
 	var principal := status == "principal"
 	var ink := BoardStyle.DISCARDED_INK if discarded else BoardStyle.INK
@@ -175,6 +179,7 @@ func _notification(what: int) -> void:
 
 func _layout() -> void:
 	var rect := Rect2(Vector2.ZERO, size)
+	_apply_compact(size.x < COMPACT_WIDTH)
 	_back.position = Vector2.ZERO
 	_back.size = size
 	_paper.position = Vector2.ZERO
@@ -182,6 +187,28 @@ func _layout() -> void:
 	_paper_material.set_shader_parameter("rect_size", size)
 	_content.position = Vector2(16.0, 6.0)
 	_content.size = rect.size - Vector2(16.0 + 26.0, 6.0)
+
+
+func _apply_compact(value: bool) -> void:
+	if value == compact and _portrait.custom_minimum_size != Vector2.ZERO:
+		return
+	compact = value
+	_portrait.custom_minimum_size = Vector2(46.0, 72.0) if compact else BoardStyle.SUSPECT_PORTRAIT
+	_content.add_theme_constant_override("separation", 8 if compact else 14)
+	_name.add_theme_font_size_override("font_size", BoardStyle.SUSPECT_NAME_SIZE - (3 if compact else 0))
+	_status.add_theme_font_size_override("font_size", BoardStyle.SUSPECT_STATUS_SIZE - (3 if compact else 0))
+	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if compact else TextServer.AUTOWRAP_OFF
+	_status.max_lines_visible = 2 if compact else -1
+	_status.add_theme_constant_override("line_spacing", -4 if compact else 0)
+
+
+## Si la valoración se lee entera, sin puntos suspensivos.
+func is_status_complete() -> bool:
+	if _status.autowrap_mode == TextServer.AUTOWRAP_OFF:
+		var font := _status.get_theme_font("font")
+		var font_size := _status.get_theme_font_size("font_size")
+		return font.get_string_size(_status.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= _status.size.x + 0.5
+	return _status.get_line_count() <= _status.max_lines_visible
 
 
 func _draw_back() -> void:
