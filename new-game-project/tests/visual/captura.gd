@@ -11,8 +11,9 @@ extends Node
 ##   --seed=todo           concede todas las pistas y testimonios
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
 ##   --open=clue:id | journal:n | board | accusation | pause | closed | save | load | confirm
-##                         | exit | saving | saved | settings:n | controls:n
-##                         (settings y controls se abren desde la pausa; n es la categoría)
+##                         | exit | saving | saved | settings:n | controls:n | map[:lugar]
+##                         (settings y controls se abren desde la pausa; n es la categoría;
+##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta)
 ##   --menu                captura el menú principal en lugar de la partida
 ##                         (con --open=load, la lista de partidas con ejemplos;
 ##                         con --open=settings:n o --open=credits, esos paneles)
@@ -176,6 +177,14 @@ func _open_panel(game: Game, what: String) -> void:
 			await _wait_seconds(SaveIndicator.min_saving_seconds + 0.3)
 		"closed":
 			game.get_node("CaseClosedUi").open()
+		"map":
+			# La pausa congelaría el fundido de entrada a medias.
+			await _wait_seconds(0.6)
+			var pause: PauseMenu = game.get_node("PauseMenu")
+			pause.open_map()
+			if parts.size() > 1:
+				var map: MapScreen = pause.get_node("Root/MapScreen")
+				map.get_view().get_pin(parts[1]).grab_focus()
 
 
 ## Partidas de ejemplo en la carpeta de las capturas, nunca en la del jugador.
