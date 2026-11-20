@@ -96,7 +96,7 @@ func _build_sections() -> void:
 	_sections = [
 		JournalObjectivesSection.new(),
 		JournalCluesSection.new(),
-		JournalBasicSection.new("Testimonios", "testigos", JournalBasicSection.Kind.TESTIMONIES),
+		JournalTestimoniesSection.new(),
 		JournalBasicSection.new("Sospechosos", "antifaz", JournalBasicSection.Kind.SUSPECTS),
 		JournalBasicSection.new("Deducciones", "cerebro", JournalBasicSection.Kind.DEDUCTIONS),
 	]
