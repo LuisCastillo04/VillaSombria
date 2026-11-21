@@ -135,29 +135,29 @@ func test_conversation_through_the_interface() -> void:
 	_press("interact")
 	await wait_physics_frames(3)
 	check(DialogueManager.active, "E abre la conversación")
-	check(ui._root.visible, "aparece el interrogatorio")
-	check(ui._portrait.visible and ui._portrait.texture != null, "con la silueta del personaje")
-	check(ui._typing, "el texto aparece gradualmente")
+	check(ui.is_open(), "aparece el interrogatorio")
+	check(ui.get_portrait().visible and ui.get_portrait().texture != null, "con la silueta del personaje")
+	check(ui.is_typing(), "el texto aparece gradualmente")
 
 	_press("interact")
 	await wait_physics_frames(2)
-	check(not ui._typing, "E completa el texto de golpe")
-	check_equal(ui._text.visible_characters, -1, "se ve la línea completa")
+	check(not ui.is_typing(), "E completa el texto de golpe")
+	check(ui.get_dialogue_text().is_complete(), "se ve la línea completa")
 	_press("interact")
 	await wait_physics_frames(2)
-	check(ui._options_scroll.visible, "tras la línea aparecen las preguntas")
-	check(ui._option_ids.size() >= 2, "hay preguntas y la opción de salir")
+	check(ui.is_choosing(), "tras la línea aparecen las preguntas")
+	check(ui.get_option_ids().size() >= 2, "hay preguntas y la opción de salir")
 
 	await _press_key(KEY_1)
-	check(ui._typing or ui._waiting_input, "una tecla numérica hace la pregunta")
+	check(ui.is_typing() or ui.is_waiting_for_input(), "una tecla numérica hace la pregunta")
 	check(GameState.asked_topics.size() > 0, "la pregunta queda registrada")
 	var guard := 0
-	while not ui._options_scroll.visible and guard < 30:
+	while not ui.is_choosing() and guard < 30:
 		_press("interact")
 		await wait_physics_frames(2)
 		guard += 1
-	check(ui._options_scroll.visible, "al terminar la respuesta vuelve el menú")
-	await _press_key((KEY_1 + ui._option_ids.size() - 1) as Key)
+	check(ui.is_choosing(), "al terminar la respuesta vuelve el menú")
+	await _press_key((KEY_1 + ui.get_option_ids().size() - 1) as Key)
 	check(not DialogueManager.active, "la última opción cierra la conversación")
 	check(not GameState.is_player_locked(), "y devuelve el control")
 

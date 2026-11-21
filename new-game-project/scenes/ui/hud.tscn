@@ -51,6 +51,9 @@ script = ExtResource("4")
 [node name="Prompt" type="PanelContainer" parent="Root/Exploration"]
 script = ExtResource("5")
 
-[node name="Toasts" type="VBoxContainer" parent="Root"]
+[node name="Notices" type="CanvasLayer" parent="."]
+layer = 2
+
+[node name="Toasts" type="VBoxContainer" parent="Notices"]
 mouse_filter = 2
 theme_override_constants/separation = 10

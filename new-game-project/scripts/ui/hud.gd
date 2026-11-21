@@ -11,7 +11,9 @@ extends CanvasLayer
 ## del jugador está bloqueado: conversación, inspección, transición, expediente, tablero, acusación,
 ## pausa y las pantallas que se abren sobre ella (el mapa, la configuración...), que así nunca
 ## quedan con paneles asomando por detrás. Las notificaciones y el marco quedan fuera de ese grupo:
-## una pista hallada en una conversación se sigue anunciando. Todas las animaciones son `Tween`
+## una pista hallada en una conversación se sigue anunciando. Las notificaciones tienen su propia
+## capa (`Notices`): durante una conversación sube por encima de ella y las centra arriba, entre las
+## dos siluetas, para que se lean sin tapar a nadie. Todas las animaciones son `Tween`
 ## que no dejan trabajo pendiente fotograma a fotograma, y se detienen con la pausa salvo el propio
 ## fundido del HUD, que tiene que poder terminar cuando la pausa empieza.
 
@@ -41,7 +43,8 @@ var _rest_positions: Dictionary = {}
 @onready var _objective: HudObjectivePanel = $Root/Exploration/ObjectivePanel
 @onready var _controls: HudControlsBar = $Root/Exploration/ControlsBar
 @onready var _prompt: HudPrompt = $Root/Exploration/Prompt
-@onready var _toasts: VBoxContainer = $Root/Toasts
+@onready var _notices: CanvasLayer = $Notices
+@onready var _toasts: VBoxContainer = $Notices/Toasts
 
 
 func _ready() -> void:
@@ -53,6 +56,8 @@ func _ready() -> void:
 	EventBus.location_changed.connect(_on_location_changed)
 	EventBus.objectives_changed.connect(_refresh_objective.bind(true))
 	EventBus.player_locks_changed.connect(_queue_visibility)
+	DialogueManager.opened.connect(_on_conversation_changed.unbind(1))
+	DialogueManager.closed.connect(_on_conversation_changed.unbind(1))
 	_root.resized.connect(_queue_layout)
 	for panel: Control in [_location, _objective, _controls, _prompt]:
 		panel.minimum_size_changed.connect(_queue_layout)
@@ -102,6 +107,15 @@ func get_controls_bar() -> HudControlsBar:
 
 func get_prompt() -> HudPrompt:
 	return _prompt
+
+
+## Capa en la que se dibujan ahora las notificaciones.
+func get_notices_layer() -> int:
+	return _notices.layer
+
+
+func get_toasts_container() -> Control:
+	return _toasts
 
 
 func get_toasts() -> Array[HudToast]:
@@ -198,10 +212,14 @@ func _layout() -> void:
 	var objective_size := _objective.get_combined_minimum_size()
 	_objective.size = objective_size
 	_rest_positions[_objective] = Vector2(area.end.x - objective_size.x, area.position.y)
-	var toasts_top := area.position.y
-	if _objective.visible:
-		toasts_top += objective_size.y + HudStyle.PANEL_GAP
-	_toasts.position = Vector2(area.end.x - HudStyle.TOAST_WIDTH, toasts_top)
+	if DialogueManager.active:
+		# En una conversación, centradas arriba: las siluetas ocupan los lados.
+		_toasts.position = Vector2(area.get_center().x - HudStyle.TOAST_WIDTH * 0.5, area.position.y)
+	else:
+		var toasts_top := area.position.y
+		if _objective.visible:
+			toasts_top += objective_size.y + HudStyle.PANEL_GAP
+		_toasts.position = Vector2(area.end.x - HudStyle.TOAST_WIDTH, toasts_top)
 	_toasts.size = Vector2(HudStyle.TOAST_WIDTH, 0.0)
 	_controls.fit_width(area.size.x)
 	_controls.size = Vector2(area.size.x, _controls.get_combined_minimum_size().y)
@@ -219,6 +237,13 @@ func _apply_slide() -> void:
 	for control: Control in _rest_positions:
 		var direction := 1.0 if control == _controls or control == _prompt else -1.0
 		control.position = _rest_positions[control] + Vector2(0.0, direction * slide)
+
+
+## Durante una conversación, las notificaciones suben por encima de ella; al terminar, vuelven a la
+## capa del HUD y a su sitio bajo el objetivo.
+func _on_conversation_changed() -> void:
+	_notices.layer = HudStyle.NOTICES_OVER_DIALOGUE_LAYER if DialogueManager.active else layer
+	_queue_layout()
 
 
 # --- Lugar, fecha y objetivo ---
