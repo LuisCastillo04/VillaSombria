@@ -12,6 +12,9 @@ extends Node
 ##   --pistas=a,b          concede sólo esas pistas, testimonios o deducciones (en ese orden)
 ##   --hipotesis=id=valoración[=nota],...   anota hipótesis antes de abrir el tablero
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
+##   --escena=id           reproduce una escena narrativa de escenas.json y la captura
+##   --pasos=a,a,2         con --dialogue-shots o --escena, antes de capturar: «a» avanza una
+##                         intervención y un número elige esa respuesta (1 la primera)
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar]
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
@@ -66,9 +69,14 @@ func _ready() -> void:
 	if args.has("dialogue-shots"):
 		for npc_id: String in (args["dialogue-shots"] as String).split(","):
 			DialogueManager.start(npc_id)
+			await _follow_steps(game, args)
 			await _save_frame(out.get_basename() + "_%s.png" % npc_id, frames)
 			DialogueManager.close()
 			await _wait_seconds(0.4)
+	elif args.has("escena"):
+		DialogueManager.play_scene(args["escena"])
+		await _follow_steps(game, args)
+		await _save_frame(out, frames)
 	elif args.has("shots"):
 		var index := 1
 		for shot: String in (args["shots"] as String).split(";"):
@@ -82,6 +90,20 @@ func _ready() -> void:
 			await _open_panel(game, args["open"])
 		await _save_frame(out, frames)
 	get_tree().quit()
+
+
+## Recorre la conversación como el jugador: «a» avanza una intervención y un número elige esa
+## respuesta de las que muestra la interfaz.
+func _follow_steps(game: Game, args: Dictionary) -> void:
+	if not args.has("pasos"):
+		return
+	var ui: DialogueUi = game.get_node("DialogueUi")
+	for step: String in (args["pasos"] as String).split(","):
+		await _wait_seconds(0.5)
+		if step == "a":
+			DialogueManager.advance()
+		elif step.is_valid_int() and int(step) >= 1 and int(step) <= ui.get_option_ids().size():
+			DialogueManager.choose(ui.get_option_ids()[int(step) - 1])
 
 
 func _capture_menu(args: Dictionary) -> void:
