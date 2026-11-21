@@ -232,3 +232,34 @@ func test_a_rebound_key_works_in_the_game() -> void:
 	GameState.reset()
 	GameClock.reset()
 	Settings.set_value("jugabilidad/confirmaciones", true)
+
+
+func test_closing_the_window_during_a_wait_leaves_the_keyboard_to_the_exit_question() -> void:
+	# Como dentro de la pausa, la pantalla sigue recibiendo pulsaciones con el juego congelado.
+	layer.process_mode = Node.PROCESS_MODE_ALWAYS
+	var targets: Array = []
+	ExitManager.finish_override = func(target: int) -> void: targets.append(target)
+	GameState.location_id = "plaza"
+	SaveSystem.begin_session(self)
+	GameState.set_flag("progreso_sin_ranura")
+	await _choose(_slot("interact", 0))
+	# Alt + F4 llega a Godot como sus teclas y, aparte, como la petición de cierre de la ventana.
+	_key(KEY_ALT, true)
+	_key(KEY_F4, true, false, true)
+	ExitManager.propagate_notification(Node.NOTIFICATION_WM_CLOSE_REQUEST)
+	for frame in 180:
+		if ExitManager.is_dialog_open():
+			break
+		await get_tree().process_frame
+	check(ExitManager.is_dialog_open(), "sin ranura activa, el cierre pregunta como siempre")
+	_key(KEY_F4, false, false, true)
+	_key(KEY_ALT, false)
+	_tap(KEY_ESCAPE)
+	check(not ExitManager.is_dialog_open(), "Esc contesta a la pregunta de salida")
+	check(not menu.is_capturing(), "y la espera de la tecla termina")
+	check(targets.is_empty(), "cancelar deja el juego abierto")
+	check_equal(Controls.get_keys("interact"), [KEY_E] as Array[Key], "sin haber asignado Alt, F4 ni Esc")
+	ExitManager.finish_override = Callable()
+	SaveSystem.end_session(self)
+	GameState.reset()
+	get_tree().paused = false
