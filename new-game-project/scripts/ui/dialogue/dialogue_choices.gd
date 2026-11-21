@@ -83,6 +83,12 @@ func clear_options() -> void:
 	_selected = -1
 
 
+## Las tarjetas aparecen una tras otra, con un fundido y una subida corta.
+func play_entrance() -> void:
+	for index in _items.size():
+		_items[index].play_entrance(index * DialogueStyle.CHOICE_STAGGER)
+
+
 ## Da el foco a la primera respuesta, para manejar la lista con el teclado desde el principio.
 func focus_first() -> void:
 	select_index(0)

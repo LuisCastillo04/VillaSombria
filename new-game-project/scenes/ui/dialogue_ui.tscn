@@ -90,26 +90,48 @@ script = ExtResource("5")
 layout_mode = 1
 anchors_preset = 0
 offset_left = 56.0
-offset_top = 736.0
+offset_top = 739.0
 offset_right = 1864.0
 offset_bottom = 1036.0
 mouse_filter = 2
 script = ExtResource("6")
 
-[node name="Text" type="RichTextLabel" parent="Root/Window"]
+[node name="Body" type="Control" parent="Root/Window"]
+clip_contents = true
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
-offset_left = 100.0
-offset_top = 50.0
-offset_right = -100.0
-offset_bottom = 209.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Reading" type="Control" parent="Root/Window/Body"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Text" type="RichTextLabel" parent="Root/Window/Body/Reading"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 100.0
+offset_top = -247.0
+offset_right = -100.0
+offset_bottom = -88.0
+grow_horizontal = 2
+grow_vertical = 0
 mouse_filter = 2
 scroll_active = false
 script = ExtResource("3")
 
-[node name="Divider" type="Control" parent="Root/Window"]
+[node name="Divider" type="Control" parent="Root/Window/Body/Reading"]
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.24
@@ -125,7 +147,7 @@ script = ExtResource("9")
 hollow = true
 color = Color(0.36, 0.25, 0.15, 0.7)
 
-[node name="Continue" type="Control" parent="Root/Window"]
+[node name="Continue" type="Control" parent="Root/Window/Body/Reading"]
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0
@@ -140,21 +162,32 @@ grow_horizontal = 0
 grow_vertical = 0
 script = ExtResource("8")
 
-[node name="Choices" type="ScrollContainer" parent="Root/Window"]
+[node name="Choosing" type="Control" parent="Root/Window/Body"]
 visible = false
 layout_mode = 1
-anchors_preset = 10
+anchors_preset = 15
 anchor_right = 1.0
-offset_left = 54.0
-offset_top = 72.0
-offset_right = -54.0
-offset_bottom = 222.0
+anchor_bottom = 1.0
 grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Choices" type="ScrollContainer" parent="Root/Window/Body/Choosing"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 54.0
+offset_top = -264.0
+offset_right = -54.0
+offset_bottom = -114.0
+grow_horizontal = 2
+grow_vertical = 0
 horizontal_scroll_mode = 0
 script = ExtResource("4")
 
-[node name="Hint" type="VBoxContainer" parent="Root/Window"]
-visible = false
+[node name="Hint" type="VBoxContainer" parent="Root/Window/Body/Choosing"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0

@@ -35,8 +35,11 @@ var _compact := false
 var _padding := PADDING
 var _highlight := 0.0
 var _flash := 0.0
+## Subida de la entrada: la tarjeta y su texto se dibujan desplazados hacia abajo y llegan a su sitio.
+var _rise := 0.0
 var _tween: Tween
 var _flash_tween: Tween
+var _enter_tween: Tween
 var _card: Control
 
 
@@ -116,6 +119,28 @@ func _font_size() -> int:
 
 func is_highlighted() -> bool:
 	return _highlight > 0.5
+
+
+## Aparece con un fundido y una subida corta, tras `delay` segundos. El contenedor coloca la
+## tarjeta; la subida sólo desplaza su dibujo, así que no altera la lista ni lo que señala el ratón.
+func play_entrance(delay: float) -> void:
+	if _enter_tween != null:
+		_enter_tween.kill()
+	modulate.a = 0.0
+	_set_rise(DialogueStyle.CHOICE_ENTER_RISE)
+	_enter_tween = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_enter_tween.tween_property(self, "modulate:a", 1.0, DialogueStyle.CHOICE_ENTER_SECONDS).set_delay(delay)
+	_enter_tween.tween_method(_set_rise, DialogueStyle.CHOICE_ENTER_RISE, 0.0, DialogueStyle.CHOICE_ENTER_SECONDS).set_delay(delay)
+
+
+func _set_rise(value: float) -> void:
+	_rise = value
+	_card.position.y = value
+	# El texto del botón baja lo mismo que la tarjeta, con sus márgenes.
+	var box := get_theme_stylebox("normal") as StyleBoxEmpty
+	if box != null:
+		box.content_margin_top = _padding.y + value
+		box.content_margin_bottom = _padding.w - value
 
 
 ## Destello breve al confirmarla.

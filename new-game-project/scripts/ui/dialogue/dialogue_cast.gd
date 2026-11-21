@@ -20,9 +20,10 @@ const ACTIVE_TINT := Color(1.0, 1.0, 1.0, 1.0)
 const IDLE_TINT := Color(0.5, 0.5, 0.56, 1.0)
 ## Zona de referencia: el ancho de una pantalla 16:9 en el lienzo lógico.
 const STAGE_WIDTH := 1920.0
-## Rectángulos de las figuras en esa zona: x desde su borde izquierdo, y desde el pie (negativa).
+## Rectángulos de las figuras en esa zona, medidos desde el pie (y negativa): el del detective desde
+## su borde izquierdo y el del interlocutor desde el derecho, para que cada uno siga a su lado.
 const DETECTIVE_RECT := Rect2(30.0, -980.0, 500.0, 690.0)
-const PORTRAIT_RECT := Rect2(1250.0, -1090.0, 690.0, 950.0)
+const PORTRAIT_RECT := Rect2(-670.0, -1090.0, 690.0, 950.0)
 ## Contraluz detrás del interlocutor, en proporción de la zona.
 const BACKLIGHT_LEFT := 0.52
 const BACKLIGHT_TOP := 0.02
@@ -183,14 +184,14 @@ func _apply_layout() -> void:
 	var breath := sin(_clock * BREATH_SPEED) * BREATH_HEIGHT
 	var speaking := talking and _speaker != DETECTIVE and _speaker != NARRATOR and not _speaker.is_empty()
 	var talk := sin(_clock * TALK_SPEED) * TALK_HEIGHT if speaking else 0.0
-	_place(_detective, stage, DETECTIVE_RECT, Vector2(-_slide * DETECTIVE_SLIDE, breath))
-	_place(_portrait, stage, PORTRAIT_RECT, Vector2(_slide * PORTRAIT_SLIDE, breath + talk))
+	_place(_detective, Vector2(stage.position.x, stage.end.y), DETECTIVE_RECT, Vector2(-_slide * DETECTIVE_SLIDE, breath))
+	_place(_portrait, stage.end, PORTRAIT_RECT, Vector2(_slide * PORTRAIT_SLIDE, breath + talk))
 	_backlight.position = Vector2(stage.position.x + stage.size.x * BACKLIGHT_LEFT, stage.size.y * BACKLIGHT_TOP)
 	_backlight.size = Vector2(stage.end.x - _backlight.position.x, stage.size.y * (1.0 - BACKLIGHT_TOP))
 
 
-func _place(figure: TextureRect, stage: Rect2, rect: Rect2, offset: Vector2) -> void:
-	figure.position = Vector2(stage.position.x + rect.position.x, stage.end.y + rect.position.y) + offset
+func _place(figure: TextureRect, origin: Vector2, rect: Rect2, offset: Vector2) -> void:
+	figure.position = origin + rect.position + offset
 	figure.size = rect.size
 
 

@@ -98,6 +98,16 @@ const KEY_SIZE := 21
 
 const OPEN_SECONDS := 0.45
 const CLOSE_SECONDS := 0.25
+## Al cerrarse, la ventana baja esta parte de su recorrido de entrada mientras se desvanece.
+const CLOSE_SLIDE := 0.35
+## Cambio entre la lectura y las respuestas: el alto de la ventana y el fundido del contenido.
+const MODE_SECONDS := 0.3
+const MODE_OUT_SECONDS := 0.14
+const MODE_IN_SECONDS := 0.22
+## Entrada escalonada de las tarjetas de respuesta.
+const CHOICE_STAGGER := 0.035
+const CHOICE_ENTER_SECONDS := 0.2
+const CHOICE_ENTER_RISE := 10.0
 ## Cambio de tinte de las siluetas al cambiar quien habla.
 const TINT_SECONDS := 0.2
 ## Cambio del nombre de la placa: se apaga el anterior y se enciende el nuevo.
