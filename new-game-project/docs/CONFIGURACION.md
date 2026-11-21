@@ -209,6 +209,79 @@ godot --path . --resolution 1920x1080 res://tests/visual/rendimiento.tscn -- --l
 - Cerrar la conversación (por la historia o porque termina) detiene la cuenta, y con el juego en
   pausa (la pregunta de salida) la cuenta no avanza.
 
+## Accesibilidad
+
+`UiAccessibility` (`scripts/settings/ui_accessibility.gd`) reúne las cuatro opciones; `Settings` aplica
+el tamaño de letra y el contraste, y las pantallas consultan lo demás.
+
+### Tamaño de letra
+
+| Opción | Escala de la interfaz | Lienzo lógico en 16:9 |
+| --- | --- | --- |
+| Normal | 1 | 1920 × 1080 |
+| Grande | 1,15 | 1670 × 939 |
+| Muy grande | 1,3 | 1477 × 831 |
+
+Se aplica con `Window.content_scale_factor` sobre el escalado `canvas_items` que ya usaba el juego: las
+letras crecen y, con ellas, los recuadros que las contienen, de modo que nada se recorta ni se monta
+encima de otra cosa. Llega a todas las interfaces a la vez (menús, conversaciones, HUD, expediente,
+tablero, mapa, avisos y confirmaciones) y la escena 3D no cambia. Las pantallas se maquetan con el
+lienzo que queda, igual que en una ventana de otra proporción; `test_accessibility` comprueba que la
+pausa, cada página de Configuración, la confirmación, la conversación al leer y al elegir, el
+expediente y el tablero caben en «Muy grande».
+
+### Contraste aumentado
+
+`ContrastFilter` (`scripts/settings/contrast_filter.gd`) realza toda la interfaz sin rehacer ninguna
+pantalla:
+
+- **Texto**: los colores de texto de etiquetas, botones y textos enriquecidos se vuelven opacos y se
+  separan del fondo. Los claros (crema, dorado, burdeos claro sobre paneles oscuros) se acercan al blanco
+  cálido; los oscuros (tinta sobre pergamino), al negro. El color de lo desactivado no se toca.
+- **Foco y selección**: el contorno de foco pasa a ser un filete grueso casi blanco con un halo oscuro,
+  visible sobre cuero, pergamino o el escenario.
+- **Lo que se crea después** (pantallas que se abren, filas nuevas) nace realzado, y si una pantalla
+  cambia un color mientras está activo, se realza el nuevo (`theme_changed`).
+- **Reversible**: lo que había se guarda en metadatos de cada control y vuelve al desactivarlo. En modo
+  normal no se toca nada.
+
+Los elementos que se dibujan a mano (marcos, ornamentos, la pestaña «Continuar») conservan su color.
+
+### Subtítulos
+
+`SubtitleBar` (`scripts/ui/subtitle_bar.gd`, capa 5 de la escena de juego) muestra, centrado sobre la
+barra de controles, el texto de una voz o de un sonido narrado con el nombre de quien habla. Es lo único
+que oculta la opción: el texto de las conversaciones es obligatorio para jugar y se muestra siempre en su
+ventana.
+
+El juego todavía no tiene voces, así que hoy nada pide subtítulos; no se ha inventado contenido. Cuando
+las tenga, quien reproduzca una voz emitirá `EventBus.subtitle_requested(personaje, texto, segundos)`
+(con 0 segundos dura lo que se tarda en leerlo). Desactivar los subtítulos retira en el acto el que haya
+en pantalla.
+
+### Reducir movimiento
+
+Con `accesibilidad/movimiento_reducido`, `UiAccessibility.motion()` vale 0 y desaparecen las
+animaciones decorativas:
+
+| Dónde | Qué deja de moverse |
+| --- | --- |
+| Conversaciones | La ventana ya no sube al aparecer; las siluetas no entran deslizándose, no respiran ni se balancean; las respuestas no suben al entrar; «Continuar» no late (queda a media luz) |
+| HUD | Los paneles no se deslizan al aparecer |
+| Mapa | La onda del detective queda quieta y el rombo del objetivo no sube ni baja |
+| Confirmaciones | La ficha no crece al aparecer |
+
+Los fundidos se mantienen: no desplazan nada y ayudan a ver qué ha cambiado. La barra de espera del
+avance automático también, porque informa.
+
+### Navegación
+
+Todas las opciones nuevas funcionan con ratón, teclado y mando. Los interruptores y selectores reciben el
+foco en el orden de la página (arriba y abajo), los selectores cambian de valor con izquierda y derecha y
+con aceptar, y la confirmación retiene el foco en sus dos botones. Las acciones `ui_*` de Godot incluyen
+la cruceta, el stick izquierdo y los botones A y B del mando. La reasignación de teclas y los botones del
+mando para jugar (fuera de los menús) no existen todavía: ver «Limitaciones».
+
 ## Confirmaciones
 
 `jugabilidad/confirmaciones` («Preguntar antes de acciones como dejar pasar una hora») decide si se
@@ -262,6 +335,13 @@ if await ConfirmDialog.ask("TÍTULO", "¿Pregunta?", {"confirm_text": "Sí", "fo
 que no cabe, que el interruptor y el selector son la misma preferencia, la confirmación (mantener,
 restaurar, Escape, cuenta atrás, también en pausa, un solo cambio a la vez), el foco dentro de la
 pregunta y que Escape no cierra la configuración de detrás.
+
+`tests/unit/test_accessibility.gd` comprueba la escala de la interfaz de cada tamaño de letra, que en
+«Muy grande» caben la pausa, cada página de Configuración, la confirmación, la conversación, el
+expediente y el tablero; que el contraste aumentado realza texto y foco, llega a lo que se crea después,
+respeta lo desactivado y se deshace sin rastro; los subtítulos (mostrar, ocultar en el acto, sin tocar
+las conversaciones, sonidos sin hablante, duración); el movimiento reducido en las conversaciones; y que
+todo persiste.
 
 `tests/unit/test_confirmations.gd` comprueba, con la escena de juego real y entradas como las del
 jugador, que esperar pregunta antes con las confirmaciones activadas (aceptar, cancelar, Escape, una

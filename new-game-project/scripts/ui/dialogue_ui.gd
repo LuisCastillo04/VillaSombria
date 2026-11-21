@@ -462,7 +462,7 @@ static func _speaker_name(speaker_id: String) -> String:
 func _layout_window() -> void:
 	var view := _root.size
 	var width := minf(view.x - DialogueStyle.SCREEN_MARGIN * 2.0, DialogueStyle.MAX_WIDTH)
-	var bottom := view.y - DialogueStyle.BOTTOM_MARGIN + _slide * WINDOW_SLIDE
+	var bottom := view.y - DialogueStyle.BOTTOM_MARGIN + _slide * WINDOW_SLIDE * UiAccessibility.motion()
 	_window.position = Vector2((view.x - width) * 0.5, bottom - _panel_height)
 	_window.size = Vector2(width, _panel_height)
 

@@ -85,7 +85,11 @@ func get_auto_progress() -> float:
 
 func _process(delta: float) -> void:
 	_clock += delta
-	_pulse = 0.5 - 0.5 * cos(_clock * TAU / DialogueStyle.PULSE_SECONDS)
+	# Con el movimiento reducido no late: queda encendida a media luz mientras espera.
+	if UiAccessibility.reduced_motion():
+		_pulse = 0.5
+	else:
+		_pulse = 0.5 - 0.5 * cos(_clock * TAU / DialogueStyle.PULSE_SECONDS)
 	queue_redraw()
 
 

@@ -44,6 +44,8 @@ var _values: Dictionary = {}
 var _load_report: Dictionary = {}
 ## Hay un cambio de pantalla en prueba, esperando a que el jugador lo confirme.
 var _display_pending := false
+## Contraste aumentado de toda la interfaz (`accesibilidad/contraste_alto`).
+var _contrast := ContrastFilter.new()
 
 
 func _ready() -> void:
@@ -59,6 +61,7 @@ func _ready() -> void:
 	DisplaySettings.apply_vsync(vsync)
 	GraphicsQuality.apply_lighting(get_tree(), get_value("graficos/calidad_iluminacion"))
 	GraphicsQuality.apply_effects(get_tree(), get_value("graficos/calidad_efectos"))
+	_apply_accessibility()
 	# La ventana se coloca cuando ya se sabe qué escena arranca: las de prueba fijan la suya.
 	_apply_display.call_deferred()
 
@@ -251,7 +254,22 @@ func apply_all() -> void:
 	DisplaySettings.apply_vsync(vsync)
 	GraphicsQuality.apply_lighting(get_tree(), get_value("graficos/calidad_iluminacion"))
 	GraphicsQuality.apply_effects(get_tree(), get_value("graficos/calidad_efectos"))
+	_apply_accessibility()
 	_apply_display()
+
+
+## Tamaño de letra (escala de la interfaz) y contraste aumentado. Los subtítulos y el movimiento
+## reducido los leen quienes los usan.
+func _apply_accessibility() -> void:
+	if not is_inside_tree():
+		return
+	UiAccessibility.apply_text_scale(get_tree(), get_value("accesibilidad/tamano_letra"))
+	_contrast.set_enabled(get_tree(), bool(get_value("accesibilidad/contraste_alto")))
+
+
+## Si el contraste aumentado está aplicado ahora mismo a la interfaz.
+func is_high_contrast_applied() -> bool:
+	return _contrast.is_enabled()
 
 
 func _apply_key(key: String) -> void:
@@ -264,6 +282,8 @@ func _apply_key(key: String) -> void:
 			GraphicsQuality.apply_lighting(get_tree(), get_value(key))
 		"graficos/calidad_efectos":
 			GraphicsQuality.apply_effects(get_tree(), get_value(key))
+		"accesibilidad/tamano_letra", "accesibilidad/contraste_alto":
+			_apply_accessibility()
 		_:
 			if SettingsSchema.section_of(key) == "audio":
 				_apply_volume(SettingsSchema.name_of(key))

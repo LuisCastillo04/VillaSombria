@@ -4,8 +4,9 @@ extends HBoxContainer
 ## clip, el rótulo «TABLERO DE DEDUCCIÓN» en burdeos, «[B] Cerrar» (que también se pulsa con el ratón)
 ## y la ayuda «Pulsa un sospechoso para anotar tu hipótesis». El sello va aparte: lo coloca el marco.
 ##
-## La tecla sale del InputMap cada vez que se abre el tablero. Si no cabe todo, la ayuda se recorta y
-## el rótulo reduce la letra hasta `BoardStyle.TITLE_MIN_SIZE`.
+## La tecla sale del InputMap cada vez que se abre el tablero. Si no cabe todo (por ejemplo, con la
+## letra grande de Accesibilidad), la ayuda pasa a dos líneas, sólo se recorta si ni así cabe, y el
+## rótulo reduce la letra hasta `BoardStyle.TITLE_MIN_SIZE`.
 
 signal close_pressed
 
@@ -59,8 +60,9 @@ func _init() -> void:
 	_help.name = "Help"
 	_help.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_help.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_help.max_lines_visible = 2
 	_help.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_help.clip_text = true
 	add_child(_help)
 	refresh_keys()
 	resized.connect(_fit_title)

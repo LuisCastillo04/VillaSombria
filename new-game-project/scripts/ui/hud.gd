@@ -233,7 +233,7 @@ func _layout() -> void:
 
 ## Al aparecer, los paneles de arriba bajan y la barra sube unos píxeles hasta su sitio.
 func _apply_slide() -> void:
-	var slide := (1.0 - _reveal) * HudStyle.SLIDE
+	var slide := (1.0 - _reveal) * HudStyle.SLIDE * UiAccessibility.motion()
 	for control: Control in _rest_positions:
 		var direction := 1.0 if control == _controls or control == _prompt else -1.0
 		control.position = _rest_positions[control] + Vector2(0.0, direction * slide)

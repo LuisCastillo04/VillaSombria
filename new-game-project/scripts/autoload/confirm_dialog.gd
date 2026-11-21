@@ -182,7 +182,7 @@ func _update_countdown() -> void:
 func _show() -> void:
 	_root.show()
 	_card.pivot_offset = _card.size * 0.5
-	_card.scale = Vector2(0.96, 0.96)
+	_card.scale = Vector2.ONE if UiAccessibility.reduced_motion() else Vector2(0.96, 0.96)
 	_card.modulate.a = 0.0
 	if _tween != null:
 		_tween.kill()

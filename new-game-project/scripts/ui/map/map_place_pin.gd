@@ -110,7 +110,8 @@ func _set_highlight(value: float) -> void:
 func _process(delta: float) -> void:
 	if not is_visible_in_tree():
 		return
-	_bob = fmod(_bob + delta * 1.4, TAU)
+	# Con el movimiento reducido, el rombo del objetivo no sube ni baja.
+	_bob = 0.0 if UiAccessibility.reduced_motion() else fmod(_bob + delta * 1.4, TAU)
 	queue_redraw()
 
 

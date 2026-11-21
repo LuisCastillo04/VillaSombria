@@ -80,6 +80,7 @@ Game
 ├── CameraRig          cámara ortográfica
 ├── PostFx             niebla, viñeta y grano
 ├── Hud                lugar, objetivo, teclas y avisos; ver HUD.md
+├── Subtitles          subtítulos opcionales de voces y sonidos; ver CONFIGURACION.md
 ├── DialogueUi         conversaciones: siluetas, lectura y respuestas; ver DIALOGOS.md
 ├── ClueInspector
 ├── JournalUi          expediente: carpeta, pestañas y cinco secciones; ver EXPEDIENTE.md
@@ -116,6 +117,7 @@ Game
 | `flag_set`, `objectives_changed` | Cambia el progreso |
 | `time_changed`, `day_changed` | Avanza el calendario |
 | `story_action` | Los datos piden una acción: abrir la acusación, iniciar el epílogo, cerrar el caso |
+| `subtitle_requested` | Una voz o un sonido narrado necesita subtítulo (lo muestra `SubtitleBar` si están activados) |
 | `clue_inspection_requested`, `rest_requested` | El jugador examina una pista o se acuesta |
 
 `SaveSystem` escucha varias de estas señales para pedir autoguardados y emite las suyas

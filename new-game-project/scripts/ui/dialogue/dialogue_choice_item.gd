@@ -127,10 +127,11 @@ func play_entrance(delay: float) -> void:
 	if _enter_tween != null:
 		_enter_tween.kill()
 	modulate.a = 0.0
-	_set_rise(DialogueStyle.CHOICE_ENTER_RISE)
+	var rise := DialogueStyle.CHOICE_ENTER_RISE * UiAccessibility.motion()
+	_set_rise(rise)
 	_enter_tween = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_enter_tween.tween_property(self, "modulate:a", 1.0, DialogueStyle.CHOICE_ENTER_SECONDS).set_delay(delay)
-	_enter_tween.tween_method(_set_rise, DialogueStyle.CHOICE_ENTER_RISE, 0.0, DialogueStyle.CHOICE_ENTER_SECONDS).set_delay(delay)
+	_enter_tween.tween_method(_set_rise, rise, 0.0, DialogueStyle.CHOICE_ENTER_SECONDS).set_delay(delay)
 
 
 func _set_rise(value: float) -> void:
