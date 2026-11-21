@@ -90,7 +90,7 @@ valoraciones e hipótesis siguen siendo cosa del tablero y la combinación de pr
 Al abrir sin indicar sección vuelve a la última que se miró, con la misma ficha elegida. Las
 secciones se crean una vez: cambiar de pestaña sólo las muestra u oculta y `refresh()` rehace las
 fichas de la lista únicamente si sus datos han cambiado. Con el expediente abierto, las señales de
-`EventBus` (pistas, testimonios, deducciones, objetivos, reloj, día, lugar) ponen al día la
+`EventBus` (pistas, testimonios, deducciones, hipótesis, objetivos, reloj, día, lugar) ponen al día la
 sección visible una sola vez por fotograma.
 
 Mientras está abierto, el jugador está bloqueado con el motivo `expediente`: el HUD se retira y

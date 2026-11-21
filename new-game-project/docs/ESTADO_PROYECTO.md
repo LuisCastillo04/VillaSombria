@@ -35,6 +35,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Mapa del pueblo | Hecho | Dibujo comparado con las colisiones reales, recorridos con entradas reales, carga de partidas y capturas a 1920×1080, 2560×1080, 1280×720 y 1024×768; ver [MAPA.md](MAPA.md) |
 | Rediseño del HUD de exploración | Hecho | Pruebas con la escena de juego real (datos, barra, visibilidad, proporciones) y capturas en los cinco escenarios a 1280×720, 1366×768, 1600×900, 1920×1080, 1024×768 y 2560×1080; ver [HUD.md](HUD.md) |
 | Rediseño del expediente | Hecho | Pruebas con la escena de juego real (datos de las cinco secciones, estados vacíos, teclado y ratón, restauración, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1024×768; ver [EXPEDIENTE.md](EXPEDIENTE.md) |
+| Rediseño del tablero de deducción | Hecho | Pruebas con la escena de juego real (sospechosos y valoraciones, hipótesis y borradores, corcho, hilos, comparación con sus cuatro resultados, teclado y ratón, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1440×1080; ver [TABLERO.md](TABLERO.md) |
 
 Diferencias con el encargo:
 
@@ -49,7 +50,7 @@ Diferencias con el encargo:
 guarda una partida en un proceso de Godot para cargarla en otro nuevo. Con `-ConVentana` además
 comprueba las imágenes de las ranuras y cierra la ventana real con la X y con Alt + F4.
 
-Último resultado, con `-ConVentana` tras el rediseño del expediente: 254 pruebas correctas, 0 fallos; el
+Último resultado, con `-ConVentana` tras el rediseño del tablero de deducción: 275 pruebas correctas, 0 fallos; el
 reinicio en dos procesos, las imágenes de las ranuras y el cierre real con la X y con Alt + F4,
 correctos. El paso «Importación» sale fallido por el `Code.exe` del editor (ver Problemas
 conocidos).
@@ -63,6 +64,7 @@ conocidos).
 | `test_dialogue` | Flujo, condiciones, efectos, tiempo, bloqueo |
 | `test_investigation` | Pistas, deducciones, acusación, eventos, vertical slice |
 | `test_board` | Tablero y acusación manejados por su interfaz |
+| `test_board_ui` | Tablero rediseñado: teclas reales, sospechosos y valoraciones, hipótesis, borradores y límite de la nota, corcho y huecos libres, hilos sólo de deducciones registradas, comparación y sus resultados, teclado y ratón, decoración sin ratón, proporciones de pantalla y partida cargada |
 | `test_story` | El caso completo, de la llegada al epílogo |
 | `test_integration` | Rutas reales, puertas, cama y conversación con entradas de teclado |
 | `test_save` | Guardado y carga básicos, archivos dañados, pausa, menú, volumen |
@@ -113,6 +115,9 @@ arranca desde él sin errores en modo sin ventana.
   de la pantalla se comprobaron con pruebas y capturas fijas, no viéndolos ni con un mando real.
 - **El HUD en movimiento.** Los fundidos, el deslizamiento al aparecer y el destello de los
   objetivos nuevos se comprobaron con pruebas y capturas fijas, no viéndolos jugando.
+- **El tablero en movimiento.** Los fundidos, el brillo de la selección, el hilo que se tiende y
+  el temblor de una comparación sin relación se comprobaron con pruebas y capturas fijas, no
+  viéndolos jugando; tampoco con un mando real.
 - **El expediente en movimiento.** Los fundidos de apertura, cierre, sección y ficha se
   comprobaron con pruebas y capturas fijas, no viéndolos jugando; tampoco con un mando real.
 - **La tasa de fotogramas en primer plano.** Ver el apartado siguiente.
@@ -143,7 +148,9 @@ La plaza tiene unas 91 llamadas de dibujado y 134.000 primitivas por fotograma.
 - `test_integration` falló una vez en ocho ejecuciones: las teclas B y T no llegaron a
   procesarse. Sus pruebas envían la pulsación y la liberación en el mismo fotograma con
   `Input.parse_input_event`, y con el equipo cargado la pulsación puede perderse.
-- Con todas las deducciones hechas, los hilos del tablero se cruzan mucho.
+- Con todas las deducciones hechas, el corcho tiene muchos hilos. Ya no tapan ningún texto (pasan
+  por detrás del papel) y los de la ficha elegida se avivan, pero un filtro por grupos ayudaría
+  (ver «Cómo ampliarlo» en [TABLERO.md](TABLERO.md)).
 - El editor de Godot no muestra la geometría de los escenarios: se genera al ejecutar.
 - Mientras el editor siga abierto desde antes de crear los autoloads, su analizador marca
   errores falsos. Se resuelve con **Proyecto > Recargar proyecto actual**.

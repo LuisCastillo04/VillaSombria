@@ -67,7 +67,8 @@ consume tiempo y cada personaje sigue su rutina: la pestaña Sospechosos del exp
 dónde está cada uno. Para terminar el día, acuéstate en la pensión del Café La Luna.
 
 En el tablero, selecciona dos elementos y pulsa **Relacionar**. Una deducción sirve después
-como prueba para la siguiente.
+como prueba para la siguiente. Pulsa un sospechoso para anotar tu valoración y tu hipótesis:
+el expediente las recoge y se guardan con la partida.
 
 Si el juego va a tirones, prueba a cambiar **Sincronización vertical** en Configuración.
 

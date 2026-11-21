@@ -9,11 +9,17 @@ extends Node
 ##   --shots=x,y,z;x,y,z   guarda una imagen numerada por cada posición
 ##   --day=N --time=HH:MM  fija el calendario
 ##   --seed=todo           concede todas las pistas y testimonios
+##   --pistas=a,b          concede sólo esas pistas, testimonios o deducciones (en ese orden)
+##   --hipotesis=id=valoración[=nota],...   anota hipótesis antes de abrir el tablero
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar]
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
 ##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta)
+##   --seleccion=a,b       con --open=board, elige esos elementos para compararlos
+##   --relacionar          con --open=board y --seleccion, pulsa «Relacionar»
+##   --editar=id           con --open=board, abre la hipótesis de ese sospechoso
+##   --desplegar           con --editar, despliega el selector de valoración
 ##   --menu                captura el menú principal en lugar de la partida
 ##                         (con --open=load, la lista de partidas con ejemplos;
 ##                         con --open=settings:n o --open=credits, esos paneles)
@@ -47,6 +53,12 @@ func _ready() -> void:
 		GameClock.advance(1)
 	if args.get("seed", "") == "todo":
 		_grant_everything()
+	if args.has("pistas"):
+		_grant_items((args["pistas"] as String).split(","))
+	if args.has("hipotesis"):
+		for entry: String in (args["hipotesis"] as String).split(","):
+			var parts := entry.split("=")
+			Investigation.set_hypothesis(parts[0], parts[1], parts[2] if parts.size() > 2 else "")
 	if args.has("location"):
 		await game.go_to(args["location"], args.get("spawn", ""))
 	var out: String = args.get("out", "user://captura.png")
@@ -130,7 +142,22 @@ func _open_panel(game: Game, what: String) -> void:
 			if parts.size() > 2:
 				journal.get_section(int(parts[1])).get_list().select(parts[2])
 		"board":
-			game.get_node("BoardUi").open()
+			var board: BoardUi = game.get_node("BoardUi")
+			board.open()
+			await _wait_seconds(0.4)
+			var args := _parse_args()
+			if args.has("seleccion"):
+				for item_id: String in (args["seleccion"] as String).split(","):
+					board.select_item(item_id)
+			if args.has("relacionar"):
+				board.link_selected()
+			if args.has("editar"):
+				board.open_hypothesis(args["editar"])
+				if args.has("desplegar"):
+					await _wait_seconds(0.3)
+					var option := board.get_viewport().gui_get_focus_owner() as OptionButton
+					if option != null:
+						option.show_popup()
 		"accusation":
 			game.get_node("AccusationUi").open()
 		"pause":
@@ -224,6 +251,17 @@ func _grant_everything() -> void:
 		for deduction_id: String in GameData.deductions:
 			var pair: Array = GameData.deductions[deduction_id]["pairs"][0]
 			Investigation.try_link(pair[0], pair[1])
+
+
+## Pistas, testimonios o deducciones concretos, como los tendría el jugador a mitad del caso.
+func _grant_items(ids: PackedStringArray) -> void:
+	for item_id in ids:
+		if GameData.clues.has(item_id):
+			Investigation.discover_clue(item_id)
+		elif GameData.testimonies.has(item_id):
+			Investigation.record_testimony(item_id)
+		elif GameData.deductions.has(item_id) and not GameState.deductions.has(item_id):
+			GameState.deductions.append(item_id)
 
 
 func _wait_seconds(seconds: float) -> void:

@@ -1,4 +1,4 @@
-"""Genera los grabados sepia del expediente en assets/ui/expediente.
+"""Genera los grabados sepia del expediente (assets/ui/expediente) y del tablero (assets/ui/tablero).
 
 Uso:  python tools/generar_grabados.py
 
@@ -13,6 +13,7 @@ import random
 from pathlib import Path
 
 OUTPUT = Path(__file__).resolve().parent.parent / "assets" / "ui" / "expediente"
+BOARD_OUTPUT = OUTPUT.parent / "tablero"
 
 INK = "#3d2a1b"
 SEPIA = "#b89d72"
@@ -187,12 +188,12 @@ class Engraving:
         self.circle(x, y, 5.6, fill=color, width=1.0)
         self.circle(x - 1.6, y - 1.8, 1.6, fill="#f3d9b0", fill_opacity=0.8, stroke=None)
 
-    def write(self, name: str) -> None:
-        OUTPUT.mkdir(parents=True, exist_ok=True)
+    def write(self, name: str, folder: Path = OUTPUT) -> None:
+        folder.mkdir(parents=True, exist_ok=True)
         header = f'<svg xmlns="http://www.w3.org/2000/svg" width="{self.width}" height="{self.height}" viewBox="0 0 {self.width} {self.height}">\n'
         defs = "<defs>" + "".join(self.defs) + "</defs>\n" if self.defs else ""
         body = "\n".join(self.parts)
-        (OUTPUT / name).write_text(header + defs + body + "\n</svg>\n", encoding="utf-8", newline="\n")
+        (folder / name).write_text(header + defs + body + "\n</svg>\n", encoding="utf-8", newline="\n")
 
 
 # --- Café La Luna, con su farola y sus veladores: la página de sospechosos ---
@@ -455,10 +456,54 @@ def libros_lupa() -> None:
     art.write("libros_lupa.svg")
 
 
+# --- Libros, tintero, pluma y cartas: el rincón del corcho del tablero de deducción ---
+
+def rincon_tablero() -> None:
+    art = Engraving(520, 300, 1948)
+    art.ground(270, 0, 520, 26)
+    # Pila de libros tumbados y dos de pie detrás.
+    art.standing_book(150, 120, 28, 132, SEPIA, -3)
+    art.standing_book(180, 134, 24, 118, SEPIA_PALE, 6)
+    art.book(16, 248, 210, 24, SEPIA)
+    art.book(30, 225, 184, 23, SEPIA_LIGHT)
+    art.book(22, 203, 176, 22, SEPIA_PALE)
+    art.book(40, 184, 140, 19, SEPIA)
+    # Cartas y un sobre sobre la mesa, con la pluma encima.
+    art.paper(330, 252, 150, 46, -5, rows=3)
+    art.paper(300, 238, 124, 40, 7, rows=3)
+    art.begin_group("rotate(-8 400 226)")
+    art.rect(350, 206, 108, 52, fill=PAPER, width=1.1)
+    art.poly([(350, 206), (404, 236), (458, 206)], fill=None, width=1.0, closed=False)
+    art.circle(404, 236, 6, fill=STRING, width=0.9)
+    art.end_group()
+    # Pluma estilográfica cruzada sobre las cartas.
+    art.path("M232,284 L392,250", width=5.0, stroke=SEPIA_DARK)
+    art.path("M232,284 L392,250", width=1.0, stroke=INK)
+    art.path("M392,250 L414,245 L398,253 Z", fill=BRASS, width=0.9)
+    art.line(300, 270, 316, 266, 2.4, 1.0, BRASS)
+    # Tintero de cristal con la pluma de ave.
+    art.ellipse(462, 268, 34, 8, fill=SEPIA_DARK, fill_opacity=0.35, stroke=None)
+    art.path("M434,266 C430,244 436,226 448,218 L476,218 C488,226 494,244 490,266 Z", fill=SEPIA_DARK, fill_opacity=0.85, width=1.4)
+    art.hatch([(434, 266), (448, 218), (476, 218), (490, 266)], spacing=3.2, angle=80, opacity=0.3, color=PAPER)
+    art.path("M440,250 C446,240 452,236 458,236", stroke=PAPER, width=1.6, opacity=0.6)
+    art.rect(449, 204, 26, 15, fill=SEPIA, width=1.1, rx=2)
+    art.ellipse(462, 204, 13, 3.5, fill=INK, width=0.9)
+    art.path("M462,204 C470,170 492,120 512,86", width=1.6)
+    art.path("M512,86 C500,104 486,132 476,160 C488,136 500,112 512,86 Z", fill=PAPER, width=0.9)
+    art.path("M512,86 C506,110 496,138 482,166 C492,140 502,114 512,86", width=0.7, opacity=0.6)
+    for step in range(9):
+        t = step / 9
+        x = 510 - t * 32
+        y = 92 + t * 66
+        art.line(x, y, x - 10 - step, y - 3, 0.7, 0.55)
+    art.write("rincon_escritorio.svg", BOARD_OUTPUT)
+
+
 if __name__ == "__main__":
     cafe()
     escritorio()
     interrogatorio()
     tablero()
     libros_lupa()
-    print("Grabados escritos en", OUTPUT)
+    rincon_tablero()
+    print("Grabados escritos en", OUTPUT, "y", BOARD_OUTPUT)
