@@ -1,7 +1,8 @@
 # Verificación completa del proyecto desde la terminal.
 # Uso:  powershell -File tools\verificar.ps1 [-ConVentana]
-# -ConVentana añade lo que necesita una ventana: las imágenes reales de las ranuras y el
-# cierre de la ventana con la X y con Alt + F4. Abre y cierra el juego varias veces.
+# -ConVentana añade lo que necesita una ventana: las imágenes reales de las ranuras, los modos de
+# pantalla y la resolución, y el cierre de la ventana con la X y con Alt + F4. Abre y cierra el
+# juego varias veces y cambia la ventana entre ventana, sin bordes y pantalla completa.
 # Define GODOT_BIN si Godot no está en la ruta de Steam por defecto.
 param([switch]$SinPruebas, [switch]$ConVentana)
 
@@ -41,9 +42,13 @@ if (-not $SinPruebas -and (Test-Path (Join-Path $proyecto 'tests\test_runner.tsc
 if (-not $SinPruebas -and (Test-Path (Join-Path $proyecto 'tests\persistencia\reinicio.tscn'))) {
     Invoke-Paso 'Reinicio: guardar partida' @('--headless', '--path', $proyecto, 'res://tests/persistencia/reinicio.tscn', '--', '--fase=guardar')
     Invoke-Paso 'Reinicio: cargar en un proceso nuevo' @('--headless', '--path', $proyecto, 'res://tests/persistencia/reinicio.tscn', '--', '--fase=comprobar')
+    # Las preferencias también: se cambian en un proceso y se leen y aplican en otro.
+    Invoke-Paso 'Reinicio: guardar preferencias' @('--headless', '--path', $proyecto, 'res://tests/persistencia/ajustes.tscn', '--', '--fase=guardar')
+    Invoke-Paso 'Reinicio: preferencias en un proceso nuevo' @('--headless', '--path', $proyecto, 'res://tests/persistencia/ajustes.tscn', '--', '--fase=comprobar')
 }
 if ($ConVentana -and -not $SinPruebas) {
     Invoke-Paso 'Imágenes de las ranuras (con ventana)' @('--path', $proyecto, '--resolution', '1280x720', 'res://tests/visual/vista_previa.tscn')
+    Invoke-Paso 'Modos de pantalla y resolución (con ventana)' @('--path', $proyecto, '--resolution', '1280x720', 'res://tests/visual/pantalla.tscn')
     foreach ($metodo in @('X', 'AltF4')) {
         Write-Host "== Cierre de la ventana ($metodo) =="
         & powershell -NoProfile -File (Join-Path $PSScriptRoot 'probar_cierre.ps1') -Metodo $metodo
