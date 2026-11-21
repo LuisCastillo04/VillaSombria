@@ -36,6 +36,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Rediseño del HUD de exploración | Hecho | Pruebas con la escena de juego real (datos, barra, visibilidad, proporciones) y capturas en los cinco escenarios a 1280×720, 1366×768, 1600×900, 1920×1080, 1024×768 y 2560×1080; ver [HUD.md](HUD.md) |
 | Rediseño del expediente | Hecho | Pruebas con la escena de juego real (datos de las cinco secciones, estados vacíos, teclado y ratón, restauración, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1024×768; ver [EXPEDIENTE.md](EXPEDIENTE.md) |
 | Rediseño del tablero de deducción | Hecho | Pruebas con la escena de juego real (sospechosos y valoraciones, hipótesis y borradores, corcho, hilos, comparación con sus cuatro resultados, teclado y ratón, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1440×1080; ver [TABLERO.md](TABLERO.md) |
+| Rediseño de las conversaciones | Hecho | Pruebas con la escena de juego real y entradas de teclado y ratón (placa y luz de quien habla, escritura, páginas, voces de una escena, respuestas y sus consecuencias, rótulos, foco, HUD y avisos, escenas encadenadas, guardar y cargar, proporciones) y capturas a 1280×720, 1366×768, 1600×900 y 1920×1080 comparadas con las referencias; ver [DIALOGOS.md](DIALOGOS.md) |
 
 Diferencias con el encargo:
 
@@ -50,10 +51,11 @@ Diferencias con el encargo:
 guarda una partida en un proceso de Godot para cargarla en otro nuevo. Con `-ConVentana` además
 comprueba las imágenes de las ranuras y cierra la ventana real con la X y con Alt + F4.
 
-Último resultado, con `-ConVentana` tras el rediseño del tablero de deducción: 275 pruebas correctas, 0 fallos; el
-reinicio en dos procesos, las imágenes de las ranuras y el cierre real con la X y con Alt + F4,
-correctos. El paso «Importación» sale fallido por el `Code.exe` del editor (ver Problemas
-conocidos).
+Último resultado, tras el rediseño de las conversaciones: 301 pruebas correctas, 0 fallos, y el
+reinicio en dos procesos, correcto. El paso «Importación» sale fallido por el `Code.exe` del editor
+(ver Problemas conocidos). La última comprobación con `-ConVentana` (imágenes de las ranuras y cierre
+real con la X y con Alt + F4) es la del rediseño del tablero; las conversaciones no tocan ni las
+imágenes, que se hacen sin interfaz, ni el cierre.
 
 | Archivo | Cubre |
 | --- | --- |
@@ -62,6 +64,7 @@ conocidos).
 | `test_data_integrity` | Referencias de los datos, rutinas sin huecos, siluetas |
 | `test_npc` | Rutinas, marcha, espera, conversación |
 | `test_dialogue` | Flujo, condiciones, efectos, tiempo, bloqueo |
+| `test_dialogue_ui` | Conversaciones rediseñadas: nombre y luz de quien habla, sólo texto en la ventana, escritura y avance de uno en uno, páginas sin perder palabras, voces de una escena, respuestas y consecuencias de `DialogueManager`, rótulos, flechas, números, ratón, protección y foco, listas largas, cierre y HUD, teclas aisladas, avisos por encima, escenas encadenadas, guardar y cargar, InputMap y proporciones de pantalla |
 | `test_investigation` | Pistas, deducciones, acusación, eventos, vertical slice |
 | `test_board` | Tablero y acusación manejados por su interfaz |
 | `test_board_ui` | Tablero rediseñado: teclas reales, sospechosos y valoraciones, hipótesis, borradores y límite de la nota, corcho y huecos libres, hilos sólo de deducciones registradas, comparación y sus resultados, teclado y ratón, decoración sin ratón, proporciones de pantalla y partida cargada |
@@ -115,6 +118,9 @@ arranca desde él sin errores en modo sin ventana.
   de la pantalla se comprobaron con pruebas y capturas fijas, no viéndolos ni con un mando real.
 - **El HUD en movimiento.** Los fundidos, el deslizamiento al aparecer y el destello de los
   objetivos nuevos se comprobaron con pruebas y capturas fijas, no viéndolos jugando.
+- **Las conversaciones en movimiento.** La escritura, el cambio de lectura a respuestas, la entrada
+  escalonada de las tarjetas y el latido de «Continuar» se comprobaron con pruebas y capturas fijas,
+  no viéndolos jugando; tampoco con un mando real ni escuchando el sonido de la escritura.
 - **El tablero en movimiento.** Los fundidos, el brillo de la selección, el hilo que se tiende y
   el temblor de una comparación sin relación se comprobaron con pruebas y capturas fijas, no
   viéndolos jugando; tampoco con un mando real.

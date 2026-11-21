@@ -19,8 +19,9 @@ const CATEGORIES: Array[Dictionary] = [
 	{"title": "Interacción", "icon": "mano", "rows": [
 		{"label": "Interactuar", "actions": ["interact"]},
 		{"label": "Avanzar el diálogo", "actions": ["interact", "ui_accept"], "fixed": [["Clic"]]},
-		# dialogue_ui.gd lee los números directamente.
-		{"label": "Elegir una pregunta", "fixed": [["1–9"], ["Clic"]]},
+		# DialogueControls lee los números directamente (fila superior y teclado numérico); la tecla
+		# de interactuar confirma la respuesta señalada, como Intro y Espacio en cualquier menú.
+		{"label": "Elegir una pregunta", "actions": ["interact"], "fixed": [["1–9"], ["Clic"]]},
 		{"label": "Confirmar en los menús", "actions": ["ui_accept"]},
 	]},
 	{"title": "Menús", "icon": "lista", "rows": [

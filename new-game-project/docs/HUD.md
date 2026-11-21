@@ -76,7 +76,10 @@ emite sólo cuando cambia el conjunto de bloqueos: no se consulta nada en cada f
 - Un objetivo que cambia con el HUD oculto (lo normal: se cumplen hablando) hace destellar la
   cinta cuando el HUD vuelve.
 - Las notificaciones y el marco no pertenecen al grupo: una pista hallada en una conversación se
-  sigue anunciando, como antes.
+  sigue anunciando. Las notificaciones tienen su propia capa (`Notices`): durante una conversación
+  sube por encima de ella (`HudStyle.NOTICES_OVER_DIALOGUE_LAYER`) y las centra arriba, entre las dos
+  siluetas; al terminar vuelven a la capa del HUD y a su sitio bajo el objetivo. Ver
+  [DIALOGOS.md](DIALOGOS.md).
 
 Para que una pantalla nueva oculte el HUD basta con que bloquee al jugador con su propio motivo.
 
@@ -124,6 +127,7 @@ Comprobado con capturas a 1280 × 720, 1366 × 768, 1600 × 900, 1920 × 1080, 1
 - El HUD es la capa 2: por debajo de diálogos (6), inspección (7), expediente y tablero (8),
   acusación (9), cierre (15), pausa (20), fundido (30), indicador de guardado (40) y salida (50).
   Sólo el postproceso (capa 1) queda debajo; el HUD no recibe la niebla, la viñeta ni el grano.
+  Las notificaciones suben a la capa 7 mientras dura una conversación.
 - El indicador de guardado (`SaveIndicator`) sube por encima de la barra mientras existe el HUD
   (`set_bottom_margin`) y vuelve a su esquina al salir de la partida.
 - Las imágenes de las ranuras se siguen haciendo sin interfaz (ver [GUARDADO.md](GUARDADO.md)).

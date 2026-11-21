@@ -17,7 +17,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | Carpeta | Contenido |
 | --- | --- |
 | `data/` | Historia y reglas en JSON |
-| `assets/siluetas/` | Siluetas SVG de los interrogatorios |
+| `assets/siluetas/` | Siluetas SVG de las conversaciones |
 | `assets/shaders/` | Empedrado, brillo, contraluz, postproceso y pergamino |
 | `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús, del expediente y de los lugares del HUD, perilla de volumen e interruptor; `assets/ui/expediente/`, los grabados sepia del expediente; `assets/ui/tablero/`, el rincón del corcho y las marcas del selector del tablero |
 | `scenes/main/` | Menú principal y escena de juego |
@@ -31,7 +31,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
 | `scripts/world/` | Kits de construcción, interactivos y escenarios |
-| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente; `scripts/ui/board/`, las piezas del tablero de deducción |
+| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente; `scripts/ui/board/`, las piezas del tablero de deducción; `scripts/ui/dialogue/`, las piezas de las conversaciones |
 | `tests/unit/` | Pruebas automatizadas |
 | `tests/persistencia/` | Guardar y cargar en otro proceso; cierre real de la ventana |
 | `tests/visual/` | Herramientas de captura y de rendimiento |
@@ -78,7 +78,7 @@ Game
 ├── CameraRig          cámara ortográfica
 ├── PostFx             niebla, viñeta y grano
 ├── Hud                lugar, objetivo, teclas y avisos; ver HUD.md
-├── DialogueUi
+├── DialogueUi         conversaciones: siluetas, lectura y respuestas; ver DIALOGOS.md
 ├── ClueInspector
 ├── JournalUi          expediente: carpeta, pestañas y cinco secciones; ver EXPEDIENTE.md
 ├── BoardUi            tablero: sospechosos, corcho, comparación e hipótesis; ver TABLERO.md
@@ -171,6 +171,17 @@ control (conversaciones, transiciones, pantallas, pausa) y vuelve al recuperarlo
 (`ParchmentPanel`, `NoirPlate`, `HudKeyHint`, `CinematicFrame`...) y su estilo (`HudStyle`) son
 reutilizables. Detalle, ampliaciones y pruebas en [HUD.md](HUD.md).
 
+## Conversaciones
+
+`DialogueUi` (`scenes/ui/dialogue_ui.tscn`) es una sola ventana de cuero y pergamino con dos modos:
+la lectura (placa con el nombre, texto grande que se escribe poco a poco y se reparte en páginas si
+no cabe, «[E] Continuar») y la elección (tarjetas de respuesta con la placa «Tus preguntas» o «Tus
+respuestas»). Sólo coordina: la conversación la lleva `DialogueManager`, que avisa con señales, y la
+interfaz contesta con `advance()` y `choose()`. Las siluetas y su iluminación son de `DialogueCast`,
+las entradas de `DialogueControls` y el estilo de `DialogueStyle`; el resto de piezas están en
+`scripts/ui/dialogue/`. No guarda estado propio. Detalle, controles, animaciones y pruebas en
+[DIALOGOS.md](DIALOGOS.md).
+
 ## Expediente
 
 `JournalUi` (`scenes/ui/journal_ui.tscn`) es una carpeta de cuero con cinco secciones: objetivos,
@@ -227,14 +238,15 @@ Lo previsto se muestra desactivado, sin foco y con «Próximamente»; no guarda 
 | Ampliación | Qué tocar |
 | --- | --- |
 | Opción gráfica (resolución, modo de ventana, calidad, partículas) | Guardarla y aplicarla en `scripts/autoload/settings.gd`; crear su fila en `_build_graphics()` de `scripts/ui/settings_menu.gd` y quitarla de `PLANNED_GRAPHICS` |
-| Opción de jugabilidad (velocidad del texto, avance automático, confirmaciones, accesibilidad) | Igual, en `_build_gameplay()` y `PLANNED_GAMEPLAY`; quien la use (p. ej. `dialogue_ui.gd`) la lee de `Settings` |
+| Opción de jugabilidad (velocidad del texto, avance automático, confirmaciones, accesibilidad) | Igual, en `_build_gameplay()` y `PLANNED_GAMEPLAY`; quien la use la lee de `Settings` (la velocidad del texto, `DialogueText.characters_per_second`) |
 | Acción o categoría de controles | Crear la acción en el InputMap y añadir su fila o categoría a `CATEGORIES` de `scripts/ui/controls_menu.gd` |
 | Reasignación de teclas | `BindingRow.actions` dice qué acciones cambiar; pedir la tecla al pulsar la fila, guardar el InputMap en `Settings` y llamar a `ControlsMenu.refresh()` |
 | Mandos y esquemas de entrada | `InputLabels` sólo lee el teclado; ahí hay que añadir los botones del mando |
 | Categoría nueva en cualquier menú por categorías | Otra llamada a `add_category()` en `_build_categories()` |
 
-Las teclas 1 a 9 de las preguntas y el clic del diálogo se leen directamente en
-`dialogue_ui.gd`, fuera del InputMap; por eso figuran como teclas fijas en `CATEGORIES`.
+Las teclas 1 a 9 de las respuestas (fila superior y teclado numérico) y el clic de las
+conversaciones se leen en `DialogueControls`, fuera del InputMap; por eso figuran como teclas fijas
+en `CATEGORIES`. Avanzar y confirmar sí usan `interact` y `ui_accept`.
 
 ## Decisiones técnicas
 
