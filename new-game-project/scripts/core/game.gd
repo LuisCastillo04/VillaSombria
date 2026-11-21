@@ -41,6 +41,8 @@ func _ready() -> void:
 	EventBus.location_change_requested.connect(go_to)
 	EventBus.rest_requested.connect(_on_rest_requested)
 	EventBus.story_action.connect(_on_story_action)
+	EventBus.player_locks_changed.connect(_on_player_locks_changed)
+	Controls.gamepad_disconnected.connect(_on_gamepad_disconnected)
 	SaveSystem.register_section("player", _capture_player, _restore_player)
 	SaveSystem.register_preview_source(_preview_source)
 	var snapshot := SaveSystem.take_pending_load()
@@ -206,6 +208,22 @@ func _wait_an_hour() -> void:
 			return
 	GameClock.advance(WAIT_MINUTES)
 	EventBus.notification_requested.emit("Pasa el tiempo", "Son las %s." % GameClock.format_time(), "info")
+
+
+## Al volver a explorar no queda ningún botón de la interfaz con el foco: el botón de aceptar del
+## mando también es el de interactuar, y no debe pulsar a la vez un botón olvidado de una pantalla.
+func _on_player_locks_changed() -> void:
+	if not GameState.is_player_locked() and is_inside_tree():
+		var focused := get_viewport().gui_get_focus_owner()
+		if focused != null:
+			focused.release_focus()
+
+
+## Si se desconecta el mando con el que se jugaba, la partida se pausa: nada sigue mientras el
+## jugador lo vuelve a conectar o coge el teclado.
+func _on_gamepad_disconnected(_device: int, was_in_use: bool) -> void:
+	if was_in_use and not GameState.is_player_locked() and not _pause.is_open:
+		_pause.open()
 
 
 func _on_story_action(action: String) -> void:

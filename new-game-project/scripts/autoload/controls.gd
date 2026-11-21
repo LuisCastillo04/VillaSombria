@@ -1,5 +1,6 @@
 extends Node
-## Controles del jugador: las teclas que ha elegido para cada acción.
+## Controles del jugador: las teclas que ha elegido para cada acción y el dispositivo con el que
+## juega (teclado y ratón, o mando).
 ##
 ## Las teclas vigentes se aplican al InputMap, así que todo el juego (el detective, las pantallas, el
 ## HUD, la lista de controles) las usa sin saber que existe la reasignación: sigue preguntando por
@@ -22,23 +23,72 @@ extends Node
 ## Se leen al arrancar y cada vez que `Settings` vuelve a leer su archivo. Lo que no sea válido (una
 ## tecla desconocida o reservada, dos acciones con la misma tecla) se descarta y el archivo se corrige.
 ## Restaurar las teclas de fábrica retira la sección entera; el resto de preferencias no cambia.
+##
+## **Mandos.** Los botones del mando son los del InputMap de `project.godot` (fijos: no se reasignan).
+## Este autoload, además:
+## - Sabe qué usa el jugador: la última pulsación de un mando pasa a «mando» y la de una tecla, un
+##   clic o un movimiento claro del ratón vuelve a «teclado y ratón» (`input_device_changed`). Los
+##   rótulos de teclas del juego (`InputLabels` con `Device.CURRENT`) cambian con él. Lo lee de la
+##   ventana (`Window.window_input`), antes de que ninguna pantalla consuma la pulsación.
+## - Detecta mandos al arrancar y al conectarlos o desconectarlos durante la partida; al desconectar
+##   el que se usaba, suelta el movimiento para que el detective no siga andando solo y vuelve al
+##   teclado. La escena de juego, además, abre la pausa.
+## - Traduce la cruceta y el stick izquierdo a las direcciones de los menús (`GamepadNavigation`).
 
 ## Cambiaron las teclas de estas acciones (ya aplicadas al InputMap y guardadas).
 signal bindings_changed(actions: PackedStringArray)
+## El jugador pasó a usar el mando (`true`) o el teclado y el ratón (`false`).
+signal input_device_changed(using_gamepad: bool)
+## Se conectó un mando.
+signal gamepad_connected(device: int, gamepad_name: String)
+## Se desconectó un mando. `was_in_use` dice si el jugador estaba jugando con él.
+signal gamepad_disconnected(device: int, was_in_use: bool)
 
 ## Sección de `ajustes.cfg` donde se guardan las teclas.
 const SECTION := "controles"
+## Desplazamiento del ratón (en píxeles) que cuenta como usarlo: un roce de la mesa no cambia los
+## rótulos del mando a los del teclado.
+const MOUSE_ACTIVITY := 6.0
+## Empuje de un stick o de un gatillo que cuenta como usar el mando.
+const AXIS_ACTIVITY := 0.5
+## Acciones que se sueltan al desconectar el mando, para que el detective no siga andando solo.
+const HELD_ACTIONS: Array[String] = ["move_forward", "move_back", "move_left", "move_right", "sprint"]
+
+## Disposición de botones que se muestra aunque el mando sea otro (para capturas y pruebas); vacío,
+## la del mando en uso.
+var style_override := ""
 
 ## Teclas vigentes de cada acción reasignable: códigos físicos, la principal primero.
 var _keys: Dictionary = {}
 ## Qué pasó en la última lectura: acciones leídas y descartadas.
 var _load_report: Dictionary = {}
 
+var _using_gamepad := false
+## Mando que se usó por última vez (o el primero conectado): da nombre a los botones.
+var _active_pad := -1
+## Stick izquierdo de cada mando y botones de la cruceta pulsados, leídos de sus eventos.
+var _sticks: Dictionary = {}
+var _dpads: Dictionary = {}
+## Direcciones de la cruceta pulsadas desde el último fotograma, aunque ya se hayan soltado.
+var _dpad_taps: Array[Vector2i] = []
+var _navigation := GamepadNavigation.new()
+
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	Settings.reloaded.connect(load_bindings)
 	load_bindings()
+	get_tree().root.window_input.connect(_on_window_input)
+	Input.joy_connection_changed.connect(handle_connection_change)
+	var pads := Input.get_connected_joypads()
+	if not pads.is_empty():
+		_active_pad = pads[0]
+
+
+func _process(delta: float) -> void:
+	for event in _navigation.update(_stick(), _dpad(), delta, _dpad_taps):
+		Input.parse_input_event(event)
+	_dpad_taps.clear()
 
 
 # --- Lectura ---
@@ -264,3 +314,125 @@ func _save() -> void:
 func _apply_all() -> void:
 	for action in InputBindings.action_ids():
 		InputBindings.apply(action, get_keys(action))
+
+
+# --- Mandos ---
+
+## Si el jugador está usando el mando (su última pulsación fue del mando).
+func is_using_gamepad() -> bool:
+	return _using_gamepad
+
+
+## Cambia a mano el dispositivo en uso, como si se acabara de pulsar uno de ellos.
+func set_using_gamepad(using: bool) -> void:
+	if using == _using_gamepad:
+		return
+	_using_gamepad = using
+	input_device_changed.emit(using)
+
+
+## Mandos conectados ahora mismo.
+func get_connected_gamepads() -> Array[int]:
+	return Input.get_connected_joypads()
+
+
+## Nombre que da el sistema al mando en uso (o al primero conectado); vacío si no hay ninguno.
+func get_gamepad_name() -> String:
+	return Input.get_joy_name(_active_pad) if _active_pad >= 0 else ""
+
+
+## Disposición de botones del mando en uso: «xbox», «playstation» o «nintendo».
+func get_gamepad_style() -> String:
+	if not style_override.is_empty():
+		return style_override
+	return InputLabels.style_for(get_gamepad_name())
+
+
+## Un mando se ha conectado o desconectado. Lo llama `Input.joy_connection_changed`; las pruebas lo
+## usan para simularlo.
+func handle_connection_change(device: int, connected: bool) -> void:
+	if connected:
+		if _active_pad < 0:
+			_active_pad = device
+		var pad_name := Input.get_joy_name(device)
+		EventBus.notification_requested.emit("Mando conectado", "%s. Ya puedes jugar con él." % (pad_name if not pad_name.is_empty() else "Mando"), "info")
+		gamepad_connected.emit(device, pad_name)
+		return
+	_sticks.erase(device)
+	_dpads.erase(device)
+	var others: Array[int] = []
+	for pad in Input.get_connected_joypads():
+		if pad != device:
+			others.append(pad)
+	var was_in_use := _using_gamepad and (_active_pad == device or _active_pad < 0)
+	if _active_pad == device:
+		_active_pad = others[0] if not others.is_empty() else -1
+	# Lo que el mando tenía pulsado se suelta: ni el detective sigue andando ni un menú sigue bajando.
+	for event in _navigation.release():
+		Input.parse_input_event(event)
+	for action in HELD_ACTIONS:
+		Input.action_release(action)
+	if was_in_use and others.is_empty():
+		set_using_gamepad(false)
+	EventBus.notification_requested.emit("Mando desconectado", "Puedes seguir con el teclado y el ratón, o volver a conectarlo.", "info")
+	gamepad_disconnected.emit(device, was_in_use)
+
+
+## Cada pulsación llega aquí antes que a ninguna pantalla: decide qué dispositivo se está usando y
+## guarda el estado de la cruceta y del stick izquierdo para la navegación de los menús. Las
+## pulsaciones que genera la propia navegación (`InputEventAction`) no cuentan.
+func _on_window_input(event: InputEvent) -> void:
+	var button := event as InputEventJoypadButton
+	if button != null:
+		if GamepadNavigation.DPAD.has(button.button_index):
+			if not _dpads.has(button.device):
+				_dpads[button.device] = {}
+			(_dpads[button.device] as Dictionary)[button.button_index] = button.pressed
+			if button.pressed:
+				_dpad_taps.append(GamepadNavigation.DPAD[button.button_index])
+		if button.pressed:
+			_use_pad(button.device)
+		return
+	var motion := event as InputEventJoypadMotion
+	if motion != null:
+		if motion.axis == JOY_AXIS_LEFT_X or motion.axis == JOY_AXIS_LEFT_Y:
+			var stick: Vector2 = _sticks.get(motion.device, Vector2.ZERO)
+			if motion.axis == JOY_AXIS_LEFT_X:
+				stick.x = motion.axis_value
+			else:
+				stick.y = motion.axis_value
+			_sticks[motion.device] = stick
+		if absf(motion.axis_value) >= AXIS_ACTIVITY:
+			_use_pad(motion.device)
+		return
+	if (event is InputEventKey or event is InputEventMouseButton) and event.is_pressed():
+		set_using_gamepad(false)
+	elif event is InputEventMouseMotion and (event as InputEventMouseMotion).relative.length() >= MOUSE_ACTIVITY:
+		set_using_gamepad(false)
+
+
+func _use_pad(device: int) -> void:
+	if device >= 0:
+		_active_pad = device
+	set_using_gamepad(true)
+
+
+## El stick izquierdo más empujado de todos los mandos.
+func _stick() -> Vector2:
+	var strongest := Vector2.ZERO
+	for device: int in _sticks:
+		var stick: Vector2 = _sticks[device]
+		if stick.length() > strongest.length():
+			strongest = stick
+	return strongest
+
+
+## Dirección de la cruceta, sumando todos los mandos.
+func _dpad() -> Vector2i:
+	var direction := Vector2i.ZERO
+	for device: int in _dpads:
+		var pressed: Dictionary = _dpads[device]
+		for button: int in pressed:
+			if pressed[button]:
+				direction += GamepadNavigation.DPAD[button]
+	return direction.clamp(-Vector2i.ONE, Vector2i.ONE)

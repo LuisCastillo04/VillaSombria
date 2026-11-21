@@ -39,6 +39,7 @@ func _ready() -> void:
 	_dim.color = BoardStyle.DIM
 	_suspect_row = BoardSuspectRow.new()
 	_suspect_row.suspect_pressed.connect(open_hypothesis)
+	Controls.input_device_changed.connect(_on_input_device_changed.unbind(1))
 	_canvas = BoardCanvas.new()
 	_canvas.item_toggled.connect(select_item)
 	_comparison = BoardComparisonPanel.new()
@@ -87,10 +88,17 @@ func close() -> void:
 	_animate_close()
 
 
+## Al pasar del teclado al mando (o al revés), la cabecera cambia de rótulo.
+func _on_input_device_changed() -> void:
+	if is_open:
+		_board.header.refresh_keys()
+
+
 func _input(event: InputEvent) -> void:
 	if not is_open:
 		return
-	if event.is_action_pressed("pause"):
+	# Esc o el botón de volver del mando cierran la hipótesis abierta o, sin ella, el tablero.
+	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		if is_editing():
 			close_hypothesis()

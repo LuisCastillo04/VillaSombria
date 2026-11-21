@@ -244,7 +244,7 @@ static func portrait(path: String, region: Rect2) -> Texture2D:
 	return atlas
 
 
-## Primera tecla asignada a una acción, o vacío si no tiene.
+## Primera tecla asignada a una acción (o su botón, si se juega con mando), o vacío si no tiene.
 static func key_name(action: String) -> String:
-	var keys := InputLabels.keys_of(action)
+	var keys := InputLabels.keys_of(action, InputLabels.Device.CURRENT)
 	return keys[0] if not keys.is_empty() else ""

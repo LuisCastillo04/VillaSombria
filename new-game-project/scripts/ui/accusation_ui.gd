@@ -52,7 +52,7 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if is_open and event.is_action_pressed("pause"):
+	if is_open and (event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel")):
 		get_viewport().set_input_as_handled()
 		close()
 

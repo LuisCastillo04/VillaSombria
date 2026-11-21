@@ -2,7 +2,8 @@ class_name HudInfo
 extends RefCounted
 ## Lo que muestra el HUD de exploración, leído de los sistemas reales del juego: el lugar de
 ## `GameData`, la fecha de `StoryDirector` y `GameClock`, el objetivo pendiente de `StoryDirector`
-## y las teclas del InputMap a través de `InputLabels`. Sólo consulta, nunca modifica nada, de modo
+## y las teclas del InputMap (o los botones del mando, si es lo que se usa) a través de `InputLabels`.
+## Sólo consulta, nunca modifica nada, de modo
 ## que la interfaz no duplica lógica narrativa y se puede probar sin pantallas.
 
 ## Teclas de la barra inferior, en orden. Cada entrada muestra la primera alternativa del InputMap.
@@ -53,13 +54,13 @@ static func can_wait() -> bool:
 static func hint_keys(hint: Dictionary) -> PackedStringArray:
 	var groups: Array[PackedStringArray] = []
 	if hint.has("together"):
-		groups = InputLabels.combined(hint["together"])
+		groups = InputLabels.combined(hint["together"], InputLabels.Device.CURRENT)
 	else:
-		groups = InputLabels.alternatives(hint.get("actions", []))
+		groups = InputLabels.alternatives(hint.get("actions", []), InputLabels.Device.CURRENT)
 	return groups[0] if not groups.is_empty() else PackedStringArray()
 
 
-## Primera tecla de una acción, o texto vacío si no tiene ninguna.
+## Primera tecla (o botón del mando, si es lo que se usa) de una acción, o vacío si no tiene ninguna.
 static func action_key(action: String) -> String:
-	var keys := InputLabels.keys_of(action)
+	var keys := InputLabels.keys_of(action, InputLabels.Device.CURRENT)
 	return keys[0] if not keys.is_empty() else ""

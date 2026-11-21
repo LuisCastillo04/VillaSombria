@@ -78,13 +78,11 @@ func get_hint_keys() -> PackedStringArray:
 
 
 func _add_hint(actions: Array[String], label: String) -> void:
-	var keys := PackedStringArray()
-	for action in actions:
-		var key := JournalInfo.key_name(action)
-		if not key.is_empty():
-			keys.append(key)
-	if keys.is_empty():
+	# La primera tecla de cada acción (← →); con el mando, la cruceta una sola vez.
+	var groups := InputLabels.combined(actions, InputLabels.Device.CURRENT)
+	if groups.is_empty() or groups[0].is_empty():
 		return
+	var keys := groups[0]
 	if _hints.get_child_count() > 0:
 		var gap := Control.new()
 		gap.custom_minimum_size.x = 18.0

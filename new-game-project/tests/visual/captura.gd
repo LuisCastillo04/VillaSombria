@@ -17,11 +17,14 @@ extends Node
 ##                         intervención y un número elige esa respuesta (1 la primera)
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar] | esperar
-##                         | reasignar:n
+##                         | reasignar:n | mando:n
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
 ##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta;
 ##                         esperar pulsa la tecla de dejar pasar una hora; reasignar abre la
-##                         pantalla de reasignar teclas en la categoría n)
+##                         pantalla de reasignar teclas en la categoría n; mando, la del esquema
+##                         del mando)
+##   --mando[=estilo]      rótulos del mando en lugar de los del teclado; estilo: xbox (por
+##                         defecto), playstation o nintendo
 ##   --esperar-tecla=accion[:hueco]
 ##                         con --open=reasignar, elige ese hueco (0 principal, 1 alternativa) y
 ##                         lo deja esperando la tecla nueva
@@ -51,6 +54,9 @@ func _ready() -> void:
 	SaveSystem.autosave_enabled = false
 	SaveSystem.use_storage("user://pruebas_guardado/capturas")
 	_apply_settings(args)
+	if args.has("mando"):
+		Controls.style_override = String(args["mando"]) if String(args["mando"]) in InputLabels.STYLE_NAMES else "xbox"
+		Controls.set_using_gamepad(true)
 	if args.has("menu"):
 		await _capture_menu(args)
 		get_tree().quit()
@@ -225,6 +231,17 @@ func _open_panel(game: Game, what: String) -> void:
 			slots.select_slot("manual_2")
 			if what == "confirm":
 				slots.get_action_button().pressed.emit()
+		"mando":
+			await _wait_seconds(0.6)
+			var pause: PauseMenu = game.get_node("PauseMenu")
+			pause.open()
+			pause.get_node("Root/Center/Panel").hide()
+			var scheme: GamepadMenu = (load("res://scenes/ui/gamepad_menu.tscn") as PackedScene).instantiate()
+			pause.get_node("Root").add_child(scheme)
+			await get_tree().process_frame
+			scheme.open()
+			if parts.size() > 1:
+				scheme.select_category(int(parts[1]))
 		"reasignar":
 			await _wait_seconds(0.6)
 			var pause: PauseMenu = game.get_node("PauseMenu")

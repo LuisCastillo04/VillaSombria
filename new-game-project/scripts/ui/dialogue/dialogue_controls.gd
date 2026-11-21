@@ -6,7 +6,8 @@ extends RefCounted
 ## las respuestas en pantalla, las teclas numéricas (fila superior o teclado numérico) eligen una,
 ## «ui_up» y «ui_down» las recorren y las mismas acciones de avanzar confirman la señalada; el
 ## ratón señala al moverse y elige al hacer clic. Los rótulos se construyen con las teclas asignadas
-## de verdad (`InputLabels`), así que una reasignación futura se verá aquí sin tocar la interfaz.
+## de verdad (`InputLabels`), así que una reasignación se ve aquí sin tocar la interfaz; con el mando,
+## nombran sus botones (A para avanzar; la cruceta o el stick para recorrer las respuestas).
 
 ## Acciones que hacen avanzar el texto, en el orden en que se anuncian.
 const ADVANCE_ACTIONS: Array[String] = ["interact", "ui_accept"]
@@ -46,9 +47,10 @@ static func number_index(event: InputEvent) -> int:
 
 
 ## Nombre de la tecla con la que se avanza: la primera de interactuar o, si no tiene, la de aceptar.
+## Con el mando, su botón.
 static func advance_key() -> String:
 	for action in ADVANCE_ACTIONS:
-		var keys := InputLabels.keys_of(action)
+		var keys := InputLabels.keys_of(action, InputLabels.Device.CURRENT)
 		if not keys.is_empty():
 			return keys[0]
 	return ""
@@ -63,6 +65,9 @@ static func continue_text() -> String:
 ## Ayuda bajo las respuestas. Siempre se puede elegir con el ratón; las teclas numéricas sólo
 ## llegan a las nueve primeras, así que sólo se mencionan si hay alguna respuesta que elegir.
 static func choice_hint(option_count: int) -> String:
+	if Controls.is_using_gamepad():
+		var key := advance_key()
+		return "Elige con la cruceta o el stick y confirma con %s" % key if not key.is_empty() else "Elige con la cruceta o el stick"
 	if option_count <= 0:
 		return "Elige con el ratón"
 	return "Elige con el ratón o con las teclas numéricas"
