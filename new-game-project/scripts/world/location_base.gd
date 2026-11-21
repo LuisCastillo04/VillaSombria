@@ -141,6 +141,8 @@ func add_point_light(
 	light.omni_range = light_range
 	light.omni_attenuation = 1.2
 	light.shadow_enabled = shadows
+	# Las sombras pedidas se respetan en calidad alta; los niveles inferiores las reducen.
+	GraphicsQuality.register_light(light)
 	add_child(light)
 	return light
 

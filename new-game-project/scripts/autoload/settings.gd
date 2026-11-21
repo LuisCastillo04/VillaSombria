@@ -57,6 +57,8 @@ func _ready() -> void:
 	for bus_name in BUSES:
 		_apply_volume(bus_name)
 	DisplaySettings.apply_vsync(vsync)
+	GraphicsQuality.apply_lighting(get_tree(), get_value("graficos/calidad_iluminacion"))
+	GraphicsQuality.apply_effects(get_tree(), get_value("graficos/calidad_efectos"))
 	# La ventana se coloca cuando ya se sabe qué escena arranca: las de prueba fijan la suya.
 	_apply_display.call_deferred()
 
@@ -247,6 +249,8 @@ func apply_all() -> void:
 	for bus_name in BUSES:
 		_apply_volume(bus_name)
 	DisplaySettings.apply_vsync(vsync)
+	GraphicsQuality.apply_lighting(get_tree(), get_value("graficos/calidad_iluminacion"))
+	GraphicsQuality.apply_effects(get_tree(), get_value("graficos/calidad_efectos"))
 	_apply_display()
 
 
@@ -256,6 +260,10 @@ func _apply_key(key: String) -> void:
 			_apply_display()
 		"graficos/vsync":
 			DisplaySettings.apply_vsync(vsync)
+		"graficos/calidad_iluminacion":
+			GraphicsQuality.apply_lighting(get_tree(), get_value(key))
+		"graficos/calidad_efectos":
+			GraphicsQuality.apply_effects(get_tree(), get_value(key))
 		_:
 			if SettingsSchema.section_of(key) == "audio":
 				_apply_volume(SettingsSchema.name_of(key))

@@ -31,6 +31,10 @@ extends Node
 ##   --sin-partidas        en el menú, vacía las ranuras de las capturas
 ##   --intro               reproduce la introducción narrativa
 ##   --stats               mide fotogramas por segundo y llamadas de dibujado
+##   --ajustes=clave=valor;clave=valor
+##                         preferencias de Configuración antes de capturar, con las claves de
+##                         SettingsSchema (graficos/calidad_iluminacion=bajo;accesibilidad/tamano_letra=grande).
+##                         Las capturas parten siempre de los valores por defecto.
 
 const GAME_SCENE := "res://scenes/main/game.tscn"
 const MENU_SCENE := "res://scenes/main/main_menu.tscn"
@@ -40,6 +44,7 @@ func _ready() -> void:
 	var args := _parse_args()
 	SaveSystem.autosave_enabled = false
 	SaveSystem.use_storage("user://pruebas_guardado/capturas")
+	_apply_settings(args)
 	if args.has("menu"):
 		await _capture_menu(args)
 		get_tree().quit()
@@ -306,6 +311,19 @@ func _save_frame(path: String, frames: int) -> void:
 		print("ESTADISTICAS fps=%d dibujados=%d primitivas=%d" % [Engine.get_frames_per_second(), draws, primitives])
 	var image := get_viewport().get_texture().get_image()
 	print("Captura ", path, " código ", image.save_png(path))
+
+
+## Las capturas usan los ajustes de las pruebas, con lo que pida `--ajustes`.
+func _apply_settings(args: Dictionary) -> void:
+	TestCase.reset_test_settings()
+	for entry: String in String(args.get("ajustes", "")).split(";", false):
+		var pair := entry.split("=", true, 1)
+		var key := pair[0].strip_edges()
+		var value: Variant = pair[1].strip_edges() if pair.size() > 1 else ""
+		if SettingsSchema.has_key(key) and typeof(SettingsSchema.default_value(key)) == TYPE_BOOL:
+			value = value in ["1", "true", "si", "sí"]
+		if not Settings.set_value(key, value):
+			push_warning("Ajuste de captura no válido: %s" % entry)
 
 
 func _parse_args() -> Dictionary:

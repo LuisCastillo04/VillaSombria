@@ -1,16 +1,19 @@
 class_name RainEffect
 extends GPUParticles3D
-## Lluvia que sigue al objetivo para cubrir sólo la zona visible.
+## Lluvia que sigue al objetivo para cubrir sólo la zona visible. Cuántas gotas se dibujan lo decide
+## la calidad de «Efectos y partículas» (`GraphicsQuality`); la lluvia en sí, y su sonido, no cambian.
 
 const AREA := Vector3(34.0, 1.0, 34.0)
 const HEIGHT := 16.0
+## Gotas en calidad alta, el aspecto original.
+const FULL_AMOUNT := 900
 
 var target: Node3D
 
 
 func _init() -> void:
 	name = "Lluvia"
-	amount = 900
+	amount = GraphicsQuality.rain_amount(FULL_AMOUNT)
 	lifetime = 0.75
 	preprocess = 0.75
 	local_coords = false
@@ -37,6 +40,10 @@ func _init() -> void:
 	material.cull_mode = BaseMaterial3D.CULL_DISABLED
 	streak.material = material
 	draw_pass_1 = streak
+
+
+func _ready() -> void:
+	GraphicsQuality.register_rain(self)
 
 
 func _process(_delta: float) -> void:

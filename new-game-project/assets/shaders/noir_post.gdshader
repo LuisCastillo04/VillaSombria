@@ -7,6 +7,9 @@ uniform float fog_amount : hint_range(0.0, 1.0) = 0.22;
 uniform vec3 fog_color : source_color = vec3(0.32, 0.38, 0.5);
 uniform float vignette : hint_range(0.0, 2.0) = 0.95;
 uniform float grain : hint_range(0.0, 0.2) = 0.035;
+// Capas de ruido de la niebla. Con 4 (calidad alta) el resultado es el original; con menos se
+// calcula menos y se compensa la suma para que la niebla cubra lo mismo.
+uniform int fog_octaves : hint_range(1, 4) = 4;
 
 float hash(vec2 p) {
 	return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453);
@@ -27,11 +30,15 @@ float fbm(vec2 p) {
 	float total = 0.0;
 	float weight = 0.5;
 	for (int octave = 0; octave < 4; octave++) {
+		if (octave >= fog_octaves) {
+			break;
+		}
 		total += noise(p) * weight;
 		p = p * 2.03 + vec2(1.7, 9.2);
 		weight *= 0.5;
 	}
-	return total;
+	// Peso máximo de las 4 capas (0.9375) entre el de las usadas: 1.0 con las 4.
+	return total * 0.9375 / (1.0 - pow(0.5, float(fog_octaves)));
 }
 
 void fragment() {
@@ -46,8 +53,10 @@ void fragment() {
 	float falloff = dot(centered, centered) * vignette * 1.6;
 	color *= clamp(1.0 - falloff, 0.0, 1.0);
 
-	float speckle = hash(SCREEN_UV * 913.0 + fract(TIME) * 37.0) - 0.5;
-	color += speckle * grain;
+	if (grain > 0.0) {
+		float speckle = hash(SCREEN_UV * 913.0 + fract(TIME) * 37.0) - 0.5;
+		color += speckle * grain;
+	}
 
 	COLOR = vec4(color, 1.0);
 }

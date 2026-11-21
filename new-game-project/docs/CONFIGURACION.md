@@ -116,6 +116,61 @@ la sincronización vertical a la ventana real (`get_tree().root`).
   fijan su propia ventana con `--resolution` y no reciben el modo guardado; cualquier otra puede
   pedirlo con el argumento `-- --respetar-ventana`.
 
+## Calidad gráfica
+
+`GraphicsQuality` (`scripts/settings/graphics_quality.gd`) aplica dos niveles independientes, **Bajo**,
+**Medio** y **Alto**. Alto es el aspecto original del juego: los valores del proyecto y lo que cada
+escenario pide al crear sus luces.
+
+### Sombras e iluminación
+
+| | Bajo | Medio | Alto |
+| --- | --- | --- | --- |
+| Sombra de la luz exterior | No | Sí | Sí |
+| Sombras de farolas y lámparas que las piden | No | Sí, de dos caras (`SHADOW_DUAL_PARABOLOID`) | Sí, cúbicas (`SHADOW_CUBE`) |
+| Atlas de sombras (direccional y de luces) | ¼ del del proyecto | ½ | El del proyecto |
+| Suavizado de las sombras | Duro | Duro | El del proyecto |
+| Resplandor de las luces (`glow`) | No | Sí | Sí |
+
+Ninguna luz se apaga ni pierde intensidad: las farolas, las ventanas y las lámparas iluminan lo mismo
+en los tres niveles, así que lo que hay que ver para jugar se sigue viendo.
+
+### Efectos y partículas
+
+| | Bajo | Medio | Alto |
+| --- | --- | --- | --- |
+| Gotas de lluvia (`RainEffect`) | 270 | 540 | 900 |
+| Capas de ruido de la niebla (`noir_post.gdshader`) | 2 | 3 | 4 |
+| Grano de película | No | Sí | Sí |
+
+La calidad sólo cambia lo que se dibuja: sigue lloviendo en los mismos lugares, el sonido de la lluvia
+no cambia, la cantidad de niebla del exterior es la misma (con menos capas se compensa la suma) y ni el
+reloj ni la historia dependen de ella. La viñeta se mantiene en todos los niveles.
+
+### Cómo se aplica
+
+Las luces (`LocationBase.add_point_light` y la luz exterior de `Atmosphere`), los entornos, la lluvia y
+el postproceso se registran al crearse en un grupo, guardando lo que pedía su escenario, y toman el nivel
+vigente. Al cambiar de nivel se ajustan todos los del árbol en el acto, sin recrear nada; la lluvia sólo
+se reinicia si cambia su cantidad, y su preproceso la vuelve a llenar sin un hueco. Los atlas y los
+filtros son del servidor de dibujo y de la ventana principal.
+
+### Diferencia medida
+
+Plaza a 1920 × 1080 en el portátil de desarrollo (GTX 1650 Ti), con `tests/visual/rendimiento.tscn` y el
+mismo nivel en las dos opciones. El tiempo de GPU es el que mide el propio servidor de dibujo, que no
+depende del tope de fotogramas.
+
+| Nivel | GPU por fotograma | Primitivas | Llamadas de dibujado | Memoria de vídeo |
+| --- | --- | --- | --- | --- |
+| Alto | 6,99 ms | 139.146 | 267 | 344 MB |
+| Medio | 6,12 ms | 62.602 | 262 | 282 MB |
+| Bajo | 4,11 ms | 14.757 | 207 | 233 MB |
+
+```powershell
+godot --path . --resolution 1920x1080 res://tests/visual/rendimiento.tscn -- --location=plaza --iluminacion=bajo --efectos=bajo
+```
+
 ## Ventana de confirmación
 
 `ConfirmDialog` (autoload, `scripts/autoload/confirm_dialog.gd`, capa 45) es la pregunta común: título,
@@ -149,6 +204,12 @@ if await ConfirmDialog.ask("TÍTULO", "¿Pregunta?", {"confirm_text": "Sí", "fo
 que no cabe, que el interruptor y el selector son la misma preferencia, la confirmación (mantener,
 restaurar, Escape, cuenta atrás, también en pausa, un solo cambio a la vez), el foco dentro de la
 pregunta y que Escape no cierra la configuración de detrás.
+
+`tests/unit/test_graphics_quality.gd` comprueba con la escena de juego real que Alto es el aspecto
+original, qué reduce cada nivel, que ninguna luz se apaga, que el cambio llega a lo que ya existe y a los
+escenarios que se cargan después, que la lluvia no se duplica ni deja de caer y que el reloj no cambia.
+`tests/visual/captura.tscn` admite `--ajustes=graficos/calidad_iluminacion=bajo;graficos/calidad_efectos=bajo`
+para comparar los niveles en imágenes.
 
 `tests/visual/pantalla.tscn` lo comprueba con la ventana real (hace falta pantalla):
 
