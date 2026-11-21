@@ -38,6 +38,7 @@ const NEUTRAL := {
 	"grade_gain": 1.0,
 	"grade_shadow_tint": Vector3(1.0, 1.0, 1.0),
 	"grade_highlight_tint": Vector3(1.0, 1.0, 1.0),
+	"grade_balance": 0.5,
 }
 
 ## Nombre, descripción y parámetros de cada filtro (sólo los que cambian respecto a `NEUTRAL`). Los
@@ -66,7 +67,7 @@ const FILTERS := {
 		# una fotografía antigua.
 		"grade": {
 			"grade_amount": 1.0,
-			"grade_saturation": 0.14,
+			"grade_saturation": 0.2,
 			"grade_contrast": 1.12,
 			"grade_pivot": 0.32,
 			"grade_lift": 0.035,
@@ -78,8 +79,9 @@ const FILTERS := {
 	"cold_night": {
 		"label": "Frío nocturno",
 		"description": "Tonos azulados y desaturados que refuerzan el ambiente nocturno.",
-		# Sombras azules y luces casi neutras: conserva algo más de la mitad del color, así que la
-		# luz cálida de las farolas sigue distinguiéndose del ambiente.
+		# Sombras azules y luces apenas cálidas, con el equilibrio bajo para que el azul no suba a
+		# los tonos medios: conserva algo más de la mitad del color, así que la luz de las farolas
+		# sigue siendo cálida frente al ambiente frío.
 		"grade": {
 			"grade_amount": 1.0,
 			"grade_saturation": 0.55,
@@ -88,7 +90,8 @@ const FILTERS := {
 			"grade_lift": 0.012,
 			"grade_gain": 0.98,
 			"grade_shadow_tint": Vector3(0.8, 1.0, 1.5),
-			"grade_highlight_tint": Vector3(0.96, 1.0, 1.1),
+			"grade_highlight_tint": Vector3(1.03, 1.0, 0.93),
+			"grade_balance": 0.3,
 		},
 	},
 	"original": {

@@ -32,6 +32,9 @@ uniform float grade_gain : hint_range(0.5, 1.2) = 1.0;
 // sin aclarar ni oscurecer.
 uniform vec3 grade_shadow_tint = vec3(1.0);
 uniform vec3 grade_highlight_tint = vec3(1.0);
+// Luminancia en la que los dos tintes pesan lo mismo. Más baja, el tinte de las sombras se queda en
+// las sombras y los tonos medios (las farolas) toman el de las luces.
+uniform float grade_balance : hint_range(0.1, 0.9) = 0.5;
 
 // Pesos de la luminancia (Rec. 709) sobre los valores de pantalla.
 const vec3 LUMA = vec3(0.2126, 0.7152, 0.0722);
@@ -81,7 +84,7 @@ float contrast_curve(float x) {
 vec3 color_grade(vec3 color) {
 	float luma = dot(color, LUMA);
 	float tone = mix(grade_lift, grade_gain, contrast_curve(clamp(luma, 0.0, 1.0)));
-	vec3 tint = mix(grade_shadow_tint, grade_highlight_tint, smoothstep(0.0, 1.0, tone));
+	vec3 tint = mix(grade_shadow_tint, grade_highlight_tint, smoothstep(0.0, 2.0 * grade_balance, tone));
 	vec3 chroma = (color - vec3(luma)) * grade_saturation * clamp(tone / max(luma, 0.001), 0.0, 2.0);
 	return clamp(tone * tint + chroma, 0.0, 1.0);
 }
