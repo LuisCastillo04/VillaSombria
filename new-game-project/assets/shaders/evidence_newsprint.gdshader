@@ -66,8 +66,12 @@ void fragment() {
 		tone = clamp((1.0 - luminance) * 1.15, 0.0, 1.0) * art.a;
 	}
 
-	// Trama a 45°: puntos cuyo área crece con el tono, suavizados un píxel de pantalla.
-	vec2 grid = mat2(vec2(0.7071, 0.7071), vec2(-0.7071, 0.7071)) * local / dot_spacing;
+	// Trama a 45°: puntos cuyo área crece con el tono, suavizados un píxel de pantalla. Si el
+	// documento se ve muy pequeño, los puntos no bajan de unos 3,4 píxeles de pantalla: más finos
+	// formarían un damero (moiré) en lugar de una trama.
+	float document_pixels_per_screen_pixel = length(fwidth(local)) * 0.7071;
+	float spacing = max(dot_spacing, 3.4 * document_pixels_per_screen_pixel);
+	vec2 grid = mat2(vec2(0.7071, 0.7071), vec2(-0.7071, 0.7071)) * local / spacing;
 	float distance_to_dot = length(fract(grid) - 0.5);
 	float radius = sqrt(clamp(tone, 0.0, 1.0)) * 0.68;
 	float aa = max(fwidth(distance_to_dot), 0.02);

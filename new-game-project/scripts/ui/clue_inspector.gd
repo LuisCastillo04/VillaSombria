@@ -254,17 +254,22 @@ func _queue_layout() -> void:
 ## Coloca el documento tan grande como quepa entre el aviso de arriba y el botón de abajo, sin
 ## pasar de `MAX_DOCUMENT_SCALE`, y el marco, la placa, el botón y el aviso alrededor. El sitio del
 ## aviso se reserva siempre: que aparezca o no nunca cambia el tamaño ni la posición del documento.
+##
+## Con la letra grande de Accesibilidad (`content_scale_factor`), las placas, el aviso y el botón
+## conservan su tamaño normal: si crecieran, el documento, que ya ocupa todo el sitio que hay,
+## tendría que encoger y su texto se leería peor.
 func _layout() -> void:
 	_layout_queued = false
 	if _document == null:
 		return
+	var k := get_chrome_scale()
 	var view := _root.size
-	var padding := EvidenceStyle.FRAME_PADDING
-	var top := EvidenceStyle.NOTICE_TOP + EvidenceStyle.NOTICE_HEIGHT + EvidenceStyle.NOTICE_GAP
-	var bottom := view.y - EvidenceStyle.BOTTOM_MARGIN - EvidenceStyle.CLOSE_SIZE.y * 0.5
-	var room := Vector2(view.x - EvidenceStyle.SIDE_MARGIN * 2.0, bottom - top) - padding * 2.0
+	var padding := EvidenceStyle.FRAME_PADDING * k
+	var top := (EvidenceStyle.NOTICE_TOP + EvidenceStyle.NOTICE_HEIGHT + EvidenceStyle.NOTICE_GAP) * k
+	var bottom := view.y - (EvidenceStyle.BOTTOM_MARGIN + EvidenceStyle.CLOSE_SIZE.y * 0.5) * k
+	var room := Vector2(view.x - EvidenceStyle.SIDE_MARGIN * 2.0 * k, bottom - top) - padding * 2.0
 	var design := _document.get_design_size()
-	var document_scale := minf(minf(room.x / design.x, room.y / design.y), EvidenceStyle.MAX_DOCUMENT_SCALE)
+	var document_scale := minf(minf(room.x / design.x, room.y / design.y), EvidenceStyle.MAX_DOCUMENT_SCALE * k)
 	document_scale = maxf(document_scale, 0.05)
 	var document_size := design * document_scale
 	var frame_size := document_size + padding * 2.0
@@ -276,26 +281,59 @@ func _layout() -> void:
 	_holder.position = (frame_position + padding).round()
 	_holder.size = document_size
 	_holder.pivot_offset = document_size * 0.5
-	_header.position = (Vector2(_frame_rect.position.x + EvidenceStyle.HEADER_INSET, _frame_rect.position.y - _header.size.y * 0.5)).round()
+	for piece: Control in [_header, _close, _notice]:
+		piece.scale = Vector2(k, k)
+	_header.position = (Vector2(_frame_rect.position.x + EvidenceStyle.HEADER_INSET * k, _frame_rect.position.y - _header.size.y * k * 0.5)).round()
 	_close.size = EvidenceStyle.CLOSE_SIZE
-	_close.position = (Vector2(_frame_rect.get_center().x - _close.size.x * 0.5, _frame_rect.end.y - _close.size.y * 0.5)).round()
+	var close_size := EvidenceStyle.CLOSE_SIZE * k
+	_close.position = (Vector2(_frame_rect.get_center().x - close_size.x * 0.5, _frame_rect.end.y - close_size.y * 0.5)).round()
 	_frame.frame_rect = _frame_rect
-	_frame.bottom_gap = Rect2(_close.position, _close.size)
+	_frame.bottom_gap = Rect2(_close.position, close_size)
 	_place_notice()
+
+
+## Escala de las placas, el aviso y el botón: la inversa del tamaño de letra de Accesibilidad, para
+## que se vean siempre como con la letra normal.
+func get_chrome_scale() -> float:
+	if not is_inside_tree():
+		return 1.0
+	return 1.0 / maxf(get_tree().root.content_scale_factor, 0.01)
+
+
+## Rectángulos en pantalla (coordenadas de la interfaz) de la placa del encabezado, del botón, del
+## aviso entero (con sus filetes) y de su placa, ya escalados.
+func get_header_rect() -> Rect2:
+	return Rect2(_header.position, _header.size * _header.scale)
+
+
+func get_close_rect() -> Rect2:
+	return Rect2(_close.position, _close.size * _close.scale)
+
+
+func get_notice_rect() -> Rect2:
+	return Rect2(_notice.position, _notice.size * _notice.scale)
+
+
+func get_notice_plate_rect() -> Rect2:
+	var plate := _notice.get_plate_rect()
+	return Rect2(_notice.position + plate.position * _notice.scale, plate.size * _notice.scale)
 
 
 ## El aviso va centrado sobre el marco. Si llegaría a la placa del encabezado (pantallas estrechas
 ## o letra grande), primero se acortan sus filetes y, si ni así cabe, se aparta a su derecha.
 func _place_notice() -> void:
-	var plate_half := _notice.get_plate_rect().size.x * 0.5
-	var header_end := _header.position.x + _header.size.x + NOTICE_HEADER_GAP
+	var k := _notice.scale.x
+	var plate_half := _notice.get_plate_rect().size.x * 0.5 * k
+	var header_rect := get_header_rect()
+	var header_end := header_rect.end.x + NOTICE_HEADER_GAP * k
 	var center_x := _frame_rect.get_center().x
-	var free := center_x - plate_half - header_end - NOTICE_FLOURISH_MARGIN
-	_notice.flourish_length = clampf(free, 0.0, EvidenceStyle.NOTICE_FLOURISH)
+	var free := center_x - plate_half - header_end - NOTICE_FLOURISH_MARGIN * k
+	_notice.flourish_length = clampf(free / k, 0.0, EvidenceStyle.NOTICE_FLOURISH)
 	if free < 0.0:
-		center_x = header_end + plate_half + NOTICE_FLOURISH_MARGIN
-	var top := _frame_rect.position.y - EvidenceStyle.NOTICE_GAP - _notice.size.y
-	_notice.place(Vector2(center_x - _notice.size.x * 0.5, top).round())
+		center_x = header_end + plate_half + NOTICE_FLOURISH_MARGIN * k
+	var notice_size := _notice.size * k
+	var top := _frame_rect.position.y - EvidenceStyle.NOTICE_GAP * k - notice_size.y
+	_notice.place(Vector2(center_x - notice_size.x * 0.5, top).round())
 
 
 # --- Animaciones ---

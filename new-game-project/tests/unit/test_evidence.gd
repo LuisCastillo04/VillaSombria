@@ -395,19 +395,36 @@ func test_layout_fits_every_screen_shape_and_text_size() -> void:
 			var screen := Rect2(Vector2.ZERO, view)
 			var frame := inspector.get_frame_rect()
 			var document := inspector.get_document_rect()
-			var header := inspector.get_header().get_rect()
-			var close := inspector.get_close_button().get_rect()
-			var notice := inspector.get_notice()
-			var plate := notice.get_plate_rect()
-			plate.position += notice.position
+			var header := inspector.get_header_rect()
+			var close := inspector.get_close_rect()
+			var plate := inspector.get_notice_plate_rect()
 			check(screen.encloses(frame), label + ": el marco cabe")
 			check(frame.encloses(document), label + ": el documento queda dentro del marco")
 			check(screen.encloses(header) and screen.encloses(close), label + ": la placa y el botón caben")
 			check(document.size.x >= view.x * 0.6 or document.size.y >= view.y * 0.7, label + ": el documento ocupa la mayor parte de la pantalla")
 			check(screen.encloses(plate), label + ": el aviso cabe")
 			check(plate.end.y <= frame.position.y and not plate.intersects(document), label + ": el aviso no tapa el documento")
-			check(not notice.get_rect().intersects(header), label + ": ni la placa del encabezado")
+			check(not inspector.get_notice_rect().intersects(header), label + ": ni la placa del encabezado")
 			check(not close.intersects(document.grow(-2.0)), label + ": el botón no tapa el papel")
 			inspector.close()
 			await _wait(CLOSE_SECONDS)
 	root.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+
+
+func test_larger_text_keeps_the_document_as_big_as_with_normal_text() -> void:
+	inspector.open("periodico_aniversario")
+	await _wait(OPEN_SECONDS)
+	var root := get_tree().root
+	var normal := inspector.get_document_rect().size.y * root.content_scale_factor
+	var normal_header := inspector.get_header_rect().size * root.content_scale_factor
+	for size_id: String in ["grande", "muy_grande"]:
+		UiAccessibility.apply_text_scale(get_tree(), size_id)
+		await _process_frames(4)
+		var factor := root.content_scale_factor
+		check(is_equal_approx(factor, UiAccessibility.text_scale(size_id)), "%s: la interfaz crece" % size_id)
+		var on_screen := inspector.get_document_rect().size.y * factor
+		check(absf(on_screen - normal) <= normal * 0.02, "%s: el documento se ve del mismo tamaño que con la letra normal" % size_id)
+		check((inspector.get_header_rect().size * factor).distance_to(normal_header) < 1.0, "%s: y la placa del encabezado también" % size_id)
+		check(Rect2(Vector2.ZERO, inspector.get_root().size).encloses(inspector.get_frame_rect()), "%s: el marco cabe" % size_id)
+	UiAccessibility.apply_text_scale(get_tree(), "normal")
+	await _process_frames(2)
