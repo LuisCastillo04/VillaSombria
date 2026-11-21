@@ -95,7 +95,7 @@ func get_objective_texts() -> PackedStringArray:
 
 
 func _input(event: InputEvent) -> void:
-	if is_open() and not ExitManager.is_dialog_open() and event.is_action_pressed("open_map"):
+	if is_open() and not ExitManager.is_dialog_open() and not ConfirmDialog.is_open() and event.is_action_pressed("open_map"):
 		get_viewport().set_input_as_handled()
 		close()
 		return

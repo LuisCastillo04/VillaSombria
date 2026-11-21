@@ -75,7 +75,7 @@ func _ready() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	if ExitManager.is_dialog_open():
+	if ExitManager.is_dialog_open() or ConfirmDialog.is_open():
 		return
 	if not (event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel")):
 		return

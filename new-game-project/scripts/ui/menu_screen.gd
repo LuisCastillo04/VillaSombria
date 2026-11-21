@@ -45,7 +45,7 @@ func is_open() -> bool:
 
 
 func _input(event: InputEvent) -> void:
-	if not is_open() or ExitManager.is_dialog_open():
+	if not is_open() or ExitManager.is_dialog_open() or ConfirmDialog.is_open():
 		return
 	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
 		get_viewport().set_input_as_handled()

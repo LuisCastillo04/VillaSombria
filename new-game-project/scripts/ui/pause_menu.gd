@@ -98,8 +98,8 @@ func close() -> void:
 
 
 func _input(event: InputEvent) -> void:
-	# Con la pregunta de salida en pantalla, Escape es suyo.
-	if ExitManager.is_dialog_open() or not is_open:
+	# Con la pregunta de salida o una confirmación en pantalla, Escape es suyo.
+	if ExitManager.is_dialog_open() or ConfirmDialog.is_open() or not is_open:
 		return
 	if not (event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel")):
 		return
@@ -116,7 +116,7 @@ func _input(event: InputEvent) -> void:
 
 ## La tecla del mapa también lo abre desde las opciones de la pausa.
 func _unhandled_input(event: InputEvent) -> void:
-	if is_open and _panel.visible and not ExitManager.is_dialog_open() and event.is_action_pressed("open_map"):
+	if is_open and _panel.visible and not ExitManager.is_dialog_open() and not ConfirmDialog.is_open() and event.is_action_pressed("open_map"):
 		get_viewport().set_input_as_handled()
 		_open_screen(_map)
 

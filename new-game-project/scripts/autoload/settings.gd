@@ -10,6 +10,10 @@ extends Node
 ##
 ## Quien dependa de una preferencia la lee con `get_value` y escucha `changed` para aplicarla en
 ## caliente. Lo que pertenece al motor (volumen de los canales y ventana) lo aplica este autoload.
+##
+## Los cambios de pantalla (modo de ventana y resolución) pasan por `request_display_change`: se
+## prueban sin guardarlos, se pregunta si se mantienen y, si no se confirma a tiempo, se vuelve a lo
+## anterior. Así ninguna combinación deja al jugador sin ver los menús.
 
 ## Una preferencia cambió de valor (ya validado, aplicado y guardado).
 signal changed(key: String, value: Variant)
@@ -19,6 +23,9 @@ const BUSES: Array[String] = ["Master", "Musica", "Efectos", "Ambiente"]
 const DEFAULT_VOLUME := SettingsSchema.DEFAULT_VOLUME
 ## Copia que se guarda de un archivo ilegible antes de sustituirlo.
 const DAMAGED_SUFFIX := ".danado"
+## Segundos para confirmar un cambio de pantalla antes de que se restaure el anterior.
+const DISPLAY_CONFIRM_SECONDS := 15.0
+const DISPLAY_KEYS: Array[String] = ["graficos/modo_ventana", "graficos/resolucion"]
 
 ## Archivo en uso. Las pruebas lo cambian con `use_file` para no tocar los ajustes del jugador.
 var settings_path := SETTINGS_PATH
@@ -35,6 +42,8 @@ var vsync: bool:
 var _values: Dictionary = {}
 ## Qué pasó en la última lectura: archivo ausente o ilegible, migración y valores descartados.
 var _load_report: Dictionary = {}
+## Hay un cambio de pantalla en prueba, esperando a que el jugador lo confirme.
+var _display_pending := false
 
 
 func _ready() -> void:
@@ -45,7 +54,11 @@ func _ready() -> void:
 			AudioServer.set_bus_name(index, bus_name)
 			AudioServer.set_bus_send(index, "Master")
 	load_settings()
-	apply_all()
+	for bus_name in BUSES:
+		_apply_volume(bus_name)
+	DisplaySettings.apply_vsync(vsync)
+	# La ventana se coloca cuando ya se sabe qué escena arranca: las de prueba fijan la suya.
+	_apply_display.call_deferred()
 
 
 # --- Lectura y escritura de preferencias ---
@@ -71,6 +84,35 @@ func set_value(key: String, value: Variant) -> bool:
 	_apply_key(key)
 	_write([key])
 	changed.emit(key, valid)
+	return true
+
+
+## Cambia varias preferencias a la vez: o se aceptan todas o ninguna. Se aplican una sola vez, para
+## que, por ejemplo, el modo de ventana y la resolución no muevan la ventana dos veces.
+func set_values(changes: Dictionary) -> bool:
+	var accepted := {}
+	for key: String in changes:
+		var valid: Variant = SettingsSchema.validate(key, changes[key])
+		if valid == null:
+			push_warning("Ajuste rechazado: %s = %s" % [key, str(changes[key])])
+			return false
+		if _values.get(key) != valid:
+			accepted[key] = valid
+	if accepted.is_empty():
+		return true
+	var keys: Array[String] = []
+	for key: String in accepted:
+		_values[key] = accepted[key]
+		keys.append(key)
+	_sync_volumes()
+	if keys.any(func(key: String) -> bool: return key in DISPLAY_KEYS):
+		_apply_display()
+	for key in keys:
+		if not key in DISPLAY_KEYS:
+			_apply_key(key)
+	_write(keys)
+	for key in keys:
+		changed.emit(key, accepted[key])
 	return true
 
 
@@ -137,6 +179,53 @@ func save() -> void:
 	_write(SettingsSchema.keys())
 
 
+# --- Pantalla ---
+
+## Prueba un modo de ventana y una resolución, pregunta si se mantienen y sólo entonces los guarda.
+## Si el jugador elige restaurar, cierra la pregunta o no contesta en `timeout` segundos, la ventana
+## vuelve a lo que había. Devuelve si el cambio quedó confirmado. Mientras hay uno pendiente, otro
+## se rechaza.
+func request_display_change(mode: String, resolution: Vector2i, timeout: float = DISPLAY_CONFIRM_SECONDS) -> bool:
+	var valid_mode: Variant = SettingsSchema.validate("graficos/modo_ventana", mode)
+	var valid_size: Variant = SettingsSchema.validate("graficos/resolucion", resolution)
+	if _display_pending or valid_mode == null or valid_size == null:
+		return false
+	if valid_mode == get_value("graficos/modo_ventana") and valid_size == get_value("graficos/resolucion"):
+		return true
+	_display_pending = true
+	if not DisplaySettings.is_window_fixed(get_tree()):
+		DisplaySettings.apply(get_tree().root, valid_mode, valid_size)
+	var keep: bool = await ConfirmDialog.ask("¿MANTENER ESTA PANTALLA?",
+		"La pantalla ha cambiado a «%s»%s." % [SettingsSchema.label_of(valid_mode), _size_text(valid_mode, valid_size)],
+		{"confirm_text": "Mantener", "cancel_text": "Restaurar", "focus": "cancel",
+			"timeout": timeout, "timeout_text": "Si no confirmas, se restaurará la anterior en %d s."})
+	_display_pending = false
+	if keep:
+		set_values({"graficos/modo_ventana": valid_mode, "graficos/resolucion": valid_size})
+	else:
+		_apply_display()
+	return keep
+
+
+## Si hay un cambio de pantalla esperando confirmación.
+func is_display_change_pending() -> bool:
+	return _display_pending
+
+
+## Resolución con la que se dibuja de verdad: la elegida en los modos con ventana (ajustada al
+## monitor) y la del monitor en pantalla completa.
+func get_effective_resolution() -> Vector2i:
+	var mode := String(get_value("graficos/modo_ventana"))
+	return DisplaySettings.fit(get_value("graficos/resolucion"), mode)
+
+
+static func _size_text(mode: String, size: Vector2i) -> String:
+	if DisplaySettings.is_fullscreen_mode(mode):
+		return ""
+	var real := DisplaySettings.fit(size, mode)
+	return " a %d × %d" % [real.x, real.y]
+
+
 # --- Atajos de las preferencias que ya existían ---
 
 func set_volume(bus_name: String, value: float) -> void:
@@ -157,16 +246,19 @@ func set_vsync(value: bool) -> void:
 func apply_all() -> void:
 	for bus_name in BUSES:
 		_apply_volume(bus_name)
-	_apply_window()
+	DisplaySettings.apply_vsync(vsync)
+	_apply_display()
 
 
 func _apply_key(key: String) -> void:
-	match SettingsSchema.section_of(key):
-		"audio":
-			_apply_volume(SettingsSchema.name_of(key))
-		"graficos":
-			if key in ["graficos/modo_ventana", "graficos/resolucion", "graficos/vsync"]:
-				_apply_window()
+	match key:
+		"graficos/modo_ventana", "graficos/resolucion":
+			_apply_display()
+		"graficos/vsync":
+			DisplaySettings.apply_vsync(vsync)
+		_:
+			if SettingsSchema.section_of(key) == "audio":
+				_apply_volume(SettingsSchema.name_of(key))
 
 
 func _apply_volume(bus_name: String) -> void:
@@ -178,12 +270,11 @@ func _apply_volume(bus_name: String) -> void:
 	AudioServer.set_bus_volume_db(index, linear_to_db(maxf(value, 0.001)))
 
 
-func _apply_window() -> void:
-	if DisplayServer.get_name() == "headless":
+## Coloca la ventana según el modo y la resolución guardados, salvo que la escena la fije ella misma.
+func _apply_display() -> void:
+	if not is_inside_tree() or DisplaySettings.is_window_fixed(get_tree()):
 		return
-	var mode := DisplayServer.WINDOW_MODE_FULLSCREEN if fullscreen else DisplayServer.WINDOW_MODE_WINDOWED
-	DisplayServer.window_set_mode(mode)
-	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if vsync else DisplayServer.VSYNC_DISABLED)
+	DisplaySettings.apply(get_tree().root, get_value("graficos/modo_ventana"), get_value("graficos/resolucion"))
 
 
 func _sync_volumes() -> void:
