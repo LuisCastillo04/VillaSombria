@@ -52,7 +52,15 @@
     "category": "cartas",
     "where": "Cuarto de Lucía",
     "description": "«Lucía: el sábado, cuando acabe la cena, te espero en la ropería de arriba. Mi padre lo sabe y va a echarte. Tengo que hablar contigo. M.» Está doblada dentro de un misal.",
-    "prompt": "Examinar el misal de la mesilla"
+    "prompt": "Examinar el misal de la mesilla",
+    "presentation": {
+      "template": "carta",
+      "salutation": "Lucía:",
+      "body": "El sábado, cuando acabe la cena, te espero en la ropería de arriba. Mi padre lo sabe y va a echarte. Tengo que hablar contigo.",
+      "signature": "M.",
+      "note": "Está doblada dentro de un misal.",
+      "ornament": "res://assets/ui/evidencias/flores_violetas.svg"
+    }
   },
   "foto_clara": {
     "name": "Fotografía de Clara",

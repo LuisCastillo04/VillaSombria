@@ -11,6 +11,7 @@ extends RefCounted
 
 ## Plantillas disponibles: el rótulo y el icono de su placa, y la clase que la dibuja.
 const TEMPLATES := {
+	"carta": {"header": "Carta personal", "icon": "carta"},
 	"ficha": {"header": "Evidencia / Objeto", "icon": "engranaje"},
 }
 const DEFAULT_TEMPLATE := "ficha"
@@ -81,5 +82,8 @@ static func template_of(clue: Dictionary) -> String:
 
 
 ## Crea la plantilla que dibuja una prueba.
-static func create_document(_template: String) -> EvidenceDocument:
+static func create_document(template: String) -> EvidenceDocument:
+	match template:
+		"carta":
+			return EvidenceLetter.new()
 	return EvidenceRecordCard.new()
