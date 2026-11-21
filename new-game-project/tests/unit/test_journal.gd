@@ -214,8 +214,10 @@ func test_clues_list_details_and_empty_state() -> void:
 	var texts := _field_text(section)
 	check(texts.contains(clue["where"]), "su procedencia")
 	check(texts.contains(clue["description"]), "y la descripción completa")
-	check_equal(section.detail.get_photo().get_mode(), JournalPhoto.Mode.EMBLEM, "sin imagen propia, el emblema de su categoría")
+	check_equal(section.detail.get_photo().get_mode(), JournalPhoto.Mode.PHOTO, "con imagen propia (la ilustración del reloj), su fotografía")
 	check_equal(section.list.get_item("reloj_despacho").get_thumb().get_icon_name(), "reloj", "la fila lleva el icono de su categoría")
+	section.list.select("huellas_betun")
+	check_equal(section.detail.get_photo().get_mode(), JournalPhoto.Mode.EMBLEM, "sin imagen propia, el emblema de su categoría")
 
 
 func test_a_clue_image_from_the_data_becomes_its_photo() -> void:
