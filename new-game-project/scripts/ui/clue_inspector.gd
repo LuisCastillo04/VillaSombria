@@ -3,10 +3,10 @@ extends CanvasLayer
 ## Inspección de una evidencia encontrada en el escenario. Examinarla la registra si es nueva.
 ##
 ## Es el componente general de todas las evidencias: abre y cierra, bloquea al jugador mientras se
-## lee, registra la prueba la primera vez, reacciona al teclado, al mando y al ratón y coloca las
-## piezas en pantalla. Lo que se ve encima del papel
+## lee, registra la prueba la primera vez, reacciona al teclado, al mando y al ratón, coloca las
+## piezas en pantalla y anuncia el hallazgo con «Evidencia obtenida». Lo que se ve encima del papel
 ## lo dibuja la plantilla de la prueba (`scripts/ui/evidence/`), elegida por `EvidenceInfo` a partir
-## de `data/clues.json`.
+## de `data/clues.json`: una carta, un periódico o la ficha de investigación.
 ##
 ## No es un inventario: no hay flechas ni botones para pasar de una prueba a otra, sólo «Cerrar».
 ## Las pruebas registradas se siguen consultando en el expediente y en el tablero.
@@ -22,6 +22,13 @@ const CLOSE_ACTIONS: Array[String] = ["interact", "ui_accept"]
 ## Acciones de volver atrás, que también cierran.
 const CANCEL_ACTIONS: Array[String] = ["pause", "ui_cancel"]
 const BACKDROP_SHADER := preload("res://assets/shaders/evidence_backdrop.gdshader")
+## Separación mínima entre la placa del encabezado y el aviso, y lo que ocupa el remate de cada
+## filete del aviso más allá de su largo.
+const NOTICE_HEADER_GAP := 12.0
+const NOTICE_FLOURISH_MARGIN := 18.0
+
+## Segundos que el aviso «Evidencia obtenida» queda a la vista antes de desvanecerse.
+@export_range(0.5, 10.0, 0.1, "suffix:s") var notice_seconds := EvidenceStyle.NOTICE_HOLD
 
 var is_open := false
 var _clue_id := ""
@@ -38,6 +45,7 @@ var _frame: EvidenceFrame
 var _holder: Control
 var _header: EvidenceHeaderPlate
 var _close: EvidenceCloseButton
+var _notice: EvidenceNotice
 
 @onready var _root: Control = $Root
 
@@ -58,14 +66,19 @@ func _exit_tree() -> void:
 
 
 ## Examina una prueba: la registra si es nueva (y deja pasar el tiempo de examinarla) y la muestra.
+## Sólo la primera vez aparece «Evidencia obtenida».
 func open(clue_id: String) -> void:
 	if not GameData.clues.has(clue_id):
 		push_error("Evidencia desconocida: %s" % clue_id)
 		return
-	var is_new := Investigation.discover_clue(clue_id)
+	var is_new := Investigation.discover_clue(clue_id, false)
 	if is_new:
 		GameClock.advance(Investigation.CLUE_MINUTES)
 	_present(clue_id)
+	if is_new:
+		_notice.play(notice_seconds)
+	else:
+		_notice.reset()
 	opened.emit(clue_id, is_new)
 
 
@@ -74,6 +87,7 @@ func close() -> void:
 		return
 	is_open = false
 	set_process(false)
+	_notice.cancel()
 	GameState.unlock_player(LOCK)
 	_animate_close()
 	closed.emit(_clue_id)
@@ -90,6 +104,10 @@ func get_document() -> EvidenceDocument:
 
 func get_header() -> EvidenceHeaderPlate:
 	return _header
+
+
+func get_notice() -> EvidenceNotice:
+	return _notice
 
 
 func get_close_button() -> EvidenceCloseButton:
@@ -143,6 +161,9 @@ func _build() -> void:
 	_close = EvidenceCloseButton.new()
 	_close.pressed.connect(close)
 	_root.add_child(_close)
+	_notice = EvidenceNotice.new()
+	_notice.name = "Notice"
+	_root.add_child(_notice)
 
 
 ## Pone en pantalla la hoja de una prueba, con su plantilla, su encabezado y la tecla de cerrar.
@@ -230,8 +251,9 @@ func _queue_layout() -> void:
 	_layout.call_deferred()
 
 
-## Coloca el documento tan grande como quepa entre el margen de arriba y el botón de abajo, sin
-## pasar de `MAX_DOCUMENT_SCALE`, y el marco, la placa y el botón alrededor.
+## Coloca el documento tan grande como quepa entre el aviso de arriba y el botón de abajo, sin
+## pasar de `MAX_DOCUMENT_SCALE`, y el marco, la placa, el botón y el aviso alrededor. El sitio del
+## aviso se reserva siempre: que aparezca o no nunca cambia el tamaño ni la posición del documento.
 func _layout() -> void:
 	_layout_queued = false
 	if _document == null:
@@ -259,6 +281,21 @@ func _layout() -> void:
 	_close.position = (Vector2(_frame_rect.get_center().x - _close.size.x * 0.5, _frame_rect.end.y - _close.size.y * 0.5)).round()
 	_frame.frame_rect = _frame_rect
 	_frame.bottom_gap = Rect2(_close.position, _close.size)
+	_place_notice()
+
+
+## El aviso va centrado sobre el marco. Si llegaría a la placa del encabezado (pantallas estrechas
+## o letra grande), primero se acortan sus filetes y, si ni así cabe, se aparta a su derecha.
+func _place_notice() -> void:
+	var plate_half := _notice.get_plate_rect().size.x * 0.5
+	var header_end := _header.position.x + _header.size.x + NOTICE_HEADER_GAP
+	var center_x := _frame_rect.get_center().x
+	var free := center_x - plate_half - header_end - NOTICE_FLOURISH_MARGIN
+	_notice.flourish_length = clampf(free, 0.0, EvidenceStyle.NOTICE_FLOURISH)
+	if free < 0.0:
+		center_x = header_end + plate_half + NOTICE_FLOURISH_MARGIN
+	var top := _frame_rect.position.y - EvidenceStyle.NOTICE_GAP - _notice.size.y
+	_notice.place(Vector2(center_x - _notice.size.x * 0.5, top).round())
 
 
 # --- Animaciones ---
@@ -284,4 +321,5 @@ func _animate_close() -> void:
 
 func _on_closed() -> void:
 	_root.hide()
+	_notice.reset()
 	_holder.scale = Vector2.ONE
