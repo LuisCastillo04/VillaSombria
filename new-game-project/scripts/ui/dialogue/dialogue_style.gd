@@ -48,15 +48,33 @@ const BORDER := 14.0
 const TEXT_SIDE := 86.0
 ## Altura de la ventana mientras se lee, antes de que sepa cuánto ocupan sus líneas.
 const NARRATIVE_HEIGHT := 300.0
+## Líneas que caben en la ventana; un texto más largo se reparte en páginas.
+const TEXT_LINES := 3
+const LINE_SPACING := 6
+## Del borde superior de la ventana al texto: deja sitio a la mitad inferior de la placa.
+const TEXT_TOP := 50.0
+## Del texto al separador, y del separador al borde inferior de la ventana.
+const TEXT_TO_DIVIDER := 12.0
+const DIVIDER_HEIGHT := 18.0
+const DIVIDER_TO_BOTTOM := 58.0
+const DIVIDER_WIDTH_RATIO := 0.52
+## Placa del nombre: distancia al borde izquierdo de la ventana, alto y ancho mínimo.
+const PLATE_LEFT := 30.0
+const PLATE_HEIGHT := 62.0
+const PLATE_MIN_WIDTH := 300.0
+## Pestaña de «Continuar» en la esquina inferior derecha.
+const CONTINUE_HEIGHT := 58.0
 ## Marco fino de la pantalla durante la conversación.
 const SCREEN_FRAME_INSET := HudStyle.FRAME_INSET
 
 # --- Tamaños de letra ---
 
 const TEXT_SIZE := 44
-const NAME_SIZE := 30
+const NAME_SIZE := 34
 const OPTION_SIZE := 30
 const HINT_SIZE := 22
+const CONTINUE_SIZE := 28
+const KEY_SIZE := 21
 
 # --- Tiempos, en segundos ---
 
@@ -64,6 +82,17 @@ const OPEN_SECONDS := 0.45
 const CLOSE_SECONDS := 0.25
 ## Cambio de tinte de las siluetas al cambiar quien habla.
 const TINT_SECONDS := 0.2
+## Cambio del nombre de la placa: se apaga el anterior y se enciende el nuevo.
+const NAME_OUT_SECONDS := 0.1
+const NAME_IN_SECONDS := 0.2
+## Espera antes de escribir la primera intervención, mientras la ventana termina de subir.
+const FIRST_LINE_DELAY := 0.22
+## Escritura progresiva: letras por segundo y pausas tras un punto o una coma.
+const CHARACTERS_PER_SECOND := 48.0
+const SENTENCE_PAUSE := 0.14
+const CLAUSE_PAUSE := 0.05
+## Latido de «Continuar» cuando el texto ya se lee entero.
+const PULSE_SECONDS := 1.1
 
 static var _speech_font: SystemFont
 

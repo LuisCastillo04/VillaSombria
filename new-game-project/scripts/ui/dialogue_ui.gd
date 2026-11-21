@@ -5,8 +5,9 @@ extends CanvasLayer
 ## se cargan del campo `portrait` de `characters.json`, que admite SVG o PNG.
 ##
 ## Sólo coordina: la conversación la lleva `DialogueManager`, que avisa con señales; el texto lo
-## escribe `DialogueText`, las respuestas las presenta `DialogueChoices` y las teclas se leen con
-## `DialogueControls`. La interfaz responde llamando a `DialogueManager.advance` y `choose`.
+## escribe `DialogueText`, el nombre lo lleva `DialogueSpeakerPlate`, las respuestas las presenta
+## `DialogueChoices` y las teclas se leen con `DialogueControls`. La interfaz responde llamando a
+## `DialogueManager.advance` y `choose`.
 
 const FALLBACK_PORTRAIT := "res://assets/siluetas/detective.svg"
 const ACTIVE_TINT := Color(1.0, 1.0, 1.0, 1.0)
@@ -14,8 +15,11 @@ const IDLE_TINT := Color(0.5, 0.5, 0.56, 1.0)
 const PANEL_HEIGHT_OPTIONS := 430.0
 ## Recorrido de la ventana al entrar desde el pie de la pantalla.
 const WINDOW_SLIDE := 70.0
+const NARRATOR := "narrador"
 
 var _waiting_input := false
+## La próxima intervención es la primera desde que se abrió la conversación.
+var _first_line := false
 var _clock := 0.0
 var _speaker := ""
 var _npc_id := ""
@@ -39,19 +43,19 @@ var _detective_right := 0.0
 @onready var _detective: TextureRect = $Root/Detective
 @onready var _screen_frame: CinematicFrame = $Root/ScreenFrame
 @onready var _window: DialogueFrame = $Root/Window
-@onready var _name_label: Label = $Root/Window/Margin/Box/Name
-@onready var _text: DialogueText = $Root/Window/Margin/Box/Text
-@onready var _hint: Label = $Root/Window/Margin/Box/Hint
-@onready var _choices: DialogueChoices = $Root/Window/Margin/Box/Choices
+@onready var _plate: DialogueSpeakerPlate = $Root/Window/Plate
+@onready var _text: DialogueText = $Root/Window/Text
+@onready var _divider: GoldDivider = $Root/Window/Divider
+@onready var _continue: DialogueContinueButton = $Root/Window/Continue
+@onready var _hint: Label = $Root/Window/Hint
+@onready var _choices: DialogueChoices = $Root/Window/Choices
 
 
 func _ready() -> void:
 	_root.theme = UiTheme.get_theme()
-	CaseFileStyle.style_label(_name_label, DialogueStyle.name_font(), DialogueStyle.NAME_SIZE, DialogueStyle.BURGUNDY)
 	CaseFileStyle.style_label(_hint, DialogueStyle.hint_font(), DialogueStyle.HINT_SIZE, DialogueStyle.INK_SOFT)
-	_text.add_theme_font_override("normal_font", DialogueStyle.speech_font())
-	_text.add_theme_font_size_override("normal_font_size", DialogueStyle.TEXT_SIZE)
-	_text.add_theme_color_override("default_color", DialogueStyle.INK)
+	_text.offset_top = DialogueStyle.TEXT_TOP
+	_text.offset_bottom = DialogueStyle.TEXT_TOP + _text.get_area_height()
 	_screen_frame.inset = DialogueStyle.SCREEN_FRAME_INSET
 	_screen_frame.band_color = Color(DialogueStyle.CHARCOAL, 0.9)
 	_screen_frame.emphasis = 2.4
@@ -117,6 +121,19 @@ func get_choices() -> DialogueChoices:
 	return _choices
 
 
+func get_speaker_plate() -> DialogueSpeakerPlate:
+	return _plate
+
+
+func get_continue_button() -> DialogueContinueButton:
+	return _continue
+
+
+## Ventana inferior (no confundir con `Node.get_window`, la ventana del sistema).
+func get_dialogue_window() -> DialogueFrame:
+	return _window
+
+
 # --- Entradas ---
 
 func _process(delta: float) -> void:
@@ -131,11 +148,7 @@ func _input(event: InputEvent) -> void:
 		return
 	if (_text.is_typing() or _waiting_input) and DialogueControls.is_advance(event):
 		get_viewport().set_input_as_handled()
-		if _text.is_typing():
-			_text.complete()
-		else:
-			_waiting_input = false
-			DialogueManager.advance()
+		_advance()
 	elif _choices.visible:
 		var index := DialogueControls.number_index(event)
 		if index >= 0 and index < _choices.get_count():
@@ -143,17 +156,34 @@ func _input(event: InputEvent) -> void:
 			_choices.choose_index(index)
 
 
+## Una pulsación: termina de escribir la página, pasa a la siguiente o, leída la última, pide la
+## siguiente intervención. Nunca hace dos cosas a la vez.
+func _advance() -> void:
+	if _text.is_typing():
+		_text.complete()
+		return
+	_waiting_input = false
+	_continue.set_waiting(false)
+	if _text.has_next_page():
+		_text.next_page()
+	else:
+		DialogueManager.advance()
+
+
 # --- Señales de la conversación ---
 
 func _on_opened(npc_id: String) -> void:
 	_npc_id = npc_id
 	_speaker = ""
+	_first_line = true
 	_root.show()
 	_choices.hide()
+	_hint.hide()
 	_text.clear_line()
-	_name_label.text = ""
-	_hint.text = ""
-	_panel_height = DialogueStyle.NARRATIVE_HEIGHT
+	_plate.set_text("", false)
+	_continue.refresh()
+	_continue.set_waiting(false)
+	_panel_height = _narrative_height()
 	if not npc_id.is_empty():
 		_portrait.texture = _load_portrait(npc_id)
 	_portrait.visible = not npc_id.is_empty()
@@ -163,21 +193,31 @@ func _on_opened(npc_id: String) -> void:
 
 func _on_line_shown(speaker_id: String, text: String) -> void:
 	_choices.hide()
+	_hint.hide()
 	_text.show()
-	_panel_height = DialogueStyle.NARRATIVE_HEIGHT
+	_divider.show()
+	_continue.show()
+	_panel_height = _narrative_height()
 	_set_speaker(speaker_id)
-	_hint.text = ""
 	_waiting_input = false
-	_text.show_line(text)
+	_continue.set_waiting(false)
+	var delay := DialogueStyle.FIRST_LINE_DELAY if _first_line else 0.0
+	_first_line = false
+	_text.show_line(text, speaker_id == NARRATOR, delay)
 
 
 func _on_options_shown(options: Array) -> void:
 	_text.stop()
 	_waiting_input = false
+	_first_line = false
+	_continue.set_waiting(false)
 	_hint.text = DialogueControls.choice_hint(options.size())
 	_choices.show_options(options)
 	_text.hide()
+	_divider.hide()
+	_continue.hide()
 	_panel_height = PANEL_HEIGHT_OPTIONS
+	_hint.show()
 	_choices.show()
 	_set_speaker(_npc_id if not _npc_id.is_empty() else "detective", false)
 	await get_tree().process_frame
@@ -194,18 +234,30 @@ func _choose(option_id: String) -> void:
 func _on_closed(_finished_npc: String) -> void:
 	_text.stop()
 	_waiting_input = false
+	_continue.set_waiting(false)
 	_play_exit()
 
 
 func _on_text_completed() -> void:
 	_waiting_input = true
-	_hint.text = DialogueControls.continue_text()
+	_continue.set_waiting(true)
+
+
+## Alto de la ventana mientras se lee: el texto, el separador y la pestaña de continuar.
+func _narrative_height() -> float:
+	return DialogueStyle.TEXT_TOP + _text.get_area_height() + DialogueStyle.TEXT_TO_DIVIDER \
+		+ DialogueStyle.DIVIDER_HEIGHT + DialogueStyle.DIVIDER_TO_BOTTOM
+
+
+## Nombre de la placa: el del personaje, o ninguno para la narración.
+static func _speaker_name(speaker_id: String) -> String:
+	return "" if speaker_id == NARRATOR else GameData.get_character_name(speaker_id)
 
 
 ## Da protagonismo a quien habla. La narración apaga ambas siluetas.
 func _set_speaker(speaker_id: String, show_name: bool = true) -> void:
 	_speaker = speaker_id
-	var is_narrator := speaker_id == "narrador"
+	var is_narrator := speaker_id == NARRATOR
 	var is_detective := speaker_id == "detective"
 	if not is_narrator and not is_detective and speaker_id != _npc_id:
 		# Escenas sin interlocutor fijo: la silueta cambia con cada voz.
@@ -213,7 +265,7 @@ func _set_speaker(speaker_id: String, show_name: bool = true) -> void:
 		_portrait.show()
 		_backlight.show()
 	if show_name:
-		_name_label.text = "" if is_narrator else GameData.get_character_name(speaker_id)
+		_plate.set_text(_speaker_name(speaker_id))
 	var portrait_active := not is_narrator and not is_detective
 	_tint(_portrait, ACTIVE_TINT if portrait_active else IDLE_TINT)
 	_tint(_detective, ACTIVE_TINT if is_detective else IDLE_TINT)
@@ -221,13 +273,13 @@ func _set_speaker(speaker_id: String, show_name: bool = true) -> void:
 
 func _tint(target: CanvasItem, color: Color) -> void:
 	var tween := create_tween()
-	tween.tween_property(target, "modulate", color, 0.2)
+	tween.tween_property(target, "modulate", color, DialogueStyle.TINT_SECONDS)
 
 
 ## Aplica transición, respiración y el leve balanceo de la silueta que tiene la palabra.
 func _apply_layout() -> void:
 	var breath := sin(_clock * 1.6) * 5.0
-	var speaking := _text.is_typing() and _speaker != "detective" and _speaker != "narrador"
+	var speaking := _text.is_typing() and _speaker != "detective" and _speaker != NARRATOR
 	var talk := sin(_clock * 11.0) * 2.5 if speaking else 0.0
 	var offset_y := breath + talk
 	var offset_x := _slide * 120.0
@@ -260,6 +312,7 @@ func _play_entrance() -> void:
 	_screen_frame.modulate.a = 0.0
 	_portrait.modulate.a = 0.0
 	_detective.modulate.a = 0.0
+	_layout_window()
 	_transition = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_transition.tween_property(self, "_slide", 0.0, DialogueStyle.OPEN_SECONDS)
 	_transition.tween_property(_dim, "color:a", DialogueStyle.DIM.a, 0.35)
