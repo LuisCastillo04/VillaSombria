@@ -9,12 +9,11 @@ extends CanvasLayer
 ## `DialogueControls`. La interfaz responde llamando a `DialogueManager.advance` y `choose`.
 
 const FALLBACK_PORTRAIT := "res://assets/siluetas/detective.svg"
-const DIM_ALPHA := 0.62
 const ACTIVE_TINT := Color(1.0, 1.0, 1.0, 1.0)
 const IDLE_TINT := Color(0.5, 0.5, 0.56, 1.0)
-const PANEL_BOTTOM := -30.0
-const PANEL_HEIGHT_TEXT := 250.0
 const PANEL_HEIGHT_OPTIONS := 430.0
+## Recorrido de la ventana al entrar desde el pie de la pantalla.
+const WINDOW_SLIDE := 70.0
 
 var _waiting_input := false
 var _clock := 0.0
@@ -25,7 +24,7 @@ var _transition: Tween
 ## 1 fuera de escena, 0 en su sitio. Todo el encuadre se calcula a partir de este valor
 ## y de márgenes relativos, de modo que sobrevive a un cambio de tamaño de ventana.
 var _slide := 1.0
-var _panel_height := PANEL_HEIGHT_TEXT
+var _panel_height := DialogueStyle.NARRATIVE_HEIGHT
 var _portrait_left := 0.0
 var _portrait_right := 0.0
 var _portrait_top := 0.0
@@ -38,21 +37,25 @@ var _detective_right := 0.0
 @onready var _backlight: ColorRect = $Root/Backlight
 @onready var _portrait: TextureRect = $Root/Portrait
 @onready var _detective: TextureRect = $Root/Detective
-@onready var _panel: PanelContainer = $Root/Panel
-@onready var _name_label: Label = $Root/Panel/Margin/Box/Name
-@onready var _text: DialogueText = $Root/Panel/Margin/Box/Text
-@onready var _hint: Label = $Root/Panel/Margin/Box/Hint
-@onready var _choices: DialogueChoices = $Root/Panel/Margin/Box/Choices
+@onready var _screen_frame: CinematicFrame = $Root/ScreenFrame
+@onready var _window: DialogueFrame = $Root/Window
+@onready var _name_label: Label = $Root/Window/Margin/Box/Name
+@onready var _text: DialogueText = $Root/Window/Margin/Box/Text
+@onready var _hint: Label = $Root/Window/Margin/Box/Hint
+@onready var _choices: DialogueChoices = $Root/Window/Margin/Box/Choices
 
 
 func _ready() -> void:
 	_root.theme = UiTheme.get_theme()
-	_name_label.add_theme_font_override("font", UiTheme.serif())
-	_name_label.add_theme_color_override("font_color", UiTheme.STAMP)
-	_name_label.add_theme_font_size_override("font_size", 30)
-	_hint.add_theme_color_override("font_color", UiTheme.INK_SOFT)
-	_hint.add_theme_font_size_override("font_size", 18)
-	_text.add_theme_font_size_override("normal_font_size", 25)
+	CaseFileStyle.style_label(_name_label, DialogueStyle.name_font(), DialogueStyle.NAME_SIZE, DialogueStyle.BURGUNDY)
+	CaseFileStyle.style_label(_hint, DialogueStyle.hint_font(), DialogueStyle.HINT_SIZE, DialogueStyle.INK_SOFT)
+	_text.add_theme_font_override("normal_font", DialogueStyle.speech_font())
+	_text.add_theme_font_size_override("normal_font_size", DialogueStyle.TEXT_SIZE)
+	_text.add_theme_color_override("default_color", DialogueStyle.INK)
+	_screen_frame.inset = DialogueStyle.SCREEN_FRAME_INSET
+	_screen_frame.band_color = Color(DialogueStyle.CHARCOAL, 0.9)
+	_screen_frame.emphasis = 2.4
+	_root.resized.connect(_apply_layout)
 	_portrait_left = _portrait.offset_left
 	_portrait_right = _portrait.offset_right
 	_portrait_top = _portrait.offset_top
@@ -150,7 +153,7 @@ func _on_opened(npc_id: String) -> void:
 	_text.clear_line()
 	_name_label.text = ""
 	_hint.text = ""
-	_panel_height = PANEL_HEIGHT_TEXT
+	_panel_height = DialogueStyle.NARRATIVE_HEIGHT
 	if not npc_id.is_empty():
 		_portrait.texture = _load_portrait(npc_id)
 	_portrait.visible = not npc_id.is_empty()
@@ -161,7 +164,7 @@ func _on_opened(npc_id: String) -> void:
 func _on_line_shown(speaker_id: String, text: String) -> void:
 	_choices.hide()
 	_text.show()
-	_panel_height = PANEL_HEIGHT_TEXT
+	_panel_height = DialogueStyle.NARRATIVE_HEIGHT
 	_set_speaker(speaker_id)
 	_hint.text = ""
 	_waiting_input = false
@@ -234,8 +237,17 @@ func _apply_layout() -> void:
 	_portrait.offset_bottom = _portrait_bottom + offset_y
 	_detective.offset_left = _detective_left - _slide * 90.0
 	_detective.offset_right = _detective_right - _slide * 90.0
-	_panel.offset_bottom = PANEL_BOTTOM + _slide * 70.0
-	_panel.offset_top = _panel.offset_bottom - _panel_height
+	_layout_window()
+
+
+## La ventana ocupa el ancho de la pantalla menos los márgenes, sin pasar del de una pantalla 16:9,
+## y descansa sobre el pie.
+func _layout_window() -> void:
+	var view := _root.size
+	var width := minf(view.x - DialogueStyle.SCREEN_MARGIN * 2.0, DialogueStyle.MAX_WIDTH)
+	var bottom := view.y - DialogueStyle.BOTTOM_MARGIN + _slide * WINDOW_SLIDE
+	_window.position = Vector2((view.x - width) * 0.5, bottom - _panel_height)
+	_window.size = Vector2(width, _panel_height)
 
 
 func _play_entrance() -> void:
@@ -244,14 +256,16 @@ func _play_entrance() -> void:
 	_slide = 1.0
 	_dim.color.a = 0.0
 	_backlight.modulate.a = 0.0
-	_panel.modulate.a = 0.0
+	_window.modulate.a = 0.0
+	_screen_frame.modulate.a = 0.0
 	_portrait.modulate.a = 0.0
 	_detective.modulate.a = 0.0
 	_transition = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_transition.tween_property(self, "_slide", 0.0, 0.45)
-	_transition.tween_property(_dim, "color:a", DIM_ALPHA, 0.35)
+	_transition.tween_property(self, "_slide", 0.0, DialogueStyle.OPEN_SECONDS)
+	_transition.tween_property(_dim, "color:a", DialogueStyle.DIM.a, 0.35)
 	_transition.tween_property(_backlight, "modulate:a", 1.0, 0.45)
-	_transition.tween_property(_panel, "modulate:a", 1.0, 0.3)
+	_transition.tween_property(_window, "modulate:a", 1.0, 0.3)
+	_transition.tween_property(_screen_frame, "modulate:a", 1.0, 0.35)
 	_transition.tween_property(_portrait, "modulate:a", 1.0, 0.4)
 	_transition.tween_property(_detective, "modulate:a", 1.0, 0.4)
 
@@ -260,9 +274,10 @@ func _play_exit() -> void:
 	if _transition != null:
 		_transition.kill()
 	_transition = create_tween().set_parallel()
-	_transition.tween_property(_dim, "color:a", 0.0, 0.25)
+	_transition.tween_property(_dim, "color:a", 0.0, DialogueStyle.CLOSE_SECONDS)
 	_transition.tween_property(_backlight, "modulate:a", 0.0, 0.2)
-	_transition.tween_property(_panel, "modulate:a", 0.0, 0.2)
+	_transition.tween_property(_window, "modulate:a", 0.0, 0.2)
+	_transition.tween_property(_screen_frame, "modulate:a", 0.0, 0.2)
 	_transition.tween_property(_portrait, "modulate:a", 0.0, 0.2)
 	_transition.tween_property(_detective, "modulate:a", 0.0, 0.2)
 	_transition.chain().tween_callback(_root.hide)

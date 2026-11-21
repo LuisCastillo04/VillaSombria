@@ -1,0 +1,101 @@
+class_name DialogueStyle
+extends RefCounted
+## Estilo de las conversaciones en un solo sitio: paleta, letras, medidas y tiempos.
+##
+## Es el mismo cuero, el mismo pergamino y los mismos dorados del tablero (`BoardStyle`), del
+## expediente (`JournalStyle`) y del HUD (`HudStyle`), para que una conversación no parezca una
+## aplicación aparte. Las medidas están en el lienzo lógico de 1920 × 1080: el estiramiento
+## `canvas_items` del proyecto las escala con la ventana, de modo que 1280 × 720, 1366 × 768 o
+## 1600 × 900 ven la misma composición a otra escala.
+
+# --- Paleta ---
+
+const CHARCOAL := BoardStyle.CHARCOAL
+## Cuero oscuro del marco de la ventana y su versión más honda, la de los bordes gastados.
+const LEATHER := BoardStyle.LEATHER
+const LEATHER_DARK := BoardStyle.LEATHER_DARK
+const LEATHER_SHEEN := BoardStyle.LEATHER_SHEEN
+const BURGUNDY := BoardStyle.BURGUNDY
+const BURGUNDY_LIGHT := Color("94232f")
+const BURGUNDY_DARK := JournalStyle.BURGUNDY_DARK
+const GOLD := BoardStyle.GOLD
+const GOLD_LIGHT := BoardStyle.GOLD_LIGHT
+const GOLD_DARK := BoardStyle.GOLD_DARK
+## Pergamino de la ventana: claro en el centro, manchado y quemado hacia los bordes.
+const PARCHMENT := Color("efdfbc")
+const PARCHMENT_STAIN := Color("d8bd8c")
+const PARCHMENT_EDGE := Color("9c7647")
+const CREAM := BoardStyle.CREAM
+## Tinta del texto principal: casi negra, con un punto de sepia.
+const INK := Color("24170f")
+const INK_SOFT := JournalStyle.INK_SOFT
+## Filete de tinta del pergamino y bordes marrones de las respuestas.
+const RULE := Color(0.36, 0.25, 0.15, 0.62)
+const SHADOW := Color(0.0, 0.0, 0.0, 0.55)
+## Velo sobre el escenario: lo oscurece sin ocultarlo, la lluvia y las farolas siguen a la vista.
+const DIM := Color(0.02, 0.03, 0.05, 0.58)
+
+# --- Medidas, en el lienzo lógico de 1920 × 1080 ---
+
+## Distancia de la ventana a los lados y al pie de la pantalla, y ancho máximo: en una pantalla
+## ultrapanorámica la ventana queda centrada en una zona 16:9, como el HUD.
+const SCREEN_MARGIN := HudStyle.SCREEN_MARGIN
+const BOTTOM_MARGIN := 44.0
+const MAX_WIDTH := HudStyle.BAR_MAX_WIDTH
+## Grosor de la banda de cuero alrededor del pergamino.
+const BORDER := 14.0
+## Margen del texto a izquierda y derecha, dentro del pergamino.
+const TEXT_SIDE := 86.0
+## Altura de la ventana mientras se lee, antes de que sepa cuánto ocupan sus líneas.
+const NARRATIVE_HEIGHT := 300.0
+## Marco fino de la pantalla durante la conversación.
+const SCREEN_FRAME_INSET := HudStyle.FRAME_INSET
+
+# --- Tamaños de letra ---
+
+const TEXT_SIZE := 44
+const NAME_SIZE := 30
+const OPTION_SIZE := 30
+const HINT_SIZE := 22
+
+# --- Tiempos, en segundos ---
+
+const OPEN_SECONDS := 0.45
+const CLOSE_SECONDS := 0.25
+## Cambio de tinte de las siluetas al cambiar quien habla.
+const TINT_SECONDS := 0.2
+
+static var _speech_font: SystemFont
+
+
+# --- Letras ---
+
+## Voz de los personajes: Palatino en negrita cursiva, grande y con buen contraste sobre el papel.
+static func speech_font() -> Font:
+	if _speech_font == null:
+		_speech_font = SystemFont.new()
+		_speech_font.font_names = PackedStringArray(CaseFileStyle.DISPLAY_FONTS)
+		_speech_font.font_weight = 700
+		_speech_font.font_italic = true
+	return _speech_font
+
+
+## Narración: la misma familia en cursiva redonda, para distinguirla de lo que dice un personaje.
+static func narration_font() -> Font:
+	return CaseFileStyle.display_serif_italic()
+
+
+static func name_font() -> Font:
+	return JournalStyle.title_font()
+
+
+static func option_font() -> Font:
+	return CaseFileStyle.display_serif()
+
+
+static func hint_font() -> Font:
+	return CaseFileStyle.display_serif_italic()
+
+
+static func make_label(text: String, font: Font, font_size: int, color: Color) -> Label:
+	return HudStyle.make_label(text, font, font_size, color)
