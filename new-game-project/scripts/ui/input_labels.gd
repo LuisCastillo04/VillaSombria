@@ -22,6 +22,13 @@ static func key_name(event: InputEventKey) -> String:
 	return NAMES.get(text, text)
 
 
+## Nombre de una tecla por su código físico, como el de las teclas del InputMap.
+static func code_name(code: Key) -> String:
+	var event := InputEventKey.new()
+	event.physical_keycode = code
+	return key_name(event)
+
+
 ## Teclas de una acción, en el orden del InputMap y sin repetir.
 static func keys_of(action: String) -> PackedStringArray:
 	var keys := PackedStringArray()

@@ -56,7 +56,7 @@ func open() -> void:
 
 func refresh() -> void:
 	for row in _rows:
-		row.set_key_groups(_groups_for(row.get_meta("definition")))
+		row.set_key_groups(groups_for(row.get_meta("definition")))
 
 
 ## Fila de una acción por su texto, o null si no existe.
@@ -80,13 +80,14 @@ func _build_categories() -> void:
 func _binding_row(definition: Dictionary) -> BindingRow:
 	var actions: Array[String] = []
 	actions.assign(definition.get("together", definition.get("actions", [])))
-	var row := BindingRow.new(definition["label"], _groups_for(definition), actions)
+	var row := BindingRow.new(definition["label"], groups_for(definition), actions)
 	row.set_meta("definition", definition)
 	_rows.append(row)
 	return row
 
 
-static func _groups_for(definition: Dictionary) -> Array[PackedStringArray]:
+## Teclas que muestra una fila de `CATEGORIES` (o con su mismo formato), leídas del InputMap.
+static func groups_for(definition: Dictionary) -> Array[PackedStringArray]:
 	var groups: Array[PackedStringArray] = []
 	if definition.has("together"):
 		groups = InputLabels.combined(definition["together"])

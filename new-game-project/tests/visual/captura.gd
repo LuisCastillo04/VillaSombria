@@ -17,9 +17,14 @@ extends Node
 ##                         intervención y un número elige esa respuesta (1 la primera)
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar] | esperar
+##                         | reasignar:n
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
 ##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta;
-##                         esperar pulsa la tecla de dejar pasar una hora)
+##                         esperar pulsa la tecla de dejar pasar una hora; reasignar abre la
+##                         pantalla de reasignar teclas en la categoría n)
+##   --esperar-tecla=accion[:hueco]
+##                         con --open=reasignar, elige ese hueco (0 principal, 1 alternativa) y
+##                         lo deja esperando la tecla nueva
 ##   --seleccion=a,b       con --open=board, elige esos elementos para compararlos
 ##   --relacionar          con --open=board y --seleccion, pulsa «Relacionar»
 ##   --editar=id           con --open=board, abre la hipótesis de ese sospechoso
@@ -220,6 +225,24 @@ func _open_panel(game: Game, what: String) -> void:
 			slots.select_slot("manual_2")
 			if what == "confirm":
 				slots.get_action_button().pressed.emit()
+		"reasignar":
+			await _wait_seconds(0.6)
+			var pause: PauseMenu = game.get_node("PauseMenu")
+			pause.open()
+			pause.get_node("Root/Center/Panel").hide()
+			var rebind: RebindMenu = (load("res://scenes/ui/rebind_menu.tscn") as PackedScene).instantiate()
+			pause.get_node("Root").add_child(rebind)
+			await get_tree().process_frame
+			rebind.open()
+			if parts.size() > 1:
+				rebind.select_category(int(parts[1]))
+			var args := _parse_args()
+			if args.has("esperar-tecla"):
+				var target := String(args["esperar-tecla"]).split(":")
+				await get_tree().process_frame
+				var slot := rebind.get_row(target[0]).get_slot(int(target[1]) if target.size() > 1 else 0)
+				slot.grab_focus()
+				slot.pressed.emit()
 		"esperar":
 			# La tecla de dejar pasar una hora, con las confirmaciones activadas.
 			await _wait_seconds(0.6)

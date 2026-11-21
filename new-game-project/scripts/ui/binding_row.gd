@@ -2,23 +2,26 @@ class_name BindingRow
 extends PanelContainer
 ## Fila de la lista de controles: la acción a la izquierda y sus teclas a la derecha, con «o»
 ## entre las alternativas. Recibe el foco para recorrer la lista con el teclado, el mando o el
-## ratón. Cuando exista la reasignación, `actions` dirá qué acciones del InputMap cambiar.
+## ratón, salvo que se cree no seleccionable (las teclas fijas de la pantalla de reasignación).
 
 ## Acciones del InputMap que representa la fila; vacío si las teclas son fijas del código.
 var actions: Array[String] = []
+## Si recibe el foco. Las filas sólo informativas no lo reciben y se ven atenuadas.
+var selectable := true
 
 var _label: Label
 var _keys: HBoxContainer
 var _groups: Array[PackedStringArray] = []
 
 
-func _init(label_text: String = "", key_groups: Array[PackedStringArray] = [], row_actions: Array[String] = []) -> void:
+func _init(label_text: String = "", key_groups: Array[PackedStringArray] = [], row_actions: Array[String] = [], can_select: bool = true) -> void:
 	actions = row_actions
+	selectable = can_select
 	_groups = key_groups
 	var box := HBoxContainer.new()
 	box.add_theme_constant_override("separation", 12)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_label = MenuStyle.make_label(label_text, 21)
+	_label = MenuStyle.make_label(label_text, 21, MenuStyle.TEXT if can_select else MenuStyle.TEXT_SECONDARY)
 	_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	box.add_child(_label)
@@ -31,9 +34,11 @@ func _init(label_text: String = "", key_groups: Array[PackedStringArray] = [], r
 
 
 func _ready() -> void:
-	focus_mode = Control.FOCUS_ALL
+	focus_mode = Control.FOCUS_ALL if selectable else Control.FOCUS_NONE
 	custom_minimum_size.y = 48.0
 	_set_highlighted(false)
+	if not selectable:
+		return
 	focus_entered.connect(_set_highlighted.bind(true))
 	focus_exited.connect(_set_highlighted.bind(false))
 	mouse_entered.connect(grab_focus)
