@@ -9,7 +9,8 @@ extends RefCounted
 ## siempre: nombre, categoría, procedencia, descripción e imagen (`image`, la misma que usa el
 ## expediente). Así no hay una segunda base de datos de pistas: todo sigue en `clues.json`.
 
-## Plantillas disponibles: el rótulo y el icono de su placa, y la clase que la dibuja.
+## Plantillas disponibles, con el rótulo y el icono de su placa. La clase que dibuja cada una la
+## elige `create_document`.
 const TEMPLATES := {
 	"carta": {"header": "Carta personal", "icon": "carta"},
 	"periodico": {"header": "Periódico / Crónica", "icon": "periodico"},
