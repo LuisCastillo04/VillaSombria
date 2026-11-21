@@ -3,8 +3,11 @@ extends CanvasLayer
 ## Interrogatorio visual. Atenúa la exploración, muestra la silueta de quien habla y
 ## escribe el texto gradualmente. Reutilizable con cualquier personaje: las siluetas
 ## se cargan del campo `portrait` de `characters.json`, que admite SVG o PNG.
+##
+## Sólo coordina: la conversación la lleva `DialogueManager`, que avisa con señales; el texto lo
+## escribe `DialogueText`, las respuestas las presenta `DialogueChoices` y las teclas se leen con
+## `DialogueControls`. La interfaz responde llamando a `DialogueManager.advance` y `choose`.
 
-const CHARACTERS_PER_SECOND := 48.0
 const FALLBACK_PORTRAIT := "res://assets/siluetas/detective.svg"
 const DIM_ALPHA := 0.62
 const ACTIVE_TINT := Color(1.0, 1.0, 1.0, 1.0)
@@ -13,14 +16,11 @@ const PANEL_BOTTOM := -30.0
 const PANEL_HEIGHT_TEXT := 250.0
 const PANEL_HEIGHT_OPTIONS := 430.0
 
-var _typing := false
 var _waiting_input := false
-var _visible_progress := 0.0
 var _clock := 0.0
 var _speaker := ""
 var _npc_id := ""
 var _portrait_cache: Dictionary = {}
-var _option_ids: Array[String] = []
 var _transition: Tween
 ## 1 fuera de escena, 0 en su sitio. Todo el encuadre se calcula a partir de este valor
 ## y de márgenes relativos, de modo que sobrevive a un cambio de tamaño de ventana.
@@ -40,10 +40,9 @@ var _detective_right := 0.0
 @onready var _detective: TextureRect = $Root/Detective
 @onready var _panel: PanelContainer = $Root/Panel
 @onready var _name_label: Label = $Root/Panel/Margin/Box/Name
-@onready var _text: RichTextLabel = $Root/Panel/Margin/Box/Text
+@onready var _text: DialogueText = $Root/Panel/Margin/Box/Text
 @onready var _hint: Label = $Root/Panel/Margin/Box/Hint
-@onready var _options_scroll: ScrollContainer = $Root/Panel/Margin/Box/OptionsScroll
-@onready var _options: VBoxContainer = $Root/Panel/Margin/Box/OptionsScroll/Options
+@onready var _choices: DialogueChoices = $Root/Panel/Margin/Box/Choices
 
 
 func _ready() -> void:
@@ -62,62 +61,93 @@ func _ready() -> void:
 	_detective_right = _detective.offset_right
 	_detective.texture = _load_portrait("detective")
 	_root.hide()
+	_text.completed.connect(_on_text_completed)
+	_choices.chosen.connect(_choose)
 	DialogueManager.opened.connect(_on_opened)
 	DialogueManager.line_shown.connect(_on_line_shown)
 	DialogueManager.options_shown.connect(_on_options_shown)
 	DialogueManager.closed.connect(_on_closed)
 
 
+# --- Estado, para las pruebas y para otras pantallas ---
+
+## Si la conversación está en pantalla (también mientras aparece o desaparece).
+func is_open() -> bool:
+	return _root.visible
+
+
+## Si el texto de la intervención actual aún se está escribiendo.
+func is_typing() -> bool:
+	return _text.is_typing()
+
+
+## Si el texto ya se lee entero y se espera la pulsación para continuar.
+func is_waiting_for_input() -> bool:
+	return _waiting_input
+
+
+## Si se están mostrando las respuestas.
+func is_choosing() -> bool:
+	return _choices.visible
+
+
+func get_option_ids() -> Array[String]:
+	return _choices.get_option_ids()
+
+
+## Personaje al que corresponde ahora la iluminación: quien habla o, con las respuestas en
+## pantalla, el interlocutor que las escucha.
+func get_speaker() -> String:
+	return _speaker
+
+
+## Silueta del interlocutor, a la derecha.
+func get_portrait() -> TextureRect:
+	return _portrait
+
+
+func get_dialogue_text() -> DialogueText:
+	return _text
+
+
+func get_choices() -> DialogueChoices:
+	return _choices
+
+
+# --- Entradas ---
+
 func _process(delta: float) -> void:
 	if not _root.visible:
 		return
 	_clock += delta
 	_apply_layout()
-	if not _typing:
-		return
-	_visible_progress += delta * CHARACTERS_PER_SECOND
-	if int(_visible_progress) / 3 > _text.visible_characters / 3:
-		AudioManager.play("tecla")
-	_text.visible_characters = int(_visible_progress)
-	if _text.visible_characters >= _text.get_total_character_count():
-		_finish_typing()
 
 
 func _input(event: InputEvent) -> void:
 	if not _root.visible or not DialogueManager.active:
 		return
-	if _is_advance_event(event):
+	if (_text.is_typing() or _waiting_input) and DialogueControls.is_advance(event):
 		get_viewport().set_input_as_handled()
-		if _typing:
-			_finish_typing()
-		elif _waiting_input:
+		if _text.is_typing():
+			_text.complete()
+		else:
 			_waiting_input = false
 			DialogueManager.advance()
-	elif event is InputEventKey and event.pressed and not event.echo:
-		_try_number_shortcut(event as InputEventKey)
+	elif _choices.visible:
+		var index := DialogueControls.number_index(event)
+		if index >= 0 and index < _choices.get_count():
+			get_viewport().set_input_as_handled()
+			_choices.choose_index(index)
 
 
-func _is_advance_event(event: InputEvent) -> bool:
-	if not (_typing or _waiting_input):
-		return false
-	if event.is_action_pressed("interact") or event.is_action_pressed("ui_accept"):
-		return true
-	return event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT
-
-
-func _try_number_shortcut(event: InputEventKey) -> void:
-	var index := event.keycode - KEY_1
-	if _options_scroll.visible and index >= 0 and index < _option_ids.size():
-		get_viewport().set_input_as_handled()
-		_choose(_option_ids[index])
-
+# --- Señales de la conversación ---
 
 func _on_opened(npc_id: String) -> void:
 	_npc_id = npc_id
 	_speaker = ""
 	_root.show()
-	_options_scroll.hide()
-	_text.text = ""
+	_choices.hide()
+	_text.clear_line()
 	_name_label.text = ""
 	_hint.text = ""
 	_panel_height = PANEL_HEIGHT_TEXT
@@ -129,63 +159,44 @@ func _on_opened(npc_id: String) -> void:
 
 
 func _on_line_shown(speaker_id: String, text: String) -> void:
-	_options_scroll.hide()
+	_choices.hide()
 	_text.show()
 	_panel_height = PANEL_HEIGHT_TEXT
 	_set_speaker(speaker_id)
-	_text.text = text
-	_text.visible_characters = 0
-	_visible_progress = 0.0
 	_hint.text = ""
-	_typing = true
 	_waiting_input = false
+	_text.show_line(text)
 
 
 func _on_options_shown(options: Array) -> void:
-	_typing = false
+	_text.stop()
 	_waiting_input = false
-	_hint.text = "Elige con el ratón o con las teclas numéricas"
-	for child in _options.get_children():
-		_options.remove_child(child)
-		child.queue_free()
-	_option_ids.clear()
-	var number := 1
-	for option: Dictionary in options:
-		var button := Button.new()
-		var mark := "" if bool(option["asked"]) else "●  "
-		button.text = "%d. %s%s" % [number, mark, option["label"]]
-		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		button.pressed.connect(_choose.bind(option["id"]))
-		_options.add_child(button)
-		_option_ids.append(option["id"])
-		number += 1
+	_hint.text = DialogueControls.choice_hint(options.size())
+	_choices.show_options(options)
 	_text.hide()
 	_panel_height = PANEL_HEIGHT_OPTIONS
-	_options_scroll.show()
+	_choices.show()
 	_set_speaker(_npc_id if not _npc_id.is_empty() else "detective", false)
 	await get_tree().process_frame
-	if _options.get_child_count() > 0:
-		(_options.get_child(0) as Button).grab_focus()
+	if _choices.visible:
+		_choices.focus_first()
 
 
 func _choose(option_id: String) -> void:
 	AudioManager.play("click")
-	_options_scroll.hide()
+	_choices.hide()
 	DialogueManager.choose(option_id)
 
 
 func _on_closed(_finished_npc: String) -> void:
-	_typing = false
+	_text.stop()
 	_waiting_input = false
 	_play_exit()
 
 
-func _finish_typing() -> void:
-	_typing = false
+func _on_text_completed() -> void:
 	_waiting_input = true
-	_text.visible_characters = -1
-	_hint.text = "[E] Continuar"
+	_hint.text = DialogueControls.continue_text()
 
 
 ## Da protagonismo a quien habla. La narración apaga ambas siluetas.
@@ -213,7 +224,7 @@ func _tint(target: CanvasItem, color: Color) -> void:
 ## Aplica transición, respiración y el leve balanceo de la silueta que tiene la palabra.
 func _apply_layout() -> void:
 	var breath := sin(_clock * 1.6) * 5.0
-	var speaking := _typing and _speaker != "detective" and _speaker != "narrador"
+	var speaking := _text.is_typing() and _speaker != "detective" and _speaker != "narrador"
 	var talk := sin(_clock * 11.0) * 2.5 if speaking else 0.0
 	var offset_y := breath + talk
 	var offset_x := _slide * 120.0

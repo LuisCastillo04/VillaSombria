@@ -2,6 +2,8 @@
 
 [ext_resource type="Script" path="res://scripts/ui/dialogue_ui.gd" id="1"]
 [ext_resource type="Shader" path="res://assets/shaders/interrogation_backlight.gdshader" id="2"]
+[ext_resource type="Script" path="res://scripts/ui/dialogue/dialogue_text.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/ui/dialogue/dialogue_choices.gd" id="4"]
 
 [sub_resource type="ShaderMaterial" id="backlight_material"]
 shader = ExtResource("2")
@@ -102,17 +104,14 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 scroll_active = false
+script = ExtResource("3")
 
-[node name="OptionsScroll" type="ScrollContainer" parent="Root/Panel/Margin/Box"]
+[node name="Choices" type="ScrollContainer" parent="Root/Panel/Margin/Box"]
 visible = false
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
-
-[node name="Options" type="VBoxContainer" parent="Root/Panel/Margin/Box/OptionsScroll"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 6
+script = ExtResource("4")
 
 [node name="Hint" type="Label" parent="Root/Panel/Margin/Box"]
 layout_mode = 2
