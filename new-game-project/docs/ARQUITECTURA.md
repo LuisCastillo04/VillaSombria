@@ -27,6 +27,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/autoload/` | Sistemas globales |
 | `scripts/core/` | Escena de juego, condiciones y efectos |
 | `scripts/save/` | Formato de las partidas, escritura segura e imagen de cada ranura |
+| `scripts/settings/` | Esquema de las preferencias del jugador y lo que las aplica; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | `scripts/map/` | Calibración, zonas y lugares del mapa del pueblo |
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
@@ -51,7 +52,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `SaveSystem` | Cinco ranuras en `user://saves/`, ranura activa, flujo único de escritura, autoguardado y carga; ver [GUARDADO.md](GUARDADO.md) |
 | `SaveIndicator` | Indicador animado de guardado, por encima de cualquier escena |
 | `ExitManager` | Cierre controlado: la X, Alt + F4 y los botones de salida guardan antes de salir |
-| `Settings` | Volumen, pantalla completa y sincronización vertical |
+| `Settings` | Preferencias del jugador por categorías (audio, gráficos, jugabilidad, accesibilidad, controles) en `user://ajustes.cfg`, validadas con `SettingsSchema`; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | `AudioManager` | Sonido sintetizado al arrancar |
 | `TownMap` | Mapa del pueblo: lugares, calibración, posición del detective en el mapa y lugares visitados; ver [MAPA.md](MAPA.md) |
 

@@ -165,8 +165,8 @@ func test_audio_shows_and_applies_the_real_volumes() -> void:
 	var bus := AudioServer.get_bus_index("Musica")
 	check(is_equal_approx(AudioServer.get_bus_volume_db(bus), linear_to_db(0.35)), "el cambio llega al canal de audio")
 	var stored := ConfigFile.new()
-	stored.load(Settings.SETTINGS_PATH)
-	check(is_equal_approx(float(stored.get_value("volumen", "Musica", -1.0)), 0.35), "y se guarda")
+	stored.load(Settings.settings_path)
+	check(is_equal_approx(float(stored.get_value("audio", "Musica", -1.0)), 0.35), "y se guarda")
 
 
 func test_graphics_switches_use_the_real_settings() -> void:

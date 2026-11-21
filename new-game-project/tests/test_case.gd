@@ -2,6 +2,9 @@ class_name TestCase
 extends Node
 ## Base de las pruebas. Cada método `test_*` de una subclase se ejecuta por separado.
 
+## Archivo de ajustes de las pruebas, para no tocar nunca el del jugador.
+const SETTINGS_FILE := "user://pruebas_guardado/ajustes.cfg"
+
 var failures: Array[String] = []
 
 
@@ -37,6 +40,14 @@ func make_game() -> Game:
 func wait_physics_frames(count: int) -> void:
 	for frame in count:
 		await get_tree().physics_frame
+
+
+## Borra el archivo de ajustes de las pruebas y vuelve a los valores por defecto.
+static func reset_test_settings() -> void:
+	DirAccess.make_dir_recursive_absolute(SETTINGS_FILE.get_base_dir())
+	if FileAccess.file_exists(SETTINGS_FILE):
+		DirAccess.remove_absolute(SETTINGS_FILE)
+	Settings.use_file(SETTINGS_FILE)
 
 
 ## Vacía la carpeta de partidas de las pruebas, incluidas las marcas y los temporales.
