@@ -24,6 +24,9 @@ extends Node
 ##                         pantalla de reasignar teclas en la categoría n; mando, la del esquema
 ##                         del mando; las dos, con su fila de Controles; restaurar pide restaurar
 ##                         las teclas de fábrica)
+##                         (clue:id examina la prueba como el jugador: si es nueva aparece
+##                         «Evidencia obtenida», que se ve entre los fotogramas 10 y 180; con
+##                         --pistas=id ya está registrada y se relee sin aviso)
 ##   --mando[=estilo]      rótulos del mando en lugar de los del teclado; estilo: xbox (por
 ##                         defecto), playstation o nintendo
 ##   --esperar-tecla=accion[:hueco]
