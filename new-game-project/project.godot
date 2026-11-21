@@ -33,6 +33,7 @@ SaveIndicator="*res://scenes/ui/save_indicator.tscn"
 ExitManager="*res://scenes/ui/exit_manager.tscn"
 ConfirmDialog="*res://scripts/autoload/confirm_dialog.gd"
 Settings="*res://scripts/autoload/settings.gd"
+Controls="*res://scripts/autoload/controls.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 TownMap="*res://scripts/autoload/town_map.gd"
 
