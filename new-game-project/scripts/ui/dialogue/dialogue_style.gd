@@ -64,6 +64,23 @@ const PLATE_HEIGHT := 62.0
 const PLATE_MIN_WIDTH := 300.0
 ## Pestaña de «Continuar» en la esquina inferior derecha.
 const CONTINUE_HEIGHT := 58.0
+## Respuestas: distancia del borde superior de la ventana a la primera, margen lateral de la lista,
+## hueco entre tarjetas y ancho máximo de una tarjeta, para que una línea larga se lea cómoda.
+const CHOICES_TOP := 72.0
+const CHOICES_SIDE := 40.0
+const CHOICES_SCROLL_GUTTER := 22.0
+const CHOICE_GAP := 14.0
+const CHOICE_GAP_COMPACT := 9.0
+const CHOICE_MAX_WIDTH := 1460.0
+## Desde cuántas respuestas las tarjetas se compactan para que quepan más sin tapar las siluetas.
+const COMPACT_CHOICES_FROM := 5
+## Pie de las respuestas: hueco desde la última, alto del separador con la ayuda y margen inferior.
+const CHOICES_TO_HINT := 20.0
+const HINT_HEIGHT := 64.0
+const HINT_BOTTOM := 30.0
+## La ventana nunca pasa de esta parte del alto de la pantalla, para que las caras de las siluetas
+## sigan a la vista: con muchas respuestas, la lista se desplaza.
+const MAX_WINDOW_RATIO := 0.52
 ## Marco fino de la pantalla durante la conversación.
 const SCREEN_FRAME_INSET := HudStyle.FRAME_INSET
 
@@ -71,7 +88,8 @@ const SCREEN_FRAME_INSET := HudStyle.FRAME_INSET
 
 const TEXT_SIZE := 44
 const NAME_SIZE := 34
-const OPTION_SIZE := 30
+const OPTION_SIZE := 33
+const OPTION_SIZE_COMPACT := 30
 const HINT_SIZE := 22
 const CONTINUE_SIZE := 28
 const KEY_SIZE := 21
@@ -93,6 +111,9 @@ const SENTENCE_PAUSE := 0.14
 const CLAUSE_PAUSE := 0.05
 ## Latido de «Continuar» cuando el texto ya se lee entero.
 const PULSE_SECONDS := 1.1
+## Resaltado de la respuesta señalada y destello al confirmarla.
+const SELECT_SECONDS := 0.14
+const CONFIRM_SECONDS := 0.22
 
 static var _speech_font: SystemFont
 

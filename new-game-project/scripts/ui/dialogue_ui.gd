@@ -9,7 +9,6 @@ extends CanvasLayer
 ## `DialogueSpeakerPlate`, las respuestas las presenta `DialogueChoices` y las teclas se leen con
 ## `DialogueControls`. La interfaz responde llamando a `DialogueManager.advance` y `choose`.
 
-const PANEL_HEIGHT_OPTIONS := 430.0
 ## Recorrido de la ventana al entrar desde el pie de la pantalla.
 const WINDOW_SLIDE := 70.0
 const NARRATOR := "narrador"
@@ -33,13 +32,12 @@ var _panel_height := DialogueStyle.NARRATIVE_HEIGHT
 @onready var _text: DialogueText = $Root/Window/Text
 @onready var _divider: GoldDivider = $Root/Window/Divider
 @onready var _continue: DialogueContinueButton = $Root/Window/Continue
-@onready var _hint: Label = $Root/Window/Hint
+@onready var _hint: DialogueChoiceHint = $Root/Window/Hint
 @onready var _choices: DialogueChoices = $Root/Window/Choices
 
 
 func _ready() -> void:
 	_root.theme = UiTheme.get_theme()
-	CaseFileStyle.style_label(_hint, DialogueStyle.hint_font(), DialogueStyle.HINT_SIZE, DialogueStyle.INK_SOFT)
 	_text.offset_top = DialogueStyle.TEXT_TOP
 	_text.offset_bottom = DialogueStyle.TEXT_TOP + _text.get_area_height()
 	_screen_frame.inset = DialogueStyle.SCREEN_FRAME_INSET
@@ -110,6 +108,10 @@ func get_speaker_plate() -> DialogueSpeakerPlate:
 
 func get_continue_button() -> DialogueContinueButton:
 	return _continue
+
+
+func get_choice_hint() -> DialogueChoiceHint:
+	return _hint
 
 
 ## Ventana inferior (no confundir con `Node.get_window`, la ventana del sistema).
@@ -191,12 +193,16 @@ func _on_options_shown(options: Array) -> void:
 	_waiting_input = false
 	_first_line = false
 	_continue.set_waiting(false)
-	_hint.text = DialogueControls.choice_hint(options.size())
+	_hint.set_text(DialogueControls.choice_hint(options.size()))
 	_choices.show_options(options)
+	_plate.set_text(DialogueChoices.heading_for(options))
 	_text.hide()
 	_divider.hide()
 	_continue.hide()
-	_panel_height = PANEL_HEIGHT_OPTIONS
+	var list_height := _choices_list_height()
+	_choices.offset_top = DialogueStyle.CHOICES_TOP
+	_choices.offset_bottom = DialogueStyle.CHOICES_TOP + list_height
+	_panel_height = list_height + _choices_chrome()
 	_hint.show()
 	_choices.show()
 	# Mientras se elige, la luz sigue en el interlocutor que escucha (en una escena, el detective).
@@ -228,6 +234,20 @@ func _on_text_completed() -> void:
 func _narrative_height() -> float:
 	return DialogueStyle.TEXT_TOP + _text.get_area_height() + DialogueStyle.TEXT_TO_DIVIDER \
 		+ DialogueStyle.DIVIDER_HEIGHT + DialogueStyle.DIVIDER_TO_BOTTOM
+
+
+## Lo que ocupa la ventana con las respuestas además de la lista: arriba, el sitio de la placa; abajo,
+## el separador con la ayuda.
+func _choices_chrome() -> float:
+	return DialogueStyle.CHOICES_TOP + DialogueStyle.CHOICES_TO_HINT + DialogueStyle.HINT_HEIGHT + DialogueStyle.HINT_BOTTOM
+
+
+## Alto de la lista: el de todas las respuestas, sin que la ventana pase de su tope; si no caben, la
+## lista se desplaza.
+func _choices_list_height() -> float:
+	var limit := _root.size.y * DialogueStyle.MAX_WINDOW_RATIO - _choices_chrome()
+	var minimum := _choices.get_min_height()
+	return clampf(_choices.get_content_height(), minimum, maxf(limit, minimum))
 
 
 ## Nombre de la placa: el del personaje, o ninguno para la narración.
