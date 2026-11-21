@@ -128,10 +128,7 @@ func _build_categories() -> void:
 		var fixed: Array = FIXED_ROWS.get(category, [])
 		if fixed.is_empty():
 			continue
-		var divider := GoldDivider.new()
-		divider.custom_minimum_size = Vector2(0.0, 16.0)
-		divider.color = Color(MenuStyle.GOLD, 0.45)
-		page.add_child(divider)
+		add_divider(page)
 		page.add_child(MenuStyle.make_label("Teclas fijas: siempre sirven para navegar, elegir y volver.", 17, MenuStyle.TEXT_SECONDARY, CaseFileStyle.serif_italic()))
 		for definition: Dictionary in fixed:
 			var row := BindingRow.new(definition["label"], ControlsMenu.groups_for(definition), [], false)

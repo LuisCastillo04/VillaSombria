@@ -17,12 +17,13 @@ extends Node
 ##                         intervención y un número elige esa respuesta (1 la primera)
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar] | esperar
-##                         | reasignar:n | mando:n
+##                         | reasignar:n | mando:n | restaurar
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
 ##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta;
 ##                         esperar pulsa la tecla de dejar pasar una hora; reasignar abre la
 ##                         pantalla de reasignar teclas en la categoría n; mando, la del esquema
-##                         del mando)
+##                         del mando; las dos, con su fila de Controles; restaurar pide restaurar
+##                         las teclas de fábrica)
 ##   --mando[=estilo]      rótulos del mando en lugar de los del teclado; estilo: xbox (por
 ##                         defecto), playstation o nintendo
 ##   --esperar-tecla=accion[:hueco]
@@ -231,28 +232,21 @@ func _open_panel(game: Game, what: String) -> void:
 			slots.select_slot("manual_2")
 			if what == "confirm":
 				slots.get_action_button().pressed.emit()
-		"mando":
+		"mando", "reasignar", "restaurar":
+			# Como el jugador: la pausa, Controles, «Otros» y la fila de la herramienta.
 			await _wait_seconds(0.6)
 			var pause: PauseMenu = game.get_node("PauseMenu")
 			pause.open()
-			pause.get_node("Root/Center/Panel").hide()
-			var scheme: GamepadMenu = (load("res://scenes/ui/gamepad_menu.tscn") as PackedScene).instantiate()
-			pause.get_node("Root").add_child(scheme)
+			(pause.get_node("Root/Center/Panel/Box/Controls") as Button).pressed.emit()
+			var controls: ControlsMenu = pause.get_node("Root/ControlsMenu")
+			controls.select_category(ControlsMenu.CATEGORIES.size() - 1)
 			await get_tree().process_frame
-			scheme.open()
-			if parts.size() > 1:
-				scheme.select_category(int(parts[1]))
-		"reasignar":
-			await _wait_seconds(0.6)
-			var pause: PauseMenu = game.get_node("PauseMenu")
-			pause.open()
-			pause.get_node("Root/Center/Panel").hide()
-			var rebind: RebindMenu = (load("res://scenes/ui/rebind_menu.tscn") as PackedScene).instantiate()
-			pause.get_node("Root").add_child(rebind)
+			controls.get_tool(parts[0]).pressed.emit()
 			await get_tree().process_frame
-			rebind.open()
-			if parts.size() > 1:
-				rebind.select_category(int(parts[1]))
+			var screen: CategoryMenu = controls.get_gamepad_menu() if parts[0] == "mando" else controls.get_rebind_menu()
+			if parts[0] != "restaurar" and parts.size() > 1:
+				screen.select_category(int(parts[1]))
+			var rebind := controls.get_rebind_menu()
 			var args := _parse_args()
 			if args.has("esperar-tecla"):
 				var target := String(args["esperar-tecla"]).split(":")

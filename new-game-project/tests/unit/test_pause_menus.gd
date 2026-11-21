@@ -180,12 +180,14 @@ func test_graphics_switches_use_the_real_settings() -> void:
 	check_equal(Settings.vsync, not before, "el interruptor cambia la sincronización vertical")
 
 
-func test_planned_options_are_visible_but_inert() -> void:
-	var controls_planned := _planned_rows(controls.get_page(3))
-	check(controls_planned.size() >= 3, "Controles anuncia reasignación y mando")
-	for row in controls_planned:
-		check(row.focus_mode == Control.FOCUS_NONE and not _has_focusable(row), "una opción prevista no se puede seleccionar")
-	# Configuración ya no tiene nada previsto: todas sus opciones existen.
+func test_nothing_is_left_planned() -> void:
+	# Reasignar teclas, jugar con mando y restaurar las teclas ya existen: Controles no anuncia nada.
+	for index in controls.get_category_titles().size():
+		check(_planned_rows(controls.get_page(index)).is_empty(), "«%s» de Controles no tiene opciones previstas" % controls.get_category_titles()[index])
+	for tool_id: String in ["reasignar", "mando", "restaurar"]:
+		var tool := controls.get_tool(tool_id)
+		check(tool != null and tool.focus_mode == Control.FOCUS_ALL, "«%s» se puede elegir" % tool_id)
+	# Configuración tampoco: todas sus opciones existen.
 	for index in settings.get_category_titles().size():
 		check(_planned_rows(settings.get_page(index)).is_empty(), "«%s» no tiene opciones previstas" % settings.get_category_titles()[index])
 		check(_has_focusable(settings.get_page(index)), "y todo se puede manejar")
