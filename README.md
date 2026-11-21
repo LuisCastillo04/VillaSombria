@@ -48,17 +48,21 @@ Desde la terminal:
 
 ## Controles
 
-| Tecla | Acción |
-| --- | --- |
-| WASD o flechas | Moverse |
-| Mayús | Correr |
-| E | Interactuar y avanzar el diálogo |
-| 1 a 9, ratón o Intro | Elegir una pregunta |
-| J o Tab | Abrir el expediente |
-| B | Abrir el tablero de deducción |
-| M | Abrir el mapa del pueblo |
-| T | Dejar pasar una hora (pide confirmación; se puede desactivar en Configuración) |
-| Esc | Pausa |
+| Tecla | Mando (Xbox) | Acción |
+| --- | --- | --- |
+| WASD o flechas | Stick izquierdo o cruceta | Moverse |
+| Mayús | RT o LS (mantener) | Correr |
+| E | A | Interactuar y avanzar el diálogo |
+| 1 a 9, ratón o Intro | Cruceta y A | Elegir una pregunta |
+| J o Tab | Y | Abrir el expediente |
+| B | X | Abrir el tablero de deducción |
+| M | Vista | Abrir el mapa del pueblo |
+| T | RB | Dejar pasar una hora (pide confirmación; se puede desactivar en Configuración) |
+| Esc | Menú (B para volver) | Pausa |
+
+Las teclas se pueden cambiar en Pausa → Controles → Otros → **Reasignar teclas**, y volver a las
+originales con **Restaurar las teclas predeterminadas**. El juego detecta el mando solo y muestra sus
+botones (también de PlayStation y Nintendo). Ver [CONTROLES.md](new-game-project/docs/CONTROLES.md).
 
 ## Cómo se juega
 

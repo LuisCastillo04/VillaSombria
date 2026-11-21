@@ -141,7 +141,7 @@ Comprobado con capturas a 1280 × 720, 1366 × 768, 1600 × 900, 1920 × 1080, 1
 | Pantalla que oculte el HUD | Que bloquee al jugador con `GameState.lock_player("motivo")` |
 | Color, letra, medida o tiempo | `HudStyle` |
 | Reasignación de teclas | Tras cambiar el InputMap, `Hud.refresh_controls()`; el HUD también relee las teclas cada vez que reaparece, por ejemplo al cerrar la pausa |
-| Mandos o Android | `InputLabels` decide qué nombre se muestra; ahí se añaden los botones del mando. Para pantallas táctiles, la barra puede ocultarse o sustituirse sin tocar el resto: es una pieza independiente que no lee entradas |
+| Mandos o Android | Con el mando, la barra y el aviso muestran sus botones al momento (`InputLabels` con `Device.CURRENT` y `Controls.input_device_changed`; ver [CONTROLES.md](CONTROLES.md)). Para pantallas táctiles, la barra puede ocultarse o sustituirse sin tocar el resto: es una pieza independiente que no lee entradas |
 | Otro panel | Un `ParchmentPanel` o un `NoirPlate` dentro de `Exploration`, colocado en `Hud._layout()` |
 | Ocultar el marco | Quitar el nodo `Frame` de `hud.tscn` o ajustar su `inset` |
 

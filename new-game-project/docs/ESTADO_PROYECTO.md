@@ -37,6 +37,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Rediseño del expediente | Hecho | Pruebas con la escena de juego real (datos de las cinco secciones, estados vacíos, teclado y ratón, restauración, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1024×768; ver [EXPEDIENTE.md](EXPEDIENTE.md) |
 | Rediseño del tablero de deducción | Hecho | Pruebas con la escena de juego real (sospechosos y valoraciones, hipótesis y borradores, corcho, hilos, comparación con sus cuatro resultados, teclado y ratón, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1440×1080; ver [TABLERO.md](TABLERO.md) |
 | Configuración avanzada | Hecha | Pruebas de preferencias, pantalla, calidad, conversaciones, confirmaciones, accesibilidad y menú con la escena de juego real; ventana real con los cuatro modos, la resolución, VSync y la confirmación que restaura; reinicio en dos procesos; arranque del juego real con cada modo guardado; mediciones de GPU por nivel y capturas a 1280×720 y 1920×1080 en tamaño normal, «Muy grande» y contraste aumentado; ver [CONFIGURACION.md](CONFIGURACION.md) |
+| Controles personalizables y mando | Hecho | Pruebas de teclas, conflictos, guardado y restauración; pantalla de reasignación con pulsaciones reales; mando con eventos simulados (navegación, botones, partida, conversación, rótulos, conexión y desconexión); reinicio en tres procesos y capturas a 1280×720; sin mando físico; ver [CONTROLES.md](CONTROLES.md) |
 | Rediseño de las conversaciones | Hecho | Pruebas con la escena de juego real y entradas de teclado y ratón (placa y luz de quien habla, escritura, páginas, voces de una escena, respuestas y sus consecuencias, rótulos, foco, HUD y avisos, escenas encadenadas, guardar y cargar, proporciones) y capturas a 1280×720, 1366×768, 1600×900 y 1920×1080 comparadas con las referencias; ver [DIALOGOS.md](DIALOGOS.md) |
 
 Diferencias con el encargo:
@@ -92,9 +93,14 @@ pantalla y cierre con la X y con Alt + F4, correctos. El paso «Importación» s
 | `test_confirmations` | Dejar pasar una hora con y sin confirmaciones, tecla reasignada, límite del día y confirmaciones críticas siempre activas |
 | `test_accessibility` | Tamaño de letra sin nada fuera de la pantalla, contraste aumentado reversible, subtítulos y movimiento reducido |
 | `test_settings_menu` | Configuración sin «Próximamente», cada control con su preferencia, confirmación de la pantalla, teclado, mando, ratón y menú principal |
+| `test_controls` | Teclas de fábrica, asignar, alternativa, conflictos e intercambio, teclas reservadas, restaurar, guardado, reinicio y datos dañados |
+| `test_rebind_menu` | Reasignar con pulsaciones reales: la tecla que elige no cuenta, cancelar, modificadoras, Alt + F4, conflictos, Supr y una tecla nueva en la partida |
+| `test_gamepad` | Botones de cada acción, zona muerta, navegación con el stick y la cruceta, A y B, partida, conversación, rótulos, fabricantes, conexión y desconexión |
+| `test_controls_menu` | Herramientas de Controles sin «Próximamente», reasignar y el esquema encima, restaurar con su pregunta |
 | `test_journal` | Expediente: apertura y cierre con las teclas reales, datos reales de las cinco secciones, estados vacíos, nada sin descubrir, teclado y ratón, restauración sin reconstruir, proporciones de pantalla y partida cargada |
 | `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
 | `persistencia/ajustes` | Cambiar preferencias de todas las categorías y leerlas y aplicarlas en otro proceso |
+| `persistencia/controles` | Personalizar teclas, comprobarlas al arrancar otro proceso y restaurarlas, y comprobar en un tercero que siguen las de fábrica |
 | `visual/pantalla` | Con ventana: los cuatro modos, la resolución ajustada al monitor, la posición, VSync y la confirmación que restaura |
 | `persistencia/cierre` | Con ventana: cerrar con la X o Alt + F4 guarda en la ranura activa |
 | `visual/vista_previa` | Con ventana: la imagen de cada ranura es la escena guardada, sin la pausa |
@@ -116,9 +122,10 @@ arranca desde él sin errores en modo sin ventana.
 - **Los menús con un mando real y el ratón a mano.** Las pruebas envían las mismas acciones
   (`ui_up`, `ui_down`, `ui_left`, `ui_right`, `ui_cancel`) y movimientos de ratón por código, y
   los fundidos y el resaltado animado se revisaron con capturas fijas.
-- **La configuración con un mando real.** Los selectores, interruptores y la confirmación se prueban
-  con las acciones `ui_*` que envía un mando, no con uno físico. Jugar con mando (fuera de los menús)
-  sigue sin estar asignado: el sistema de controles personalizables no existe en el repositorio.
+- **La configuración y el juego con un mando real.** Los selectores, interruptores, la confirmación y
+  todo lo del mando (navegación, botones, partida, conexión y desconexión) se prueban con eventos
+  simulados, no con un mando físico de Xbox, PlayStation o Nintendo. Ver «Limitaciones» en
+  [CONTROLES.md](CONTROLES.md).
 - **Los modos de pantalla en otros equipos.** Los cuatro modos se comprobaron con la ventana real en el
   monitor principal de este portátil (1920 × 1080 al 150 %), no moviendo la ventana a otro monitor ni
   con otras tarjetas gráficas.
