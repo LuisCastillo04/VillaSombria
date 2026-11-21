@@ -131,7 +131,7 @@ func test_settings_open_over_the_pause_and_escape_returns() -> void:
 	_button("Settings").pressed.emit()
 	check(settings.is_open(), "Configuración se abre")
 	check(not _panel().visible, "en lugar de las opciones de la pausa")
-	check_equal(settings.get_category_titles(), PackedStringArray(["Audio", "Gráficos", "Jugabilidad"]), "con sus tres categorías")
+	check_equal(settings.get_category_titles(), PackedStringArray(["Audio", "Gráficos", "Jugabilidad", "Accesibilidad"]), "con sus cuatro categorías")
 	check(settings.is_ancestor_of(_focus_owner()), "y con el foco dentro")
 	_navigate("ui_cancel")
 	check(not settings.is_open(), "Escape la cierra")
@@ -181,15 +181,14 @@ func test_graphics_switches_use_the_real_settings() -> void:
 
 
 func test_planned_options_are_visible_but_inert() -> void:
-	var graphics := _planned_rows(settings.get_page(1))
-	var gameplay := _planned_rows(settings.get_page(2))
 	var controls_planned := _planned_rows(controls.get_page(3))
-	check(graphics.size() >= 1, "Gráficos muestra opciones previstas")
-	check(gameplay.size() >= 4, "Jugabilidad existe aunque aún no tenga opciones")
 	check(controls_planned.size() >= 3, "Controles anuncia reasignación y mando")
-	for row in graphics + gameplay + controls_planned:
+	for row in controls_planned:
 		check(row.focus_mode == Control.FOCUS_NONE and not _has_focusable(row), "una opción prevista no se puede seleccionar")
-	check(not _has_focusable(settings.get_page(2)), "en Jugabilidad no hay nada que se pueda activar")
+	# Configuración ya no tiene nada previsto: todas sus opciones existen.
+	for index in settings.get_category_titles().size():
+		check(_planned_rows(settings.get_page(index)).is_empty(), "«%s» no tiene opciones previstas" % settings.get_category_titles()[index])
+		check(_has_focusable(settings.get_page(index)), "y todo se puede manejar")
 
 
 func test_controls_show_the_input_map() -> void:

@@ -225,7 +225,8 @@ congelado por `get_tree().paused`. Los fundidos funcionan en pausa porque `Pause
 | `MenuOptionButton` | Opción de pergamino con resaltado animado; `compact` y `centered` para la pausa y «Volver» |
 | `MenuScreen` | Pantalla que se abre encima de otra: fundido, Escape, señal `closed` |
 | `CategoryMenu` | `MenuScreen` con pestañas (`CategoryTab`) y páginas desplazables; base de las dos siguientes |
-| `SettingsMenu` | Audio y Gráficos con los ajustes reales de `Settings`; Jugabilidad prevista |
+| `SettingsMenu` | Audio, Gráficos, Jugabilidad y Accesibilidad con las preferencias reales de `Settings`; ver [CONFIGURACION.md](CONFIGURACION.md) |
+| `OptionSelector` | Fila «‹ valor ›» de una lista cerrada: izquierda y derecha, aceptar y ratón |
 | `ControlsMenu` | Teclas leídas del InputMap al abrir, en filas `BindingRow` con `KeyCap`; nombres en `InputLabels` |
 | `MapScreen` | Mapa del pueblo sobre la pausa, con M o con la opción «Mapa»; ver [MAPA.md](MAPA.md) |
 
@@ -237,12 +238,12 @@ vuelve a su pestaña.
 
 ### Funcionalidades preparadas para futuras versiones
 
-Lo previsto se muestra desactivado, sin foco y con «Próximamente»; no guarda nada.
+Lo previsto se muestra desactivado, sin foco y con «Próximamente»; no guarda nada. Configuración ya
+no tiene nada previsto; quedan las ampliaciones de Controles.
 
 | Ampliación | Qué tocar |
 | --- | --- |
-| Opción gráfica (resolución, modo de ventana, calidad, partículas) | Guardarla y aplicarla en `scripts/autoload/settings.gd`; crear su fila en `_build_graphics()` de `scripts/ui/settings_menu.gd` y quitarla de `PLANNED_GRAPHICS` |
-| Opción de jugabilidad (velocidad del texto, avance automático, confirmaciones, accesibilidad) | Igual, en `_build_gameplay()` y `PLANNED_GAMEPLAY`; quien la use la lee de `Settings` (la velocidad del texto, `DialogueText.characters_per_second`) |
+| Opción de Configuración nueva | Describirla en `SettingsSchema`, aplicarla donde corresponda y crear su fila con `_add_switch_row` o `_add_selector` en la página de su categoría de `scripts/ui/settings_menu.gd`; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | Acción o categoría de controles | Crear la acción en el InputMap y añadir su fila o categoría a `CATEGORIES` de `scripts/ui/controls_menu.gd` |
 | Reasignación de teclas | `BindingRow.actions` dice qué acciones cambiar; pedir la tecla al pulsar la fila, guardar el InputMap en `Settings` y llamar a `ControlsMenu.refresh()` |
 | Mandos y esquemas de entrada | `InputLabels` sólo lee el teclado; ahí hay que añadir los botones del mando |

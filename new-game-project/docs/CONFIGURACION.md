@@ -2,6 +2,31 @@
 
 Preferencias del jugador: qué se guarda, dónde, cómo se valida y cómo se aplica.
 
+## Menú
+
+Configuración se abre desde la pausa y desde el menú principal (la misma escena, `SettingsMenu`). Conserva
+el panel oscuro, los filetes y ornamentos dorados, las pestañas con la seleccionada en burdeos, el botón
+crema «Volver» y los fundidos; las opciones que antes decían «Próximamente» son ahora controles reales y
+hay una cuarta pestaña, Accesibilidad.
+
+| Pestaña | Opciones |
+| --- | --- |
+| Audio | Volumen general, música, efectos, lluvia y ambiente (barras, como antes) |
+| Gráficos | Pantalla completa y sincronización vertical (interruptores); modo de ventana, resolución de pantalla, calidad de sombras e iluminación y efectos y partículas (selectores) |
+| Jugabilidad | Velocidad del texto (selector); avance automático de diálogos y confirmaciones (interruptores) |
+| Accesibilidad | Tamaño de letra (selector); contraste aumentado, subtítulos y reducir movimiento (interruptores) |
+
+Los selectores (`OptionSelector`, `scripts/ui/option_selector.gd`) son filas con el estilo de las demás:
+el nombre y su explicación a la izquierda y «‹ valor ›» a la derecha; la señalada toma el fondo burdeos
+y el filete dorado. Con el foco en ellos, izquierda y derecha cambian el valor (sin dar la vuelta, como
+las barras de volumen) y aceptar pasa al siguiente (dando la vuelta); con el ratón, las flechas y un clic
+en el valor. Arriba y abajo recorren las filas; para volver a las pestañas, izquierda desde un
+interruptor o Escape (o B en el mando).
+
+Cada control lee su preferencia al abrir la pantalla y cuando cambia (`Settings.changed`), así que la
+pausa y el menú principal siempre muestran lo mismo. Con el modo en pantalla completa, el selector de
+resolución se desactiva y dice cuál usa el monitor.
+
 ## Persistencia
 
 Las preferencias se guardan en `user://ajustes.cfg`, aparte de las partidas: no dependen de ninguna
