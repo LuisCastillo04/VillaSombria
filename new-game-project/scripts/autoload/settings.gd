@@ -1,6 +1,6 @@
 extends Node
-## Preferencias del jugador, comunes a todas las partidas: audio, gráficos, jugabilidad,
-## accesibilidad y controles. Se guardan en `user://ajustes.cfg`, aparte de las partidas, así que
+## Preferencias del jugador, comunes a todas las partidas: audio, gráficos, jugabilidad, filtro
+## visual, accesibilidad y controles. Se guardan en `user://ajustes.cfg`, aparte de las partidas, así que
 ## no dependen de ninguna ranura.
 ##
 ## Qué preferencias existen, sus valores por defecto y los que admiten lo dice `SettingsSchema`;
@@ -64,6 +64,7 @@ func _ready() -> void:
 	DisplaySettings.apply_vsync(vsync)
 	GraphicsQuality.apply_lighting(get_tree(), get_value("graficos/calidad_iluminacion"))
 	GraphicsQuality.apply_effects(get_tree(), get_value("graficos/calidad_efectos"))
+	VisualFilters.apply(get_tree(), get_value(VisualFilters.SETTING_KEY))
 	_apply_accessibility()
 	# La ventana se coloca cuando ya se sabe qué escena arranca: las de prueba fijan la suya.
 	_apply_display.call_deferred()
@@ -294,6 +295,7 @@ func apply_all() -> void:
 	DisplaySettings.apply_vsync(vsync)
 	GraphicsQuality.apply_lighting(get_tree(), get_value("graficos/calidad_iluminacion"))
 	GraphicsQuality.apply_effects(get_tree(), get_value("graficos/calidad_efectos"))
+	VisualFilters.apply(get_tree(), get_value(VisualFilters.SETTING_KEY))
 	_apply_accessibility()
 	_apply_display()
 
