@@ -70,7 +70,7 @@ func _click(control: Control) -> void:
 
 
 func test_nothing_is_left_as_coming_soon() -> void:
-	check_equal(settings.get_category_titles(), PackedStringArray(["Audio", "Gráficos", "Jugabilidad", "Accesibilidad"]), "cuatro categorías")
+	check_equal(settings.get_category_titles(), PackedStringArray(["Audio", "Gráficos", "Jugabilidad", "Filtros", "Accesibilidad"]), "cinco categorías")
 	for index in settings.get_category_titles().size():
 		var page := settings.get_page(index)
 		check(not _texts(page).has("PRÓXIMAMENTE"), "en «%s» no queda nada «Próximamente»" % settings.get_category_titles()[index])
@@ -196,7 +196,7 @@ func test_keyboard_and_gamepad_reach_and_change_every_option() -> void:
 
 
 func test_mouse_uses_the_arrows_and_the_value() -> void:
-	settings.select_category(3)
+	settings.select_category(Array(settings.get_category_titles()).find("Accesibilidad"))
 	await get_tree().process_frame
 	var size := settings.get_selector("accesibilidad/tamano_letra")
 	await _click(size.get_node("HBoxContainer/HBoxContainer/Siguiente") if size.has_node("HBoxContainer/HBoxContainer/Siguiente") else size.find_child("Siguiente", true, false))
@@ -211,7 +211,7 @@ func test_the_main_menu_has_the_same_options() -> void:
 	add_child(menu)
 	await get_tree().process_frame
 	var main_settings: SettingsMenu = menu.get_node("%SettingsMenu")
-	check_equal(main_settings.get_category_titles().size(), 4, "las cuatro categorías")
+	check_equal(main_settings.get_category_titles().size(), 5, "las cinco categorías")
 	check(main_settings.get_selector("graficos/calidad_iluminacion") != null, "con sus selectores")
 	Settings.set_value("jugabilidad/velocidad_texto", "lento")
 	check_equal(main_settings.get_selector("jugabilidad/velocidad_texto").get_value_text(), "Lento", "y los mismos valores")
