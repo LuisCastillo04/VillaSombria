@@ -200,6 +200,10 @@ func _apply_compact(value: bool) -> void:
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if compact else TextServer.AUTOWRAP_OFF
 	_status.max_lines_visible = 2 if compact else -1
 	_status.add_theme_constant_override("line_spacing", -4 if compact else 0)
+	# Una etiqueta con ajuste de línea que además recorta declara 1 px de alto y no se vería: en la
+	# ficha compacta la valoración se parte en dos líneas sin recortar, y sólo en una línea recorta.
+	_status.clip_text = not compact
+	_status.text_overrun_behavior = TextServer.OVERRUN_NO_TRIMMING if compact else TextServer.OVERRUN_TRIM_ELLIPSIS
 
 
 ## Si la valoración se lee entera, sin puntos suspensivos.
@@ -208,7 +212,7 @@ func is_status_complete() -> bool:
 		var font := _status.get_theme_font("font")
 		var font_size := _status.get_theme_font_size("font_size")
 		return font.get_string_size(_status.text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x <= _status.size.x + 0.5
-	return _status.get_line_count() <= _status.max_lines_visible
+	return _status.get_line_count() <= _status.max_lines_visible and _status.get_visible_line_count() == _status.get_line_count()
 
 
 func _draw_back() -> void:
