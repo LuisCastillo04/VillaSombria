@@ -146,6 +146,23 @@ static func apply_to_material(material: ShaderMaterial, id: String) -> bool:
 	return true
 
 
+# --- Postprocesos del mundo ---
+
+## Un postproceso del mundo (el de la partida o el del menú principal): se apunta al grupo y toma el
+## filtro vigente, así que cada escena nueva, cada carga de partida y cada cambio de lugar lo conservan.
+static func register_post(post: PostFx) -> void:
+	post.add_to_group(GROUP)
+	post.set_visual_filter(current())
+
+
+## Aplica un filtro a todos los postprocesos del árbol, en el acto.
+static func apply(tree: SceneTree, id: Variant) -> void:
+	if tree == null:
+		return
+	for node in tree.get_nodes_in_group(GROUP):
+		(node as PostFx).set_visual_filter(sanitize(id))
+
+
 ## Filtro cuyos parámetros tiene el material. Uno sin tocar está en Colores originales.
 static func applied_to(material: ShaderMaterial) -> String:
 	if material == null:

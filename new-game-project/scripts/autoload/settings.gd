@@ -322,6 +322,8 @@ func _apply_key(key: String) -> void:
 			GraphicsQuality.apply_lighting(get_tree(), get_value(key))
 		"graficos/calidad_efectos":
 			GraphicsQuality.apply_effects(get_tree(), get_value(key))
+		VisualFilters.SETTING_KEY:
+			VisualFilters.apply(get_tree(), get_value(key))
 		"accesibilidad/tamano_letra", "accesibilidad/contraste_alto":
 			_apply_accessibility()
 		_:

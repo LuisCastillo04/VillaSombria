@@ -1,8 +1,14 @@
 class_name PostFx
 extends CanvasLayer
-## Capa de postproceso. La niebla sólo tiene sentido en exteriores. Su detalle y el grano de
-## película dependen de la calidad de «Efectos y partículas» (`GraphicsQuality`).
+## Capa de postproceso del mundo: niebla, filtro de color, viñeta y grano (`noir_post.gdshader`).
+## La niebla sólo tiene sentido en exteriores. Su detalle y el grano de película dependen de la calidad
+## de «Efectos y partículas» (`GraphicsQuality`); el filtro de color, de Configuración → Filtros
+## (`VisualFilters`).
 
+## Capa del postproceso: por debajo de toda la interfaz (HUD 2, menú principal 5, conversaciones 6,
+## pausa 20, fundido 30, confirmaciones 45...). Lo que lee de la pantalla es sólo el mundo 3D, así que
+## la niebla y el filtro de color nunca tiñen un menú, un diálogo ni el HUD.
+const LAYER := 1
 const OUTDOOR_FOG := 0.2
 ## Grano de película original (el valor por defecto de `noir_post.gdshader`).
 const GRAIN := 0.035
@@ -11,7 +17,19 @@ const GRAIN := 0.035
 
 
 func _ready() -> void:
+	layer = LAYER
 	GraphicsQuality.register_post(self)
+	VisualFilters.register_post(self)
+
+
+## Filtro de color de Configuración → Filtros. Repetir el vigente no toca el material.
+func set_visual_filter(id: String) -> void:
+	VisualFilters.apply_to_material(_rect.material as ShaderMaterial, id)
+
+
+## Filtro que se ve ahora.
+func get_visual_filter() -> String:
+	return VisualFilters.applied_to(_rect.material as ShaderMaterial)
 
 
 ## Capas de ruido de la niebla (de 1 a 4; 4 es la original) y si se dibuja el grano.
