@@ -7,13 +7,14 @@ Preferencias del jugador: qué se guarda, dónde, cómo se valida y cómo se apl
 Configuración se abre desde la pausa y desde el menú principal (la misma escena, `SettingsMenu`). Conserva
 el panel oscuro, los filetes y ornamentos dorados, las pestañas con la seleccionada en burdeos, el botón
 crema «Volver» y los fundidos; las opciones que antes decían «Próximamente» son ahora controles reales y
-hay una cuarta pestaña, Accesibilidad.
+hay dos pestañas más, Filtros y Accesibilidad.
 
 | Pestaña | Opciones |
 | --- | --- |
 | Audio | Volumen general, música, efectos, lluvia y ambiente (barras, como antes) |
 | Gráficos | Pantalla completa y sincronización vertical (interruptores); modo de ventana, resolución de pantalla, calidad de sombras e iluminación y efectos y partículas (selectores) |
 | Jugabilidad | Velocidad del texto (selector); avance automático de diálogos y confirmaciones (interruptores) |
+| Filtros | Modo noir, sepia, frío nocturno o colores originales (tarjetas, uno a la vez); ver [FILTROS.md](FILTROS.md) |
 | Accesibilidad | Tamaño de letra (selector); contraste aumentado, subtítulos y reducir movimiento (interruptores) |
 
 Los selectores (`OptionSelector`, `scripts/ui/option_selector.gd`) son filas con el estilo de las demás:
@@ -56,6 +57,9 @@ velocidad_texto="normal"
 avance_automatico=false
 confirmaciones=true
 
+[filtros]
+activo="original"
+
 [accesibilidad]
 tamano_letra="normal"
 contraste_alto=false
@@ -72,6 +76,7 @@ movimiento_reducido=false
 | | `calidad_iluminacion`, `calidad_efectos` | `bajo`, `medio`, `alto` |
 | `jugabilidad` | `velocidad_texto` | `lento`, `normal`, `rapido`, `instantaneo` |
 | | `avance_automatico`, `confirmaciones` | Sí o no |
+| `filtros` | `activo` | `original`, `noir`, `sepia`, `cold_night` |
 | `accesibilidad` | `tamano_letra` | `normal`, `grande`, `muy_grande` |
 | | `contraste_alto`, `subtitulos`, `movimiento_reducido` | Sí o no |
 | `controles` | Teclas personalizadas de `Controls`; ver [CONTROLES.md](CONTROLES.md) | `Settings` nunca la borra; se lee y se escribe con `read_section` y `write_section` |
@@ -364,6 +369,7 @@ principal o desde la pausa (Esc durante la partida).
 | Sincronización vertical | Actívala | Se aplica al momento; en este portátil puede bajar mucho la tasa de fotogramas (ver «Rendimiento» en `ESTADO_PROYECTO.md`) |
 | Sombras e iluminación | Pon «Bajo» en la plaza | Desaparecen las sombras de farolas, árboles y bancos y el resplandor; las luces siguen iluminando |
 | Efectos y partículas | Pon «Bajo» en la plaza | Llueve menos denso y la niebla es más simple; sigue lloviendo |
+| Filtros | Elige «Modo noir» | El escenario de detrás pasa al blanco y negro al momento y el menú no cambia de color; ver [FILTROS.md](FILTROS.md) |
 | Velocidad del texto | Elige «Lento» y habla con Eusebio en la estación | El texto se escribe más despacio; con «Instantáneo» aparece entero |
 | Avance automático | Actívalo y abre una conversación | Bajo «Continuar» se llena un filete y la línea pasa sola; en las preguntas se detiene |
 | Confirmaciones | Pulsa T explorando | Con ellas, «¿Quieres dejar pasar una hora?»; sin ellas, pasa la hora en el acto |
@@ -438,6 +444,8 @@ godot --path . --resolution 1280x720 res://tests/visual/pantalla.tscn
 Aplica cada modo y tamaño, compara el estado real de la ventana (modo, tamaño, posición, VSync) y
 repite el flujo de Configuración: un cambio sin contestar vuelve a lo anterior y uno confirmado se
 guarda.
+
+`tests/unit/test_visual_filters.gd` comprueba los filtros de color; ver [FILTROS.md](FILTROS.md).
 
 `tests/unit/test_settings.gd` comprueba los valores por defecto, las categorías, la validación, la
 escritura de una sola clave sin perder el resto del archivo, la corrección de valores dañados, la
