@@ -36,6 +36,7 @@ Settings="*res://scripts/autoload/settings.gd"
 Controls="*res://scripts/autoload/controls.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
 TownMap="*res://scripts/autoload/town_map.gd"
+MCPRuntime="*res://addons/godot_mcp/runtime/mcp_runtime.gd"
 
 [display]
 
@@ -46,6 +47,10 @@ window/size/window_height_override=720
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/vsync/vsync_mode=0
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_mcp/plugin.cfg")
 
 [input]
 
