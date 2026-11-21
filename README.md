@@ -100,10 +100,14 @@ Si Godot no está en la ruta de Steam por defecto, define antes la variable `GOD
 - [Mapa](new-game-project/docs/MAPA.md): posición del detective, calibración, lugares y cómo ampliarlo
 - [Historia](new-game-project/docs/HISTORIA.md) (contiene la solución del caso)
 - [Recursos](new-game-project/docs/RECURSOS.md): origen y condiciones de los recursos
+- [Godlink MCP](new-game-project/docs/GODLINK_MCP.md): conexión de Claude Code con el editor de Godot
 
 ## Licencias y recursos
 
-Godot Engine se distribuye bajo licencia MIT. Hoy el proyecto no incluye recursos de terceros.
+Godot Engine se distribuye bajo licencia MIT. Hoy el juego no incluye recursos de terceros. El
+repositorio sí incluye un complemento de desarrollo de terceros, Godlink MCP
+(`new-game-project/addons/godot_mcp/`, licencia MIT, © Tomer Yud), que sólo sirve para conectar
+Claude Code con el editor; ver [GODLINK_MCP.md](new-game-project/docs/GODLINK_MCP.md).
 Los recursos generados con IA que se añadan (retratos de ChatGPT y, posiblemente, voces de
 ElevenLabs) se registrarán con su origen y condiciones en
 [RECURSOS.md](new-game-project/docs/RECURSOS.md).

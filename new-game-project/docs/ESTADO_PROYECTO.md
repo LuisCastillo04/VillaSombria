@@ -13,6 +13,8 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 - Identidad Git: `Luis Castillo <161898989+LuisCastillo04@users.noreply.github.com>`, dirección
   noreply de GitHub que coincide con el remoto `LuisCastillo04/VillaSombria`.
 - Los commits son locales: no se hace push sin autorización del propietario.
+- Godlink MCP 0.6.0 conecta Claude Code con el editor (complemento en `addons/godot_mcp/`, servidor
+  `godot-mcp-server@0.6.0` desde `.mcp.json`). Ver [GODLINK_MCP.md](GODLINK_MCP.md).
 
 ## Fases
 
