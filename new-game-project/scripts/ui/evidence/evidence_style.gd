@@ -110,14 +110,13 @@ static func flourish() -> Font:
 	return _system("flourish", FLOURISH_FONTS, 400, false)
 
 
-## Cabecera del periódico: serif negrita estrechada, como la de un diario de la época.
+## Cabecera y titulares del periódico: la serif del diario en negrita.
 static func masthead() -> Font:
-	return _condensed("masthead", NEWSPAPER_FONTS, 700, false, 0.86)
+	return newspaper_bold()
 
 
-## Titulares: la misma familia en negrita, algo estrechada.
 static func headline() -> Font:
-	return _condensed("headline", NEWSPAPER_FONTS, 800, false, 0.9)
+	return newspaper_bold()
 
 
 static func newspaper_body() -> Font:
@@ -167,17 +166,6 @@ static func _system(key: String, names: Array[String], weight: int, italic: bool
 		font.font_weight = weight
 		font.font_italic = italic
 		_fonts[key] = font
-	return _fonts[key]
-
-
-## Una familia del sistema estrechada horizontalmente: con pocas familias condensadas instaladas
-## en un equipo cualquiera, es la forma segura de lograr el aspecto de una cabecera de diario.
-static func _condensed(key: String, names: Array[String], weight: int, italic: bool, width: float) -> Font:
-	if not _fonts.has(key):
-		var variation := FontVariation.new()
-		variation.base_font = _system(key + "_base", names, weight, italic)
-		variation.variation_transform = Transform2D(Vector2(width, 0.0), Vector2(0.0, 1.0), Vector2.ZERO)
-		_fonts[key] = variation
 	return _fonts[key]
 
 

@@ -10,7 +10,23 @@
     "category": "documentos",
     "where": "Quiosco de la plaza",
     "description": "El Eco de Villa Sombría del sábado: «Treinta años del Banco Valdés. Esta noche, cena privada en la mansión». Una nota al pie añade que don Julián lleva semanas consultando documentos en el archivo municipal.",
-    "prompt": "Leer el periódico"
+    "prompt": "Leer el periódico",
+    "presentation": {
+      "template": "periodico",
+      "masthead": "El Eco de Villa Sombría",
+      "tagline": "Diario regional independiente",
+      "issue": "Año XXXII · N.º 4.218",
+      "date": "Sábado, 16 de octubre de 1948",
+      "price": "5 centavos",
+      "headline": "Treinta años del Banco Valdés",
+      "subheadline": "Esta noche, cena privada en la mansión.",
+      "columns": [
+        "Villa Sombría celebra hoy el trigésimo aniversario del Banco Valdés. Esta noche, la familia ofrecerá una cena privada en la mansión a varios socios del banco.",
+        "Fuentes cercanas indican que don Julián Valdés lleva semanas consultando documentos en el archivo municipal."
+      ],
+      "image": "res://assets/ui/mansion_grabado.svg",
+      "vignette": "res://assets/ui/mansion_grabado.svg"
+    }
   },
   "lista_invitados": {
     "name": "Lista de invitados",
