@@ -42,6 +42,9 @@ func _free_game() -> void:
 
 func _wait(seconds: float) -> void:
 	await get_tree().create_timer(seconds).timeout
+	# Los temporizadores se atienden antes que las animaciones del mismo fotograma: si uno largo hace
+	# vencer a la vez el temporizador y un fundido, se espera a que el fundido termine de verdad.
+	await get_tree().process_frame
 
 
 ## Una pulsación tal como llega del teclado o del mando.
