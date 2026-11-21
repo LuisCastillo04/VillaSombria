@@ -347,6 +347,52 @@ if await ConfirmDialog.ask("TÍTULO", "¿Pregunta?", {"confirm_text": "Sí", "fo
 - La pausa, el menú principal y las pantallas de menú (`MenuScreen`) le ceden Escape mientras está
   abierta; ella se lo cede a la pregunta de salida de `ExitManager` (X o Alt + F4), que va por encima.
 
+## Cómo comprobarlo en Godot
+
+Abre el proyecto, ejecuta la escena principal (F5) y entra en **Configuración** desde el menú
+principal o desde la pausa (Esc durante la partida).
+
+| Opción | Qué hacer | Qué debe pasar |
+| --- | --- | --- |
+| Pantalla completa | Activa el interruptor | La ventana ocupa el monitor y aparece «¿Mantener esta pantalla?» con 15 s; sin contestar, vuelve a la ventana. El selector de modo muestra «Pantalla completa» mientras tanto |
+| Modo de ventana | Cambia a «Sin bordes» y confirma | Ventana sin barra de título, centrada; el interruptor de pantalla completa sigue apagado |
+| Resolución | Elige otra con la ventana en modo ventana | La ventana cambia de tamaño y se centra; en pantalla completa el selector se desactiva y dice la del monitor |
+| Sincronización vertical | Actívala | Se aplica al momento; en este portátil puede bajar mucho la tasa de fotogramas (ver «Rendimiento» en `ESTADO_PROYECTO.md`) |
+| Sombras e iluminación | Pon «Bajo» en la plaza | Desaparecen las sombras de farolas, árboles y bancos y el resplandor; las luces siguen iluminando |
+| Efectos y partículas | Pon «Bajo» en la plaza | Llueve menos denso y la niebla es más simple; sigue lloviendo |
+| Velocidad del texto | Elige «Lento» y habla con Eusebio en la estación | El texto se escribe más despacio; con «Instantáneo» aparece entero |
+| Avance automático | Actívalo y abre una conversación | Bajo «Continuar» se llena un filete y la línea pasa sola; en las preguntas se detiene |
+| Confirmaciones | Pulsa T explorando | Con ellas, «¿Quieres dejar pasar una hora?»; sin ellas, pasa la hora en el acto |
+| Tamaño de letra | Elige «Muy grande» | Toda la interfaz crece al momento; abre la pausa, el expediente (J), el tablero (B) y el mapa (M) |
+| Contraste aumentado | Actívalo | Textos más nítidos y un contorno de foco blanco y grueso al moverte con las flechas |
+| Subtítulos | Desactívalos | No cambia nada visible hoy: no hay voces (ver «Limitaciones») |
+| Reducir movimiento | Actívalo y abre una conversación | La ventana y las siluetas aparecen sin deslizarse y no respiran; «Continuar» no late |
+
+Cierra el juego y vuelve a abrirlo: todo sigue como lo dejaste. Las preferencias están en
+`%APPDATA%\Godot\app_userdata\Villa Sombría\ajustes.cfg`.
+
+## Limitaciones
+
+- **Sistema de controles personalizables.** La rama `feature/controles-personalizables` y su trabajo
+  (reasignación de teclas, conflictos, botones del mando para jugar, restaurar las teclas) no existen
+  en el repositorio: en Controles siguen como «Próximamente». Lo nuevo no depende de él: las acciones se
+  leen del InputMap (dejar pasar una hora usa `wait_time`, sea cual sea su tecla), la sección
+  `controles` del archivo está reservada y se conserva, y los menús ya se manejan con la cruceta, el
+  stick y los botones A y B porque usan las acciones `ui_*`. Jugar (moverse, interactuar, abrir el
+  expediente) con mando sigue sin estar asignado.
+- **Resolución en pantalla completa.** Godot 4 no cambia el modo de vídeo del monitor, ni en pantalla
+  completa exclusiva: ahí manda la resolución del monitor y el selector lo explica.
+- **Subtítulos sin contenido.** El juego no tiene voces; la opción y la barra están listas para cuando
+  las tenga, pero hoy nada pide subtítulos.
+- **Contraste aumentado.** Realza texto y foco; los elementos dibujados a mano (marcos, ornamentos,
+  fondos de pergamino) conservan su color.
+- **Tamaño de letra.** Escala toda la interfaz, no sólo las letras: es la forma de que nada se recorte.
+  Las siluetas de las conversaciones mantienen su tamaño.
+- **Sincronización vertical en este portátil.** Con doble GPU, hasta un proyecto vacío cae a unos 5 FPS
+  con ella al lanzarlo desde la terminal; por eso sigue desactivada por defecto.
+- **Mando real.** Las pruebas envían las mismas acciones que un mando (`ui_*`), pero no se ha probado con
+  uno físico.
+
 ## Añadir una preferencia
 
 1. Descríbela en `SettingsSchema.DEFINITIONS` con su tipo, su valor por defecto y lo que admite; si
