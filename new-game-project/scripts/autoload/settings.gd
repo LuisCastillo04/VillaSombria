@@ -6,7 +6,7 @@ extends Node
 ## Qué preferencias existen, sus valores por defecto y los que admiten lo dice `SettingsSchema`;
 ## aquí se leen, se validan, se aplican y se guardan. Cada cambio se escribe en el acto y sólo toca
 ## su propia clave: el resto del archivo, incluidas las secciones que este autoload no conoce (por
-## ejemplo, las teclas que guarde un sistema de reasignación en `controles`), se conserva.
+## ejemplo, las teclas que guarda `Controls` en `controles`), se conserva.
 ##
 ## Quien dependa de una preferencia la lee con `get_value` y escucha `changed` para aplicarla en
 ## caliente. Lo que pertenece al motor (volumen de los canales y ventana) lo aplica este autoload.
@@ -17,6 +17,9 @@ extends Node
 
 ## Una preferencia cambió de valor (ya validado, aplicado y guardado).
 signal changed(key: String, value: Variant)
+## Se volvió a leer el archivo (al arrancar o con `use_file`). Quien guarde en él su propia sección
+## (las teclas de `Controls`) la vuelve a leer al recibirlo.
+signal reloaded
 
 const SETTINGS_PATH := "user://ajustes.cfg"
 const BUSES: Array[String] = ["Master", "Musica", "Efectos", "Ambiente"]
@@ -141,8 +144,14 @@ func use_file(path: String) -> void:
 
 
 ## Lee el archivo. Lo que falte o no sea válido toma su valor por defecto; el formato anterior se
-## migra. Si hubo que corregir algo, el archivo se reescribe ya corregido.
+## migra. Si hubo que corregir algo, el archivo se reescribe ya corregido. Al terminar avisa con
+## `reloaded`.
 func load_settings() -> void:
+	_read_file()
+	reloaded.emit()
+
+
+func _read_file() -> void:
 	_values = SettingsSchema.defaults()
 	_load_report = {"file": "missing", "migrated": false, "rejected": []}
 	if not FileAccess.file_exists(settings_path):
@@ -182,6 +191,37 @@ func load_settings() -> void:
 ## Escribe todas las preferencias.
 func save() -> void:
 	_write(SettingsSchema.keys())
+
+
+# --- Secciones de otros sistemas ---
+
+## Contenido de una sección que gestiona otro sistema (`SettingsSchema.EXTERNAL_SECTIONS`), tal como
+## está en el archivo. Vacío si no existe o el archivo no se puede leer. Validarlo es cosa de quien
+## lo usa.
+func read_section(section: String) -> Dictionary:
+	var values := {}
+	var config := ConfigFile.new()
+	if not FileAccess.file_exists(settings_path) or config.load(settings_path) != OK:
+		return values
+	if config.has_section(section):
+		for key in config.get_section_keys(section):
+			values[key] = config.get_value(section, key)
+	return values
+
+
+## Sustituye entera una sección de otro sistema por `values` (vacío la retira) y conserva todo lo
+## demás. Las secciones de las preferencias de `SettingsSchema` no se pueden escribir así. Devuelve si
+## se guardó.
+func write_section(section: String, values: Dictionary) -> bool:
+	if not section in SettingsSchema.EXTERNAL_SECTIONS:
+		push_warning("La sección %s no es de otro sistema: usa set_value." % section)
+		return false
+	var config := _open_config()
+	if config.has_section(section):
+		config.erase_section(section)
+	for key: String in values:
+		config.set_value(section, key, values[key])
+	return _save_config(config)
 
 
 # --- Pantalla ---
@@ -310,9 +350,17 @@ func _sync_volumes() -> void:
 		volumes[bus_name] = float(get_value("audio/" + bus_name))
 
 
-## Escribe las claves dadas sobre el archivo existente, conservando todo lo demás. Retira las
-## secciones del formato anterior, que ya se migraron al leer.
+## Escribe las claves dadas sobre el archivo existente, conservando todo lo demás.
 func _write(keys: Array[String]) -> bool:
+	var config := _open_config()
+	for key in keys:
+		config.set_value(SettingsSchema.section_of(key), SettingsSchema.name_of(key), get_value(key))
+	return _save_config(config)
+
+
+## El archivo tal como está, listo para cambiarlo: sin las secciones del formato anterior, que ya se
+## migraron al leer, y con la versión actual. Si no existe o es ilegible, uno vacío.
+func _open_config() -> ConfigFile:
 	var config := ConfigFile.new()
 	if FileAccess.file_exists(settings_path) and config.load(settings_path) != OK:
 		config = ConfigFile.new()
@@ -320,8 +368,10 @@ func _write(keys: Array[String]) -> bool:
 		if config.has_section(section):
 			config.erase_section(section)
 	config.set_value("meta", "version", SettingsSchema.VERSION)
-	for key in keys:
-		config.set_value(SettingsSchema.section_of(key), SettingsSchema.name_of(key), get_value(key))
+	return config
+
+
+func _save_config(config: ConfigFile) -> bool:
 	var error := config.save(settings_path)
 	if error != OK:
 		push_warning("No se pudieron guardar los ajustes en %s (%s)" % [settings_path, error_string(error)])

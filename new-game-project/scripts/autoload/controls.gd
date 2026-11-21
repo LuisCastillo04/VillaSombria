@@ -10,18 +10,95 @@ extends Node
 ## decide `InputBindings`. Aquí se comprueba cada cambio antes de hacerlo: una tecla que ya usa otra
 ## acción no se asigna sin más, sino que se ofrece intercambiarla (`check` y `swap`), y ninguna
 ## acción se queda nunca sin tecla.
+##
+## **Persistencia.** Las teclas son una preferencia del jugador, común a todas las partidas: se
+## guardan en `user://ajustes.cfg` (sección `controles`) a través de `Settings`, nunca en las ranuras.
+## Sólo se escriben las acciones que difieren de las de fábrica, por su nombre de tecla:
+##
+##     [controles]
+##     interact=["F"]
+##     move_forward=["W", "Up"]
+##
+## Se leen al arrancar y cada vez que `Settings` vuelve a leer su archivo. Lo que no sea válido (una
+## tecla desconocida o reservada, dos acciones con la misma tecla) se descarta y el archivo se corrige.
+## Restaurar las teclas de fábrica retira la sección entera; el resto de preferencias no cambia.
 
-## Cambiaron las teclas de estas acciones (ya aplicadas al InputMap).
+## Cambiaron las teclas de estas acciones (ya aplicadas al InputMap y guardadas).
 signal bindings_changed(actions: PackedStringArray)
+
+## Sección de `ajustes.cfg` donde se guardan las teclas.
+const SECTION := "controles"
 
 ## Teclas vigentes de cada acción reasignable: códigos físicos, la principal primero.
 var _keys: Dictionary = {}
+## Qué pasó en la última lectura: acciones leídas y descartadas.
+var _load_report: Dictionary = {}
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_keys = InputBindings.defaults()
+	Settings.reloaded.connect(load_bindings)
+	load_bindings()
+
+
+# --- Lectura ---
+
+## Lee las teclas guardadas y las aplica al InputMap. Lo que falte toma las de fábrica; lo que no sea
+## válido se descarta y el archivo se reescribe sin ello.
+func load_bindings() -> void:
+	var stored := Settings.read_section(SECTION)
+	var map := InputBindings.defaults()
+	var loaded := PackedStringArray()
+	var rejected := PackedStringArray()
+	for action: String in stored:
+		var keys := _parse_keys(action, stored[action])
+		if keys.is_empty():
+			rejected.append(action)
+		else:
+			map[action] = keys
+			loaded.append(action)
+	# Un juego incoherente (dos acciones con la misma tecla) no se aplica a medias: se vuelve a las de
+	# fábrica para que ninguna acción quede inservible.
+	if not InputBindings.validate_map(map).is_empty():
+		rejected.append_array(loaded)
+		loaded.clear()
+		map = InputBindings.defaults()
+	_keys = map
 	_apply_all()
+	_load_report = {"loaded": loaded, "rejected": rejected}
+	if not rejected.is_empty():
+		_save()
+	bindings_changed.emit(PackedStringArray(InputBindings.action_ids()))
+
+
+## Qué pasó en la última lectura, para las pruebas y el diagnóstico.
+func get_load_report() -> Dictionary:
+	return _load_report.duplicate(true)
+
+
+## Teclas de una entrada del archivo, o vacío si no es válida para esa acción.
+static func _parse_keys(action: String, value: Variant) -> Array[Key]:
+	var keys: Array[Key] = []
+	if not InputBindings.has_action(action):
+		return keys
+	var names: Array = []
+	match typeof(value):
+		TYPE_ARRAY, TYPE_PACKED_STRING_ARRAY:
+			names.assign(value)
+		TYPE_STRING, TYPE_STRING_NAME:
+			names.append(value)
+		_:
+			return keys
+	if names.is_empty() or names.size() > InputBindings.SLOTS:
+		return [] as Array[Key]
+	for name: Variant in names:
+		if typeof(name) != TYPE_STRING and typeof(name) != TYPE_STRING_NAME:
+			return [] as Array[Key]
+		var code := InputBindings.key_from_text(String(name))
+		if keys.has(code) or not InputBindings.blocked_reason(action, code).is_empty():
+			return [] as Array[Key]
+		keys.append(code)
+	return keys
 
 
 # --- Consulta ---
@@ -135,12 +212,15 @@ func clear_slot(action: String, slot: int) -> bool:
 	return _commit({action: keys})
 
 
-## Vuelve a las teclas de fábrica de todas las acciones reasignables.
+## Vuelve a las teclas de fábrica de todas las acciones reasignables y retira del archivo las
+## personalizadas. Las demás preferencias (gráficos, audio, accesibilidad...) no cambian.
 func restore_defaults() -> void:
 	var changes := {}
 	for action in InputBindings.action_ids():
 		changes[action] = InputBindings.default_keys(action)
-	_commit(changes)
+	if not _commit(changes):
+		# Ya eran las de fábrica: aun así, que no quede nada personalizado en el archivo.
+		_save()
 
 
 ## Aplica un juego de cambios si el resultado es válido. Devuelve si cambió algo.
@@ -162,8 +242,23 @@ func _commit(changes: Dictionary) -> bool:
 	_keys = next
 	for action in changed:
 		InputBindings.apply(action, get_keys(action))
+	_save()
 	bindings_changed.emit(changed)
 	return true
+
+
+## Escribe en `ajustes.cfg` las acciones que difieren de las de fábrica; sin ninguna, retira la
+## sección.
+func _save() -> void:
+	var values := {}
+	for action in customized_actions():
+		var names: Array[String] = []
+		for code in get_keys(action):
+			names.append(InputBindings.key_to_text(code))
+		values[action] = names
+	if values.is_empty() and Settings.read_section(SECTION).is_empty():
+		return
+	Settings.write_section(SECTION, values)
 
 
 func _apply_all() -> void:

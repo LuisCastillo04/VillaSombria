@@ -1,7 +1,8 @@
 extends TestCase
 ## Teclas del jugador: las de fábrica salen de project.godot, los cambios llegan al InputMap sin tocar
 ## el mando, los conflictos se detectan y se resuelven intercambiando, ninguna acción se queda sin
-## tecla y las teclas fijas de los menús no se pueden quitar.
+## tecla, las teclas fijas de los menús no se pueden quitar y todo se guarda en `ajustes.cfg` (aparte
+## de las partidas) y se recupera al volver a abrir el juego.
 
 
 func before_each() -> void:
@@ -167,6 +168,94 @@ func test_invalid_maps_are_detected() -> void:
 	map = InputBindings.defaults()
 	map["open_board"] = [KEY_ESCAPE] as Array[Key]
 	check(not InputBindings.validate_map(map).is_empty(), "una tecla reservada")
+
+
+# --- Persistencia ---
+
+static func _stored() -> ConfigFile:
+	var config := ConfigFile.new()
+	config.load(Settings.settings_path)
+	return config
+
+
+## Lo que hace un arranque nuevo: el InputMap de project.godot y los ajustes leídos del archivo.
+static func _restart() -> void:
+	InputMap.load_from_project_settings()
+	Settings.load_settings()
+
+
+func test_custom_keys_are_saved_in_the_settings_file() -> void:
+	Settings.set_value("audio/Master", 0.55)
+	Controls.assign("interact", 0, KEY_F)
+	Controls.assign("move_forward", 1, KEY_I)
+	var stored := _stored()
+	check(stored.has_section("controles"), "las teclas van a la sección controles de ajustes.cfg")
+	check_equal(stored.get_value("controles", "interact", []), ["F"], "interactuar con su nombre de tecla")
+	check_equal(stored.get_value("controles", "move_forward", []), ["W", "I"], "avanzar con sus dos teclas")
+	check(not stored.has_section_key("controles", "open_map"), "lo que no cambió no se escribe")
+	check(is_equal_approx(float(stored.get_value("audio", "Master", -1.0)), 0.55), "y el resto de preferencias sigue en el archivo")
+	check(not Settings.settings_path.begins_with(SaveSystem.get_storage_dir()), "nada de esto va a las ranuras de partida")
+	Settings.set_value("audio/Master", SettingsSchema.DEFAULT_VOLUME)
+
+
+func test_custom_keys_survive_a_restart() -> void:
+	Controls.assign("interact", 0, KEY_F)
+	Controls.swap("open_map", 0, KEY_B)
+	Controls.assign("sprint", 0, KEY_CTRL)
+	_restart()
+	check_equal(Controls.get_keys("interact"), [KEY_F] as Array[Key], "interactuar sigue en F")
+	check_equal(Controls.get_keys("open_map"), [KEY_B] as Array[Key], "el mapa en B")
+	check_equal(Controls.get_keys("open_board"), [KEY_M] as Array[Key], "el tablero recibió la M del intercambio")
+	check_equal(_key_codes("sprint"), [KEY_CTRL] as Array[Key], "y el InputMap ya usa Ctrl para correr")
+	check(Controls.get_load_report()["rejected"].is_empty(), "sin descartar nada")
+
+
+func test_restoring_removes_the_keys_and_keeps_other_preferences() -> void:
+	Settings.set_value("audio/Musica", 0.3)
+	Settings.set_value("jugabilidad/velocidad_texto", "rapido")
+	Controls.assign("interact", 0, KEY_F)
+	Controls.assign("wait_time", 0, KEY_Y)
+	Controls.restore_defaults()
+	check(not _stored().has_section("controles"), "la sección de teclas desaparece del archivo")
+	check(is_equal_approx(float(Settings.get_value("audio/Musica")), 0.3), "el volumen no cambia")
+	check_equal(Settings.get_value("jugabilidad/velocidad_texto"), "rapido", "ni la velocidad del texto")
+	_restart()
+	check(Controls.customized_actions().is_empty(), "tras reiniciar siguen las teclas de fábrica")
+	check_equal(_key_codes("interact"), [KEY_E] as Array[Key], "interactuar vuelve a E")
+	Settings.restore_defaults()
+
+
+func test_damaged_stored_keys_are_discarded() -> void:
+	Settings.write_section("controles", {"interact": ["Escape"], "open_map": ["Zzz"], "wait_time": "Y", "sprint": 7})
+	Settings.load_settings()
+	var report := Controls.get_load_report()
+	check(report["rejected"].has("interact"), "Esc no se acepta para interactuar")
+	check(report["rejected"].has("open_map"), "una tecla desconocida tampoco")
+	check(report["rejected"].has("sprint"), "ni un valor que no es una tecla")
+	check_equal(Controls.get_keys("interact"), [KEY_E] as Array[Key], "interactuar se queda con la de fábrica")
+	check_equal(Controls.get_keys("wait_time"), [KEY_Y] as Array[Key], "lo válido sí se aplica")
+	var stored := _stored()
+	check(not stored.has_section_key("controles", "interact"), "el archivo se corrige")
+	check_equal(stored.get_value("controles", "wait_time", []), ["Y"], "conservando lo válido")
+
+
+func test_an_incoherent_stored_set_falls_back_to_the_defaults() -> void:
+	# Cada entrada es válida por sí sola, pero juntas dejan la E en dos acciones.
+	Settings.write_section("controles", {"open_board": ["E"], "wait_time": ["Y"]})
+	Settings.load_settings()
+	check(Controls.customized_actions().is_empty(), "no se aplica a medias: vuelven las de fábrica")
+	check_equal(Controls.get_keys("interact"), [KEY_E] as Array[Key], "interactuar conserva su tecla")
+	check(not _stored().has_section("controles"), "y el archivo queda limpio")
+
+
+func test_settings_sections_of_other_systems_are_kept_apart() -> void:
+	check(not Settings.write_section("audio", {"Master": 0.1}), "una sección de preferencias no se escribe a mano")
+	check(is_equal_approx(float(_stored().get_value("audio", "Master", SettingsSchema.DEFAULT_VOLUME)), float(Settings.get_value("audio/Master"))), "y no cambia")
+	Controls.assign("interact", 0, KEY_F)
+	Settings.set_value("graficos/vsync", not Settings.vsync)
+	check_equal(_stored().get_value("controles", "interact", []), ["F"], "guardar otra preferencia conserva las teclas")
+	Settings.restore_defaults()
+	check_equal(_stored().get_value("controles", "interact", []), ["F"], "y restaurar la configuración no las toca")
 
 
 static func _current_map() -> Dictionary:
