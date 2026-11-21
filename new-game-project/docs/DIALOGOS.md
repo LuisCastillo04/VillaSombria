@@ -85,6 +85,9 @@ con `DialogueManager.advance()` y `choose()`, que deciden qué pasa después.
 
 - Una pulsación hace una sola cosa: nunca completa el texto y avanza a la vez, y las repeticiones
   de una tecla mantenida no cuentan.
+- La velocidad de la escritura y el avance automático se eligen en Configuración → Jugabilidad.
+  Con el avance automático, un filete dorado bajo «Continuar» se llena hasta pasar sola; nunca elige
+  una respuesta. Ver [CONFIGURACION.md](CONFIGURACION.md).
 - Durante 0,3 s tras aparecer las respuestas no se acepta confirmar con una tecla ni con un clic,
   para que una pulsación de más al terminar de leer no haga la primera pregunta. Los números sí.
 - El ratón sólo señala al moverse: si las respuestas aparecen bajo un cursor quieto, el foco sigue
@@ -113,7 +116,7 @@ para textos futuros o pantallas más estrechas.
 | --- | --- | --- |
 | Abrir | El velo y el marco se funden, las siluetas llegan desde los lados y la ventana sube 70 px | 0,45 s |
 | Primera intervención | Empieza a escribirse cuando la ventana ya casi ha llegado | 0,22 s de espera |
-| Escritura | 48 letras por segundo, una tecla cada tres y una pausa breve tras un punto o una coma | — |
+| Escritura | 48 letras por segundo (o la velocidad elegida en Configuración), una tecla cada tres y una pausa breve tras un punto o una coma | — |
 | Cambio de quien habla | El nombre de la placa se apaga y se enciende; el tinte de las siluetas y el contraluz cambian | 0,1 s + 0,2 s; 0,2 s |
 | Texto completo | «Continuar» late despacio | 1,1 s por latido |
 | Lectura ↔ respuestas | El contenido se funde y el borde superior, con la placa, sube o baja hasta su altura | 0,3 s |
@@ -161,7 +164,8 @@ Comprobado con pruebas a 16:9, 4:3, 5:4, 16:10 y 21:9, y con capturas a 1280 × 
 | --- | --- |
 | Personaje nuevo | Su entrada en `characters.json` (`name`, `portrait`) y su archivo en `data/dialogues/`: la placa y la silueta salen solas |
 | Expresiones | Cada personaje tiene hoy una silueta. Para variantes, un campo opcional por línea que `DialogueCast.set_speaker` traduzca a otra textura |
-| Velocidad del texto | `DialogueText.characters_per_second` (por defecto `DialogueStyle.CHARACTERS_PER_SECOND`); la opción prevista de Configuración la leería de `Settings` |
+| Velocidad del texto | Opción de Configuración (`jugabilidad/velocidad_texto`); las letras por segundo de cada una están en `DialogueStyle.TEXT_SPEEDS`. Ver [CONFIGURACION.md](CONFIGURACION.md) |
+| Avance automático | Opción de Configuración (`jugabilidad/avance_automatico`); la espera la calcula `DialogueStyle.auto_hold` |
 | Líneas por página | `DialogueStyle.TEXT_LINES` |
 | Rótulos de las respuestas | `DialogueChoices.TOPICS_HEADING` y `REPLIES_HEADING` |
 | Voces | Como prevé la arquitectura, un campo por línea; `DialogueUi._on_line_shown` es donde reproducirla |

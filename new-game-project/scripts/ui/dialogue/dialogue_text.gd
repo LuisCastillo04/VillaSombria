@@ -13,8 +13,13 @@ extends RichTextLabel
 
 signal completed
 
-## Letras por segundo del efecto de escritura. Con 0, cada página aparece de golpe.
-@export var characters_per_second := DialogueStyle.CHARACTERS_PER_SECOND
+## Letras por segundo del efecto de escritura. Con 0, cada página aparece de golpe; si se pone a 0
+## mientras se escribe, lo que falta aparece en el acto.
+@export var characters_per_second := DialogueStyle.CHARACTERS_PER_SECOND:
+	set(value):
+		characters_per_second = maxf(value, 0.0)
+		if characters_per_second <= 0.0 and _typing:
+			complete()
 ## Cada cuántas letras suena una tecla.
 @export var sound_every := 3
 ## Líneas que caben en la ventana; un texto más largo se reparte en páginas.
@@ -130,6 +135,11 @@ func clear_line() -> void:
 
 func is_typing() -> bool:
 	return _typing
+
+
+## Letras de la página actual.
+func get_page_length() -> int:
+	return get_total_character_count()
 
 
 ## Si la página actual ya se ve entera.

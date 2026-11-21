@@ -171,6 +171,44 @@ depende del tope de fotogramas.
 godot --path . --resolution 1920x1080 res://tests/visual/rendimiento.tscn -- --location=plaza --iluminacion=bajo --efectos=bajo
 ```
 
+## Conversaciones
+
+`DialogueUi` lee `jugabilidad/velocidad_texto` y `jugabilidad/avance_automatico` al crearse y escucha
+`Settings.changed`, así que un cambio se nota en el acto, también a mitad de una intervención.
+`DialogueManager` y los datos de las conversaciones no cambian.
+
+### Velocidad del texto
+
+| Opción | Letras por segundo |
+| --- | --- |
+| Lento | 24 |
+| Normal | 48 (la de siempre) |
+| Rápido | 96 |
+| Instantáneo | Cada página aparece entera |
+
+- Las pausas breves tras un punto o una coma se mantienen en las tres velocidades con escritura.
+- La primera pulsación sigue completando la página y la siguiente avanza: una pulsación nunca hace
+  dos cosas.
+- Con el texto instantáneo, durante 0,15 s después de aparecer una página la pulsación no cuenta
+  (`DialogueStyle.INSTANT_ADVANCE_GUARD`): dos pulsaciones seguidas no se saltan una intervención
+  sin haberla visto.
+- Si se cambia a instantáneo mientras se escribe, lo que falta aparece en el acto.
+
+### Avance automático
+
+1. La intervención se escribe a la velocidad elegida.
+2. Cuando la página se lee entera, empieza la espera: el tiempo de leerla a 22 letras por segundo,
+   menos lo que se tardó en escribirla, más 1,2 s; entre 1,2 y 8 s (`DialogueStyle.auto_hold`).
+3. Un filete dorado bajo «Continuar» se llena mientras tanto.
+4. Al terminar, pasa a la página o a la intervención siguiente, igual que la tecla de avanzar.
+
+- **Nunca elige una respuesta.** Con las preguntas o las respuestas en pantalla la cuenta se detiene
+  y la decisión espera al jugador, el tiempo que haga falta.
+- La tecla de avanzar (E, Intro o el botón de aceptar del mando) sigue funcionando y no espera.
+- Activarlo con una página ya leída empieza a contar; desactivarlo para la cuenta.
+- Cerrar la conversación (por la historia o porque termina) detiene la cuenta, y con el juego en
+  pausa (la pregunta de salida) la cuenta no avanza.
+
 ## Ventana de confirmación
 
 `ConfirmDialog` (autoload, `scripts/autoload/confirm_dialog.gd`, capa 45) es la pregunta común: título,
@@ -204,6 +242,12 @@ if await ConfirmDialog.ask("TÍTULO", "¿Pregunta?", {"confirm_text": "Sí", "fo
 que no cabe, que el interruptor y el selector son la misma preferencia, la confirmación (mantener,
 restaurar, Escape, cuenta atrás, también en pausa, un solo cambio a la vez), el foco dentro de la
 pregunta y que Escape no cierra la configuración de detrás.
+
+`tests/unit/test_dialogue_settings.gd` comprueba que cada velocidad llega a la escritura, que lento
+tarda más que rápido, que el texto instantáneo aparece entero y no se salta intervenciones con dos
+pulsaciones, el cambio de velocidad en mitad de una intervención, que el avance automático espera lo
+que hay que leer y pasa solo, que nunca elige una respuesta, que se puede activar y desactivar a mitad
+de la conversación, que la tecla sigue funcionando y que se detiene al cerrar.
 
 `tests/unit/test_graphics_quality.gd` comprueba con la escena de juego real que Alto es el aspecto
 original, qué reduce cada nivel, que ninguna luz se apaga, que el cambio llega a lo que ya existe y a los
