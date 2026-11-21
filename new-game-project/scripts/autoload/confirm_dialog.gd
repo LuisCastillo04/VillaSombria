@@ -10,6 +10,15 @@ extends CanvasLayer
 ## Con `timeout`, la pregunta se contesta sola como «cancelar» al agotarse el tiempo y muestra la
 ## cuenta atrás (se usa al cambiar la pantalla: si el jugador no ve nada, se restaura lo anterior).
 ##
+## Hay dos clases de pregunta:
+## - **Opcionales** (`ask_optional`): acciones que el jugador puede querer hacer sin más, como dejar
+##   pasar una hora. Se hacen sólo si tiene activadas las confirmaciones en Configuración
+##   (`jugabilidad/confirmaciones`); si no, la respuesta es «sí» en el acto.
+## - **Críticas** (`ask`): se hacen siempre, porque se pierde algo o el jugador podría quedarse sin ver
+##   la pantalla: mantener un cambio de pantalla. Las de eliminar o sobrescribir una partida y la de
+##   salir sin guardar tienen su propia ventana (`SaveSlotsMenu`, `ExitManager`) y tampoco dependen
+##   de la preferencia.
+##
 ## Funciona con el ratón, el teclado y el mando: el foco no sale de los dos botones, izquierda y
 ## derecha pasan de uno a otro, aceptar pulsa el señalado y Escape (o el botón de cancelar del
 ## mando) cancela. También con el árbol en pausa.
@@ -75,6 +84,19 @@ func ask(title: String, message: String, options: Dictionary = {}) -> bool:
 
 func is_open() -> bool:
 	return _open
+
+
+## Pregunta sólo si el jugador tiene activadas las confirmaciones en Configuración; si no, contesta
+## «sí» en el acto sin mostrar nada. Para las acciones que no destruyen nada.
+func ask_optional(title: String, message: String, options: Dictionary = {}) -> bool:
+	if not confirmations_enabled():
+		return true
+	return await ask(title, message, options)
+
+
+## Si el jugador quiere que se le pregunte antes de las acciones que se pueden confirmar.
+func confirmations_enabled() -> bool:
+	return bool(Settings.get_value("jugabilidad/confirmaciones"))
 
 
 ## Confirma o cancela la pregunta en pantalla, como los botones.

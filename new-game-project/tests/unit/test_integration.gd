@@ -188,8 +188,11 @@ func test_wait_key_advances_time_and_moves_npcs() -> void:
 	await game.go_to("cafe", "desde_plaza")
 	DialogueManager.close()
 	check(game.current_location.get_npc("irene") == null, "por la mañana Irene sigue en la mansión")
+	# Sin confirmación: la pregunta previa se prueba en test_confirmations.
+	Settings.set_value("jugabilidad/confirmaciones", false)
 	GameClock.minutes = 15 * 60 + 30
 	_press("wait_time")
 	await wait_physics_frames(4)
 	check_equal(GameClock.minutes, 16 * 60 + 30, "T deja pasar una hora")
 	check(game.current_location.get_npc("irene") != null, "la rutina la trae al café a su hora")
+	Settings.set_value("jugabilidad/confirmaciones", true)

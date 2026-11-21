@@ -16,9 +16,10 @@ extends Node
 ##   --pasos=a,a,2         con --dialogue-shots o --escena, antes de capturar: «a» avanza una
 ##                         intervención y un número elige esa respuesta (1 la primera)
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
-##                         | exit | saving | saved | settings:n | controls:n | map[:lugar]
+##                         | exit | saving | saved | settings:n | controls:n | map[:lugar] | esperar
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
-##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta)
+##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta;
+##                         esperar pulsa la tecla de dejar pasar una hora)
 ##   --seleccion=a,b       con --open=board, elige esos elementos para compararlos
 ##   --relacionar          con --open=board y --seleccion, pulsa «Relacionar»
 ##   --editar=id           con --open=board, abre la hipótesis de ese sospechoso
@@ -219,6 +220,14 @@ func _open_panel(game: Game, what: String) -> void:
 			slots.select_slot("manual_2")
 			if what == "confirm":
 				slots.get_action_button().pressed.emit()
+		"esperar":
+			# La tecla de dejar pasar una hora, con las confirmaciones activadas.
+			await _wait_seconds(0.6)
+			for pressed: bool in [true, false]:
+				var event := InputEventAction.new()
+				event.action = "wait_time"
+				event.pressed = pressed
+				game.get_viewport().push_input(event)
 		"exit":
 			await _wait_seconds(0.6)
 			GameState.set_flag("captura_sin_ranura")

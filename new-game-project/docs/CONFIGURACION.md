@@ -209,6 +209,26 @@ godot --path . --resolution 1920x1080 res://tests/visual/rendimiento.tscn -- --l
 - Cerrar la conversación (por la historia o porque termina) detiene la cuenta, y con el juego en
   pausa (la pregunta de salida) la cuenta no avanza.
 
+## Confirmaciones
+
+`jugabilidad/confirmaciones` («Preguntar antes de acciones como dejar pasar una hora») decide si se
+pregunta antes de las acciones **opcionales**. Hoy lo es dejar pasar una hora:
+
+- **Activadas** (por defecto): la tecla de `wait_time` (la que tenga asignada en el InputMap; hoy T)
+  abre «¿Quieres dejar pasar una hora?» con la hora actual y la resultante, «Confirmar» y «Cancelar».
+  Mientras se pregunta, el detective no se mueve (bloqueo `confirmacion`) y ninguna otra tecla abre
+  una pantalla. Confirmar deja pasar la hora con el aviso de siempre; cancelar, Escape o el botón de
+  cancelar del mando no hacen nada.
+- **Desactivadas**: la hora pasa en el acto, como antes.
+- A las 23:30 no hay nada que confirmar: se avisa de que hay que descansar, como siempre.
+
+Las confirmaciones **críticas** no dependen de la preferencia y se hacen siempre: sobrescribir o
+eliminar una partida (`SaveSlotsMenu`), salir sin guardar (`ExitManager`) y mantener un cambio de
+pantalla. El guardado automático y el cierre seguro con la X o Alt + F4 no cambian.
+
+Para hacer opcional otra acción: `if await ConfirmDialog.ask_optional(título, pregunta): ...`. Si la
+acción destruye algo, usa `ConfirmDialog.ask`, que pregunta siempre.
+
 ## Ventana de confirmación
 
 `ConfirmDialog` (autoload, `scripts/autoload/confirm_dialog.gd`, capa 45) es la pregunta común: título,
@@ -242,6 +262,12 @@ if await ConfirmDialog.ask("TÍTULO", "¿Pregunta?", {"confirm_text": "Sí", "fo
 que no cabe, que el interruptor y el selector son la misma preferencia, la confirmación (mantener,
 restaurar, Escape, cuenta atrás, también en pausa, un solo cambio a la vez), el foco dentro de la
 pregunta y que Escape no cierra la configuración de detrás.
+
+`tests/unit/test_confirmations.gd` comprueba, con la escena de juego real y entradas como las del
+jugador, que esperar pregunta antes con las confirmaciones activadas (aceptar, cancelar, Escape, una
+sola pregunta a la vez, sin abrir otras pantallas), que no pregunta con ellas desactivadas, que sigue la
+tecla asignada a `wait_time`, el límite del día y que las confirmaciones críticas no dependen de la
+preferencia. `tests/visual/captura.tscn -- --open=esperar` fotografía la pregunta.
 
 `tests/unit/test_dialogue_settings.gd` comprueba que cada velocidad llega a la escritura, que lento
 tarda más que rápido, que el texto instantáneo aparece entero y no se salta intervenciones con dos
