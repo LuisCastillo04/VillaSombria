@@ -250,7 +250,7 @@ func test_layout_fits_every_screen_shape() -> void:
 		var objective := hud.get_objective_panel().get_rect()
 		var bar := hud.get_controls_bar().get_rect()
 		var prompt := hud.get_prompt().get_rect()
-		var toasts: Control = hud.get_node("Root/Toasts")
+		var toasts: Control = hud.get_toasts_container()
 		var label := "%dx%d" % [int(view.x), int(view.y)]
 		for rect: Rect2 in [location, objective, bar, prompt]:
 			check(screen.encloses(rect), "%s: una pieza se sale de la pantalla %s" % [label, rect])

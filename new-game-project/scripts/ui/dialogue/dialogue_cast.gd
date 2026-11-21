@@ -99,11 +99,13 @@ func set_speaker(speaker_id: String) -> void:
 	_set_backlight(BACKLIGHT_SPEAKING if portrait_active else BACKLIGHT_LISTENING, true)
 
 
-## Entrada: las figuras llegan desde los lados mientras aparecen.
-func play_entrance() -> void:
+## Entrada: las figuras llegan desde los lados mientras aparecen. Con `continuing` (una
+## conversación que sigue a otra sin pausa) parten de donde estaban.
+func play_entrance(continuing: bool = false) -> void:
 	_restart_tween()
-	_slide = 1.0
-	modulate.a = 0.0
+	if not continuing:
+		_slide = 1.0
+		modulate.a = 0.0
 	_apply_layout()
 	set_process(true)
 	_tween.set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)

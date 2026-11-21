@@ -200,6 +200,9 @@ func _advance() -> void:
 # --- Señales de la conversación ---
 
 func _on_opened(npc_id: String) -> void:
+	# Una escena que empieza justo al terminar otra (la confrontación y el epílogo) encuentra la
+	# capa aún a la vista: se sigue desde ahí, sin apagarlo todo para volver a encenderlo.
+	var continuing := _root.visible
 	_npc_id = npc_id
 	_first_line = true
 	_last_choice = ""
@@ -213,8 +216,8 @@ func _on_opened(npc_id: String) -> void:
 	_set_interactive(true)
 	_root.show()
 	_enter_mode(Mode.READING, false)
-	_set_height(_narrative_height(), false)
-	_play_entrance()
+	_set_height(_narrative_height(), continuing)
+	_play_entrance(continuing)
 
 
 func _on_line_shown(speaker_id: String, text: String) -> void:
@@ -395,15 +398,17 @@ func _layout_window() -> void:
 # --- Entrada y salida ---
 
 ## El velo y el marco se funden, las siluetas llegan desde los lados y la ventana sube desde el pie.
-func _play_entrance() -> void:
+## Con `continuing`, todo parte de como estaba en lugar de desde fuera de la pantalla.
+func _play_entrance(continuing: bool = false) -> void:
 	if _transition != null:
 		_transition.kill()
-	_slide = 1.0
-	_dim.color.a = 0.0
-	_window.modulate.a = 0.0
-	_screen_frame.modulate.a = 0.0
+	if not continuing:
+		_slide = 1.0
+		_dim.color.a = 0.0
+		_window.modulate.a = 0.0
+		_screen_frame.modulate.a = 0.0
 	_layout_window()
-	_cast.play_entrance()
+	_cast.play_entrance(continuing)
 	_transition = create_tween().set_parallel().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	_transition.tween_property(self, "_slide", 0.0, DialogueStyle.OPEN_SECONDS)
 	_transition.tween_property(_dim, "color:a", DialogueStyle.DIM.a, 0.35)

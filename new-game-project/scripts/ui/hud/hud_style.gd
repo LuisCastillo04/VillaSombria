@@ -52,6 +52,10 @@ const BAR_MAX_WIDTH := 1808.0
 const BAR_ICON := 52.0
 const TOAST_WIDTH := 440.0
 const TOAST_LIMIT := 4
+## Capa de los avisos mientras hay una conversación: justo por encima de ella (capa 6), para que una
+## pista o un testimonio conseguidos hablando se lean, y por debajo de las pantallas completas, que
+## no pueden abrirse a la vez que una conversación.
+const NOTICES_OVER_DIALOGUE_LAYER := 7
 ## Marco fino de la pantalla, separado del borde.
 const FRAME_INSET := 14.0
 
