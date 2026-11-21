@@ -2,9 +2,11 @@ class_name DialogueControls
 extends RefCounted
 ## Qué entradas manejan una conversación y cómo se anuncian en pantalla.
 ##
-## Avanzar usa las acciones reales del InputMap («interact» y «ui_accept») y el clic izquierdo; las
-## teclas numéricas eligen una respuesta. Los rótulos se construyen con las teclas asignadas de
-## verdad (`InputLabels`), así que una reasignación futura se verá aquí sin tocar la interfaz.
+## Avanzar usa las acciones reales del InputMap («interact» y «ui_accept») y el clic izquierdo. Con
+## las respuestas en pantalla, las teclas numéricas (fila superior o teclado numérico) eligen una,
+## «ui_up» y «ui_down» las recorren y las mismas acciones de avanzar confirman la señalada; el
+## ratón señala al moverse y elige al hacer clic. Los rótulos se construyen con las teclas asignadas
+## de verdad (`InputLabels`), así que una reasignación futura se verá aquí sin tocar la interfaz.
 
 ## Acciones que hacen avanzar el texto, en el orden en que se anuncian.
 const ADVANCE_ACTIONS: Array[String] = ["interact", "ui_accept"]
@@ -21,6 +23,15 @@ static func is_advance(event: InputEvent) -> bool:
 			return true
 	var click := event as InputEventMouseButton
 	return click != null and click.pressed and click.button_index == MOUSE_BUTTON_LEFT
+
+
+## Si el evento confirma la respuesta señalada: la tecla de interactuar o la de aceptar, sin
+## repeticiones. El clic lo recoge cada tarjeta.
+static func is_confirm(event: InputEvent) -> bool:
+	for action in ADVANCE_ACTIONS:
+		if event.is_action_pressed(action):
+			return true
+	return false
 
 
 ## Posición de la respuesta que elige una tecla numérica (0 para el 1), o -1 si no es una de ellas.

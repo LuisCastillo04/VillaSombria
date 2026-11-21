@@ -17,6 +17,8 @@ var _waiting_input := false
 ## La próxima intervención es la primera desde que se abrió la conversación.
 var _first_line := false
 var _npc_id := ""
+## Última respuesta elegida: al volver al menú, el foco regresa a ella.
+var _last_choice := ""
 var _transition: Tween
 ## 1 fuera de escena, 0 en su sitio. Todo el encuadre se calcula a partir de este valor
 ## y de márgenes relativos, de modo que sobrevive a un cambio de tamaño de ventana.
@@ -131,14 +133,30 @@ func _process(_delta: float) -> void:
 func _input(event: InputEvent) -> void:
 	if not _root.visible or not DialogueManager.active:
 		return
-	if (_text.is_typing() or _waiting_input) and DialogueControls.is_advance(event):
+	if _choices.visible:
+		_choices_input(event)
+	elif (_text.is_typing() or _waiting_input) and DialogueControls.is_advance(event):
 		get_viewport().set_input_as_handled()
 		_advance()
-	elif _choices.visible:
-		var index := DialogueControls.number_index(event)
-		if index >= 0 and index < _choices.get_count():
-			get_viewport().set_input_as_handled()
-			_choices.choose_index(index)
+
+
+## Con las respuestas en pantalla: su número las elige, arriba y abajo las recorren y la tecla de
+## interactuar o la de aceptar confirman la señalada. Se consumen aquí para que ninguna llegue al
+## juego (la tecla de interactuar volvería a abrir la conversación recién cerrada) ni a otra pantalla.
+func _choices_input(event: InputEvent) -> void:
+	var index := DialogueControls.number_index(event)
+	if index >= 0:
+		get_viewport().set_input_as_handled()
+		_choices.choose_index(index)
+	elif event.is_action_pressed("ui_down", true):
+		get_viewport().set_input_as_handled()
+		_choices.move_selection(1)
+	elif event.is_action_pressed("ui_up", true):
+		get_viewport().set_input_as_handled()
+		_choices.move_selection(-1)
+	elif DialogueControls.is_confirm(event):
+		get_viewport().set_input_as_handled()
+		_choices.confirm_selected()
 
 
 ## Una pulsación: termina de escribir la página, pasa a la siguiente o, leída la última, pide la
@@ -160,6 +178,8 @@ func _advance() -> void:
 func _on_opened(npc_id: String) -> void:
 	_npc_id = npc_id
 	_first_line = true
+	_last_choice = ""
+	_set_interactive(true)
 	_root.show()
 	_choices.hide()
 	_hint.hide()
@@ -207,13 +227,16 @@ func _on_options_shown(options: Array) -> void:
 	_choices.show()
 	# Mientras se elige, la luz sigue en el interlocutor que escucha (en una escena, el detective).
 	_cast.set_speaker(_npc_id if not _npc_id.is_empty() else DialogueCast.DETECTIVE)
-	await get_tree().process_frame
-	if _choices.visible:
-		_choices.focus_first()
+	# El foco vuelve a la última respuesta elegida si sigue en el menú; si no, a la primera.
+	_choices.focus_option(_last_choice)
+	_choices.hold_confirmation(DialogueStyle.CONFIRM_GUARD_SECONDS)
 
 
+## Se elige una respuesta: su consecuencia la decide `DialogueManager`, que contesta enseguida con
+## la siguiente intervención, otro menú o el cierre.
 func _choose(option_id: String) -> void:
 	AudioManager.play("click")
+	_last_choice = option_id
 	_choices.hide()
 	DialogueManager.choose(option_id)
 
@@ -221,8 +244,19 @@ func _choose(option_id: String) -> void:
 func _on_closed(_finished_npc: String) -> void:
 	_text.stop()
 	_waiting_input = false
+	_last_choice = ""
 	_continue.set_waiting(false)
+	_set_interactive(false)
 	_play_exit()
+
+
+## Mientras se desvanece, la conversación ya no acepta clics ni foco: el control vuelve al juego.
+func _set_interactive(interactive: bool) -> void:
+	var focus_owner := get_viewport().gui_get_focus_owner()
+	if not interactive and focus_owner != null and _root.is_ancestor_of(focus_owner):
+		focus_owner.release_focus()
+	_root.mouse_behavior_recursive = Control.MOUSE_BEHAVIOR_INHERITED if interactive else Control.MOUSE_BEHAVIOR_DISABLED
+	_root.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_INHERITED if interactive else Control.FOCUS_BEHAVIOR_DISABLED
 
 
 func _on_text_completed() -> void:

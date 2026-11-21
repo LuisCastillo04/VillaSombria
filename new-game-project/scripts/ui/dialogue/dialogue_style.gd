@@ -114,6 +114,9 @@ const PULSE_SECONDS := 1.1
 ## Resaltado de la respuesta señalada y destello al confirmarla.
 const SELECT_SECONDS := 0.14
 const CONFIRM_SECONDS := 0.22
+## Tras aparecer las respuestas, la confirmación espera este instante: una pulsación de más al
+## terminar de leer no elige la primera por accidente. Las teclas numéricas no esperan.
+const CONFIRM_GUARD_SECONDS := 0.3
 
 static var _speech_font: SystemFont
 

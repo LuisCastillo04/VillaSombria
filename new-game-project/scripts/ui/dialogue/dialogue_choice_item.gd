@@ -62,8 +62,15 @@ func _init() -> void:
 func _ready() -> void:
 	focus_entered.connect(_refresh_highlight)
 	focus_exited.connect(_refresh_highlight)
-	mouse_entered.connect(_on_mouse_entered)
+	mouse_entered.connect(_card.queue_redraw)
 	mouse_exited.connect(_card.queue_redraw)
+
+
+## Al mover el ratón por encima, la tarjeta toma el foco. Sólo con movimiento real: si las respuestas
+## aparecen bajo un cursor quieto, el foco sigue donde lo dejó el teclado.
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseMotion and focus_mode != Control.FOCUS_NONE and not has_focus():
+		grab_focus()
 
 
 ## Prepara la tarjeta con su número (el de su tecla), su texto y si es una pregunta nueva.
@@ -121,12 +128,6 @@ func flash() -> void:
 		_flash = value
 		_card.queue_redraw()
 	, 1.0, 0.0, DialogueStyle.CONFIRM_SECONDS)
-
-
-func _on_mouse_entered() -> void:
-	if focus_mode != Control.FOCUS_NONE and is_visible_in_tree() and not has_focus():
-		grab_focus()
-	_card.queue_redraw()
 
 
 func _refresh_highlight() -> void:
