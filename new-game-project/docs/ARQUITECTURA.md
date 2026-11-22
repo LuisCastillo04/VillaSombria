@@ -106,8 +106,10 @@ Game
 - `CharacterModel`: personaje procedural animado, descrito con un diccionario.
 - `Interactable`: base de lo que responde a E. Hereda `ClueObject`, `LocationExit`,
   `RestPoint` y `NpcInteraction`.
-- `Npc`: estados `IDLE`, `WANDER`, `PATROL`, `RETURN`, `INTERACT` y `DIALOGUE`; camina con
-  `NavigationAgent3D` y evitación. `NpcProfile` reúne sus parámetros.
+- `Npc`: estados `IDLE`, `WANDER`, `PATROL`, `RETURN`, `INTERACT`, `DIALOGUE` y `LEAVE`; camina
+  con `NavigationAgent3D` y evitación, interviene en persona en las escenas que lo nombran en
+  `cast` y sale andando por la puerta cuando su rutina lo lleva a otro lugar. `NpcProfile` reúne
+  sus parámetros.
 - `FallGuard`: red de seguridad contra caídas del detective y de los NPC.
 - `Conditions` y `Effects`: interpretan los bloques `if` y `effects` de los datos.
 
@@ -152,7 +154,12 @@ Pregunta de un diálogo:
 ```
 
 Una pregunta puede llevar `variants` para responder según el estado, y una escena puede llevar
-`choices` y `after`.
+`choices`, `after` y `cast`: los personajes que intervienen en persona y que, si están en el
+escenario, se detienen y miran al detective mientras dura.
+
+Un tramo de `schedules.json` puede llevar `if`: sólo vale mientras se cumple su condición, y gana
+el primer tramo que encaje. Así el sargento espera en el café hasta la llamada. Ver
+[NPC.md](NPC.md).
 
 ## Añadir contenido
 

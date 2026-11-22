@@ -9,11 +9,13 @@
     "effects": {"clues": ["carta_valdes"], "flags": ["juego_iniciado"], "minutes": 0}
   },
   "llamada": {
+    "cast": ["rosa", "ortega"],
     "lines": [
-      {"s": "rosa", "t": "¿Es usted el inspector Ibarra? Entonces esto es para usted. Llevan toda la mañana llamando a cada teléfono del pueblo."},
-      {"s": "narrador", "t": "La mujer de la barra me tiende el auricular."},
+      {"s": "rosa", "t": "¿Es usted el inspector Ibarra? Entonces le buscan a usted. El sargento lleva toda la mañana llamando a cada teléfono del pueblo, y al final ha venido a esperarle aquí."},
+      {"s": "narrador", "t": "El hombre de uniforme que aguardaba junto a la puerta se vuelve hacia mí."},
       {"s": "ortega", "t": "¿Inspector? Soy el sargento Ortega. Hemos encontrado su nombre en un borrador, sobre el escritorio de don Julián Valdés."},
       {"s": "ortega", "t": "Está muerto, inspector. Anoche, en su despacho, en plena celebración. Venga a la mansión, se lo ruego."},
+      {"s": "ortega", "t": "Yo me adelanto: no quiero dejar la casa sin vigilancia. Le espero allí."},
       {"s": "detective", "t": "He llegado tarde. Una sola noche tarde."}
     ],
     "effects": {"flags": ["llamada_atendida"], "minutes": 10}

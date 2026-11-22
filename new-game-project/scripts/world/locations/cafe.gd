@@ -55,7 +55,7 @@ func _build_bar() -> void:
 			batch.cylinder(Vector3(x, y + 0.03, -5.72), 0.06, 0.05, 0.28, tint, 6)
 			batch.cylinder(Vector3(x, y + 0.31, -5.72), 0.025, 0.025, 0.1, tint, 5)
 	add_sign("CAFÉ LA LUNA", Vector3(0.0, 3.3, -5.86), 0.3, Palette.AMBER_SOFT)
-	# El teléfono de la llamada del primer día.
+	# El teléfono del café, desde el que el sargento buscó al inspector el primer día.
 	batch.box(Vector3(3.9, 1.22, -3.9), Vector3(0.24, 0.14, 0.3), Palette.INK)
 	batch.box(Vector3(3.9, 1.34, -3.9), Vector3(0.36, 0.06, 0.1), Palette.INK)
 	InteriorKit.ceiling_lamp(self, Vector3(-2.5, 3.0, -3.6), 3.0, 8.0)
@@ -114,3 +114,10 @@ func _register_points() -> void:
 	add_marker("mesa_fondo", Vector3(-4.0, 0.0, 0.8))
 	face_marker("mesa_fondo", Vector3(-5.2, 0.0, 2.0))
 	add_marker("trastienda", Vector3(10.4, 0.0, 0.0))
+	# El primer día, hasta que llega el inspector: el sargento lo espera junto a la puerta y Rosa
+	# ha salido de la barra a hacerle compañía. Quedan a los lados de quien entra, a la vista
+	# mientras le hablan (la interfaz de la conversación tapa los bordes y la barra).
+	add_marker("puerta_sargento", Vector3(-1.8, 0.0, 5.1))
+	face_marker("puerta_sargento", Vector3(0.0, 0.0, 6.0))
+	add_marker("sala_rosa", Vector3(1.5, 0.0, 3.1))
+	face_marker("sala_rosa", Vector3(0.0, 0.0, 6.0))

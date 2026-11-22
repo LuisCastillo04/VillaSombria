@@ -10,6 +10,9 @@ var _lucia_heading := Vector3.ZERO
 
 func before_each() -> void:
 	game = await make_game()
+	# La verja de la mansión sólo se abre tras la llamada del café; hasta entonces el sargento
+	# espera al inspector allí.
+	GameState.set_flag("llamada_atendida")
 	await game.go_to("mansion", "desde_plaza")
 	GameState.clear_player_locks()
 	for frame in 120:

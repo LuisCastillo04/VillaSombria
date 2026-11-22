@@ -1,8 +1,8 @@
 # NPC, navegación y límites de los escenarios
 
 Cómo se impide que el detective caiga al vacío, cómo caminan los NPC sin atravesar nada ni
-estorbar a la investigación, dónde se configuran y cómo se prueba. Rama
-`fix/npcs-colisiones-escenarios`.
+estorbar a la investigación, cómo intervienen en persona en una escena y cómo salen de un
+escenario, dónde se configuran y cómo se prueba. Rama `fix/npcs-colisiones-escenarios`.
 
 ## Qué se corrigió
 
@@ -14,6 +14,8 @@ estorbar a la investigación, dónde se configuran y cómo se prueba. Rama
 | En la mansión, NPC pegados o superpuestos | La ronda de Lucía terminaba en el sitio de Irene, Anselmo y Marcos compartían «pasillo» el lunes, y los NPC no chocaban entre sí | Puntos nuevos y rutinas sin solapes; los NPC chocan entre sí y con el detective |
 | NPC atravesando muebles | Caminaban en línea recta y, si se atascaban 4 s, saltaban al destino. Los taburetes de las mesas del café no tenían colisión | Navegación horneada con las colisiones reales; un camino bloqueado se recalcula. Los taburetes tienen colisión |
 | NPC demasiado estáticos | No había comportamiento ambiental | Estados, perfiles por personaje y rutinas con paseos, visitas y rondas |
+| Al entrar por primera vez en el café, el sargento Ortega hablaba sin estar allí | La escena «llamada» era una llamada de teléfono y su rutina lo tenía en la mansión desde las 8:00. Rosa sí estaba, pero detrás de la barra, a 9 m: durante la escena la tapaban las siluetas de la conversación, que cubren los lados y la franja de abajo | Hasta la llamada, Ortega espera junto a la puerta del café y Rosa le hace compañía (tramos con `if`). Intervienen en persona (`cast`), se vuelven hacia el detective y, al terminar, Ortega sale por la puerta hacia la mansión y Rosa vuelve a la barra |
+| Una cómoda en mitad del cuarto de Lucía | Estaba a 0,63 m de la pared del fondo, justo delante de la puerta de la alcoba, y dejaba un paso de 0,63 m | Contra la pared del fondo, entre la esquina y esa puerta |
 
 ## Límites de los escenarios
 
@@ -96,7 +98,8 @@ llevan el detective (`player.tscn`) y cada NPC (`npc.tscn`). No sustituye a las 
 | `PATROL` | Hacia el siguiente punto de su ronda; espera en cada uno |
 | `RETURN` | De vuelta a su puesto: tras una visita, al cambiar de tramo de su rutina o si se alejó |
 | `INTERACT` | El detective lo enfoca para hablarle: se detiene y se vuelve hacia él |
-| `DIALOGUE` | Conversación activa: quieto, mirando al detective |
+| `DIALOGUE` | Conversación activa, o escena narrativa en la que interviene en persona: quieto, mirando al detective |
+| `LEAVE` | Su rutina lo lleva a otro lugar: camina hasta la salida y la cruza desvaneciéndose |
 
 Al terminar cada pausa decide según su modo: en una ronda va al punto siguiente; si pasea, a veces
 visita un punto (salvo que la investigación lo necesite) o da un paseo; si está lejos de su
@@ -120,6 +123,7 @@ papel.
 | `visit_chance` | 0 | Probabilidad de ir a uno de sus puntos de visita |
 | `visits` (sólo tramo) | — | Marcadores que visita de vez en cuando |
 | `patrol` (sólo tramo) | — | Marcadores de su ronda, en orden; debe incluir su puesto |
+| `if` (sólo tramo) | — | Condición de la historia, con el formato de `Conditions`: el tramo sólo vale mientras se cumple. Gana el primer tramo que encaje, así que el condicionado va antes del que lo sustituye |
 | `attend_seconds` | 5 | Segundos que se queda mirando al detective que lo enfoca sin hablarle |
 | `talk_pause` | [2,5, 4,5] | Pausa tras una conversación antes de retomar lo que hacía |
 | `head_tilt` | 0 | Inclinación de la cabeza en reposo; negativa mira al suelo |
@@ -136,14 +140,23 @@ Ejemplo:
  "activity": "En el Café La Luna", "visits": ["barra_extremo"], "visit_chance": 0.3}
 ```
 
+Tramo con condición: el primer día, hasta que se atiende la llamada, el sargento espera en el
+café; después rige el tramo siguiente, el de la mansión.
+
+```json
+{"day": 1, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "puerta_sargento",
+ "activity": "Espera al inspector en el Café La Luna", "behavior": "stay",
+ "if": {"not_flags": ["llamada_atendida"]}}
+```
+
 ### Reparto
 
 | Personaje | Papel | Qué hace |
 | --- | --- | --- |
-| Rosa | importante | Recorre la barra de punta a punta, de cara a la clientela |
+| Rosa | importante | Recorre la barra de punta a punta, de cara a la clientela. El primer día, hasta la llamada, hace compañía al sargento cerca de la entrada |
 | Irene | secundario | En el café ronda su mesa y a veces va a la barra; en el salón de la mansión, junto a la ventana; en el archivo lee sin moverse |
 | Marcos | secundario | Inquieto: ronda la chimenea o su mesa del café y va a la barra; el lunes por la mañana recorre el vestíbulo |
-| Ortega | vigilancia | Ronda corta en el vestíbulo, a la vista de la entrada; el lunes por la mañana, alrededor de la fuente |
+| Ortega | vigilancia | El primer día espera al inspector junto a la puerta del café; tras la llamada, ronda corta en el vestíbulo de la mansión, a la vista de la entrada; el lunes por la mañana, alrededor de la fuente |
 | Elena | importante | En el salón no se mueve (cabeza baja); encerrada en su alcoba, da vueltas por ella |
 | Lucía | secundario | Ronda entre el vestíbulo y el lado este del salón; el lunes hace recados junto al quiosco y se acerca a la terraza |
 | Anselmo | secundario | Pausado, se mueve por el office; el lunes va y viene al vestíbulo |
@@ -175,8 +188,54 @@ Ejemplo:
    pararse: nunca le cierra el paso para siempre.
 3. Al pulsar E la conversación empieza con el NPC ya quieto; durante `DIALOGUE` no se mueve.
 4. Al cerrar la conversación hace una pausa (`talk_pause`), todavía mirando al detective, y
-   retoma lo que hacía. Tampoco vuelve a pararse en cuanto lo enfocan de nuevo.
-5. Los diálogos, `DialogueManager` y el progreso de la historia no se han tocado.
+   retoma lo que hacía. Tampoco vuelve a pararse en cuanto lo enfocan de nuevo. Si entretanto su
+   rutina lo cambió de puesto, o de lugar, antes termina esa pausa.
+5. Las conversaciones con los NPC no han cambiado. La escena de la llamada del café se adaptó para
+   que el sargento esté en persona (ver la sección siguiente).
+
+## Escenas con personajes presentes
+
+Una escena de `escenas.json` puede declarar en `cast` qué personajes intervienen en persona. Al
+empezar (`DialogueManager.scene_started`), el escenario detiene a los que estén presentes, los
+vuelve hacia el detective (estado `DIALOGUE`) y sólo gesticula quien tiene la palabra; el detective
+se vuelve hacia quien le habla (`Game`). Al terminar hacen la pausa de después de hablar y retoman
+su rutina, que puede haber cambiado con los efectos de la escena. Los que hablan sin estar (el
+narrador, una voz) no necesitan estar en la sala.
+
+**La llamada del café.** Era una llamada de teléfono: el sargento hablaba sin estar en el café y
+Rosa, detrás de la barra, quedaba tapada por las siluetas de la conversación. Ahora:
+
+1. Hasta que se atiende la llamada (`llamada_atendida`), Ortega espera junto a la puerta del café
+   (`puerta_sargento`) y Rosa ha salido de la barra a hacerle compañía (`sala_rosa`). Son tramos
+   con `if`; la verja de la mansión sigue cerrada hasta entonces, así que nunca se le busca allí
+   antes de tiempo.
+2. Al entrar el inspector, los dos quedan a los lados de quien entra, en la zona que la interfaz
+   deja a la vista, y se vuelven hacia él mientras hablan.
+3. Las líneas que hablaban del teléfono se adaptaron: Rosa explica que el sargento ha venido a
+   esperarle y él añade que se adelanta a la mansión. En la mansión, Ortega ya no se presenta por
+   segunda vez. El resto de la escena, sus efectos y el objetivo siguiente no cambian.
+4. Al terminar, Ortega espera un momento, sale por la puerta de la calle y le espera en la mansión;
+   Rosa vuelve detrás de la barra. Al volver al café, ni la escena se repite ni el sargento vuelve
+   a aparecer.
+
+## Salir del escenario
+
+Cuando la rutina lleva a un NPC a otro lugar mientras el detective está delante (otra hora, una
+marca nueva de la historia), ya no desaparece de golpe:
+
+- `LocationBase` elige la salida que lleva a su destino (o la más cercana) y le pasa el punto
+  desde el que cruzarla y hacia dónde, el hueco de la puerta si hay uno junto a ella.
+- El NPC camina hasta allí con la navegación (estado `LEAVE`) y cruza el hueco sin colisiones,
+  desvaneciéndose (`CharacterModel.set_fade`). Al terminar emite `left` y se libera.
+- Mientras se va no se le puede hablar ni muestra aviso de preguntas.
+- Sigue en la lista del escenario hasta salir: nunca hay dos copias del mismo personaje. Si su
+  rutina lo vuelve a traer antes de salir, se queda.
+- Si el paso hasta la salida se corta cerca de la puerta (el detective en el umbral), la cruza
+  igualmente; lejos, lo vuelve a intentar y, tras tres intentos, sale desde donde esté con un aviso
+  en el registro (no ha ocurrido en ninguna prueba).
+- Un escenario sin salidas (el campo de pruebas) lo retira al instante, como antes.
+
+Quien llega mientras el detective está en el escenario sigue apareciendo en su puesto.
 
 ## Rendimiento
 
@@ -201,9 +260,11 @@ comparar en este portátil: lanzado desde la terminal se queda en 30 con las dos
 | --- | --- |
 | `test_world_bounds` | Suelo y área en todo lo alcanzable, puertas de la calle con teclas reales, huecos interiores abiertos |
 | `test_fall_guard` | Punto seguro sólo en suelo válido, caída, salida del área, movimiento tras el rescate, bucles, guardar en plena caída y cargar una posición inválida |
-| `test_location_navigation` | Malla lista en cada escenario, marcadores sobre ella, muebles fuera, nada fuera del área, estancias unidas por sus puertas, mapas independientes |
-| `test_npc_layout` | Cada media hora de los tres días ningún NPC se para junto al puesto de otro; puntos libres, sobre la malla, lejos de puertas y pistas; orientación; comportamientos válidos y variados |
-| `test_npc` | Rutinas, rondas que rodean la fuente, paseos acotados, sin solaparse, camino cortado sin teletransporte, caídas, visitas con preguntas pendientes, coste de navegación, conversación, café sin atravesar muebles, paseos sin cambiar de estancia |
+| `test_location_navigation` | Malla lista en cada escenario, marcadores sobre ella, muebles fuera, nada fuera del área, estancias unidas por sus puertas sin atravesar paredes, cómoda del cuarto de Lucía contra la pared con el centro y la puerta de la alcoba despejados, mapas independientes |
+| `test_npc_layout` | Cada media hora de los tres días, antes y después de la llamada del café, ningún NPC se para junto al puesto de otro; puntos libres, sobre la malla, lejos de puertas y pistas; orientación; comportamientos válidos y variados |
+| `test_cafe_first_visit` | Con la escena de juego real: rutinas antes y después de la llamada y tramos condicionados con respaldo; al entrar, Rosa y Ortega en la sala, sin copias, en suelo libre, a la vista y no tapados por la interfaz; se detienen y miran al inspector; turnos de palabra; texto sin teléfono; Ortega sale por la puerta sin saltos ni atravesar nada y Rosa vuelve a la barra; visitas posteriores sin repetir la escena y con un solo Ortega en la mansión; cierre anticipado; guardar mientras sale |
+| `test_npc_leave` | Salida por la puerta de la calle cuando cambia la rutina (sin saltos, sin atravesar nada, sin hablarle mientras), vuelta atrás si la rutina lo trae de nuevo, salida tapada y escenario sin salidas |
+| `test_npc` | Rutinas (quien se va sale andando), rondas que rodean la fuente, paseos acotados, sin solaparse, camino cortado sin teletransporte, caídas, visitas con preguntas pendientes, coste de navegación, conversación, café sin atravesar muebles, paseos sin cambiar de estancia |
 | `test_npc_interaction` | Con la escena de juego real: se detiene y mira al detective, retoma al irse él, límite de atención, conversación con E, el NPC quieto también se vuelve, rodea al detective plantado en su ronda, el sargento al alcance de la entrada, guardar y cargar |
 
 ## Cómo comprobarlo a mano
@@ -219,15 +280,24 @@ comparar en este portátil: lanzado desde la terminal se queda en 30 con las dos
 4. **Interacción:** acercarse a Lucía mientras camina: se para y mira al detective; hablarle con E;
    al terminar, espera un momento y sigue. Quedarse plantado en la ronda de Ortega: lo rodea.
 5. **Guardar y cargar** en la mansión con los NPC caminando: todos reaparecen en su puesto.
+6. **Primera entrada al café** (partida nueva, de la estación a la plaza y al café): al entrar,
+   Ortega está a la izquierda, junto a la puerta, y Rosa a la derecha, entre la puerta y la barra;
+   los dos miran al inspector y se ven por encima de la ventana de la conversación. Al terminar,
+   Ortega sale por la puerta y Rosa vuelve a la barra. Salir y volver a entrar: ni escena ni
+   sargento. En la mansión, Ortega está en el vestíbulo y no se presenta otra vez.
+7. **Cuarto de Lucía** (mansión, a la izquierda del vestíbulo): la cómoda está contra la pared del
+   fondo, a la izquierda de la puerta de la alcoba; se cruza de una puerta a otra en línea recta.
 
 ## Limitaciones
 
-- Los NPC no caminan de un escenario a otro: al cambiar de lugar en su rutina aparecen y
-  desaparecen, como antes.
+- Los NPC no caminan de un escenario a otro: el que se va sale andando por la puerta, pero el que
+  llega aparece en su puesto.
 - No hay animaciones nuevas (sentarse, beber): el reposo usa el balanceo de siempre más giros de
   cabeza y de cuerpo. Los modelos son procedurales y no traen más.
-- Las escenas narrativas (como la llamada del café) no detienen a los NPC: no son una conversación
-  con un personaje concreto.
+- Sólo intervienen en persona los personajes que una escena declara en `cast` (por ahora, la
+  llamada del café). Las demás escenas no detienen a los NPC.
+- Tras dejar pasar una hora con T, quien debía haberse ido durante esa hora sale entonces,
+  andando.
 - En puertas de 1,4 m un NPC y el detective no caben a la vez: el NPC no se para en ellas, pero si
   se cruzan en una puede haber un titubeo breve hasta que uno pase.
 - El movimiento sólo se ha revisado con capturas fijas y pruebas automáticas, no jugando a mano.

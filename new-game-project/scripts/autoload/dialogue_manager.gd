@@ -4,6 +4,9 @@ extends Node
 ## señales y responde llamando a `advance` y `choose`.
 
 signal opened(npc_id: String)
+## Empieza una escena narrativa. Se emite antes de su primera línea, para que el escenario
+## coloque a los personajes que intervienen en ella (`get_scene_cast`).
+signal scene_started(scene_id: String)
 signal line_shown(speaker_id: String, text: String)
 signal options_shown(options: Array)
 signal closed(npc_id: String)
@@ -13,6 +16,8 @@ const TOPIC_MINUTES := 10
 
 var active := false
 var npc_id := ""
+## Escena narrativa en curso, o vacío si no hay ninguna.
+var scene_id := ""
 
 var _queue: Array = []
 var _after_lines: Callable
@@ -35,11 +40,20 @@ func start(target_npc: String) -> void:
 
 
 ## Reproduce una escena narrativa de `escenas.json`, sin menú de preguntas.
-func play_scene(scene_id: String) -> void:
+func play_scene(target_scene: String) -> void:
 	if active:
 		return
 	_open("", true)
-	_play_block(GameData.scenes[scene_id])
+	scene_id = target_scene
+	scene_started.emit(target_scene)
+	_play_block(GameData.scenes[target_scene])
+
+
+## Personajes que intervienen en persona en una escena (su bloque `cast`): si están en el
+## escenario, se detienen y miran al detective mientras dura. Los demás que hablan en ella (el
+## narrador, una voz que no está en la sala) no necesitan estar.
+func get_scene_cast(target_scene: String) -> Array:
+	return GameData.scenes.get(target_scene, {}).get("cast", [])
 
 
 ## La interfaz avisa de que el jugador ha terminado de leer la línea actual.
@@ -88,6 +102,7 @@ func close() -> void:
 	var finished_npc := npc_id
 	active = false
 	npc_id = ""
+	scene_id = ""
 	_queue.clear()
 	_choices = []
 	_pending_after = {}

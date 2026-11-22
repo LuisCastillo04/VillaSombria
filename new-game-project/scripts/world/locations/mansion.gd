@@ -104,7 +104,9 @@ func _build_maid_room() -> void:
 	InteriorKit.bed(self, Vector3(-12.6, 0.0, 6.6), 90.0, Color("3f4a55"), Vector2(1.2, 2.0))
 	InteriorKit.table(self, Vector3(-11.4, 0.0, 4.6), Vector3(0.7, 0.6, 0.7), Palette.WOOD)
 	batch.box(Vector3(-11.4, 0.66, 4.6), Vector3(0.22, 0.08, 0.3), Palette.INK)
-	InteriorKit.dresser(self, Vector3(-9.0, 0.0, 0.0), 1.6, false, 0.0)
+	# Cómoda contra la pared del fondo, entre la esquina y la puerta de la alcoba. Antes estaba
+	# suelta en mitad del cuarto, delante de esa puerta, y estrechaba el paso a 0,6 m.
+	InteriorKit.dresser(self, Vector3(-12.0, 0.0, -0.6), 1.6, false)
 	InteriorKit.ceiling_lamp(self, Vector3(-9.5, 2.8, 4.0), 2.2, 7.0)
 	add_interactable(ClueObject.new("carta_amor"), Vector3(-10.6, 0.0, 4.6))
 

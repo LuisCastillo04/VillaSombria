@@ -62,6 +62,10 @@ func set_talking(value: bool) -> void:
 	_talking = value
 
 
+func is_talking() -> bool:
+	return _talking
+
+
 ## Gira la cabeza respecto al cuerpo (radianes, positivo hacia la izquierda del personaje). El
 ## giro es suave: sirve para mirar alrededor o hacia alguien sin mover los pies.
 func set_head_turn(yaw: float) -> void:
@@ -72,6 +76,14 @@ func set_head_turn(yaw: float) -> void:
 ## personaje, como la viuda abatida.
 func set_head_tilt(pitch: float) -> void:
 	_head_tilt = clampf(pitch, -0.4, 0.3)
+
+
+## Desvanece el personaje entero: 0 lo deja opaco y 1 invisible. Sirve para que quien sale por
+## una puerta no desaparezca de golpe. No toca los materiales: usa la transparencia de cada malla.
+func set_fade(amount: float) -> void:
+	var value := clampf(amount, 0.0, 1.0)
+	for node in find_children("*", "GeometryInstance3D", true, false):
+		(node as GeometryInstance3D).transparency = value
 
 
 func _process(delta: float) -> void:
