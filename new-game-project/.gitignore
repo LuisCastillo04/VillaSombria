@@ -10,3 +10,6 @@
 
 # Godlink MCP: capturas, historial de deshacer y estado del runtime
 /addons/godot_mcp/cache/
+
+# Cachés de Python de las herramientas de generación
+__pycache__/
