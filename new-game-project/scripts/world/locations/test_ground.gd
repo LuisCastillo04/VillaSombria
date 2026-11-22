@@ -5,9 +5,13 @@ extends LocationBase
 func build() -> void:
 	Atmosphere.add_exterior(self)
 	camera_limits = Rect2(-12.0, -12.0, 24.0, 24.0)
+	play_area = Rect2(-20.0, -20.0, 40.0, 40.0)
 	add_spawn("inicio", Vector3(0.0, 0.1, 0.0), 45.0)
 
 	solid(Vector3(0.0, -0.25, 0.0), Vector3(40.0, 0.5, 40.0), Palette.STONE_DARK)
+	# Bordes del campo: la losa termina en el vacío.
+	for edge: Array in [[Vector2(-19.8, -19.8), Vector2(19.8, -19.8)], [Vector2(19.8, -19.8), Vector2(19.8, 19.8)], [Vector2(19.8, 19.8), Vector2(-19.8, 19.8)], [Vector2(-19.8, 19.8), Vector2(-19.8, -19.8)]]:
+		block_passage(edge[0], edge[1])
 	solid(Vector3(-5.0, 1.0, -3.0), Vector3(3.0, 2.0, 2.0), Palette.BRICK)
 	solid(Vector3(4.0, 0.75, -6.0), Vector3(2.0, 1.5, 4.0), Palette.PLASTER)
 	solid(Vector3(6.0, 0.5, 4.0), Vector3(1.5, 1.0, 1.5), Palette.WOOD, deg_to_rad(30.0))

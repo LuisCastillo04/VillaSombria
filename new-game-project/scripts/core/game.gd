@@ -37,6 +37,7 @@ var _saved_pose: Dictionary = {}
 func _ready() -> void:
 	camera.target = player
 	player.camera_yaw = camera.get_yaw()
+	player.guard.recovered.connect(_on_player_recovered)
 	_pause.set_map_target(player)
 	EventBus.location_change_requested.connect(go_to)
 	EventBus.rest_requested.connect(_on_rest_requested)
@@ -117,9 +118,10 @@ func _start_new_game() -> void:
 		DialogueManager.play_scene("intro")
 
 
-## Posición exacta del detective, para reanudar donde se guardó y no en la entrada.
+## Posición exacta del detective, para reanudar donde se guardó y no en la entrada. Si se guarda
+## en mal momento (en plena caída), se usa el último suelo válido.
 func _capture_player() -> Dictionary:
-	var where := player.global_position
+	var where := player.guard.get_savable_position()
 	return {
 		"location_id": GameState.location_id,
 		"position": [where.x, where.y, where.z],
@@ -143,7 +145,12 @@ func _apply_saved_pose() -> void:
 	if pose.get("location_id", "") != GameState.location_id or not pose.has("position"):
 		return
 	var where: Array = pose["position"]
-	player.teleport(Vector3(float(where[0]), float(where[1]), float(where[2])), float(pose.get("yaw", 0.0)))
+	var target := Vector3(float(where[0]), float(where[1]), float(where[2]))
+	# Una partida antigua pudo guardarse fuera del escenario: entonces se queda en la entrada.
+	if not current_location.is_standing_point(target, 0.25):
+		push_warning("Posición guardada fuera de la zona transitable (%s): se usa la entrada." % str(target))
+		return
+	player.teleport(target, float(pose.get("yaw", 0.0)))
 	camera.snap()
 
 
@@ -165,6 +172,9 @@ func _load_location(location_id: String, spawn_id: String) -> void:
 	current_location = scene.instantiate()
 	_world_root.add_child(current_location)
 	var spawn := current_location.get_spawn(spawn_id)
+	player.guard.location = current_location
+	player.guard.fallback = spawn["position"]
+	player.set_navigation_map(current_location.navigation.get_map())
 	player.teleport(spawn["position"], spawn["yaw"])
 	camera.limits = current_location.camera_limits
 	camera.snap()
@@ -234,6 +244,11 @@ func _on_story_action(action: String) -> void:
 			DialogueManager.play_scene("epilogo")
 		"case_closed":
 			_case_closed.open()
+
+
+## La red de seguridad ha devuelto al detective a suelo firme: la cámara lo sigue sin barrido.
+func _on_player_recovered(_from: Vector3, _to: Vector3) -> void:
+	camera.snap()
 
 
 func _on_rest_requested() -> void:

@@ -11,6 +11,7 @@ const FABRIC := Color("5a2a30")
 func build() -> void:
 	Atmosphere.add_interior(self)
 	camera_limits = Rect2(-9.0, -6.0, 18.0, 13.0)
+	play_area = Rect2(-14.0, -9.0, 28.0, 18.0)
 	collider(Vector3(0.0, -0.5, 0.0), Vector3(40.0, 1.0, 30.0))
 	_build_floors()
 	_build_walls()
@@ -40,6 +41,7 @@ func _build_walls() -> void:
 	InteriorKit.wall(self, Vector2(14.0, -9.0), Vector2(14.0, 9.0), 0.5, WALL_DARK)
 	var front_gaps: Array[Vector2] = [Vector2(0.5, 2.4)]
 	InteriorKit.wall(self, Vector2(-14.0, 9.0), Vector2(14.0, 9.0), 0.5, WALL_DARK, front_gaps)
+	InteriorKit.seal_street_door(self, Vector2(-14.0, 9.0), Vector2(14.0, 9.0), front_gaps[0])
 	var salon_gaps: Array[Vector2] = [Vector2(-5.0, 1.8)]
 	InteriorKit.wall(self, Vector2(-5.0, -9.0), Vector2(-5.0, -1.0), low, WALL_COLOR, salon_gaps)
 	var study_gaps: Array[Vector2] = [Vector2(-5.0, 1.8)]
@@ -137,11 +139,24 @@ func _build_office() -> void:
 
 func _register_points() -> void:
 	add_spawn("desde_plaza", Vector3(0.5, 0.1, 7.2), 0.0)
+	# Vestíbulo: el lado oeste vigila la entrada sin cortar el paso de la alfombra.
 	add_marker("vestibulo", Vector3(-2.2, 0.0, 5.8))
+	face_marker("vestibulo", Vector3(0.5, 0.0, 8.4))
+	add_marker("vestibulo_norte", Vector3(-2.4, 0.0, 2.6))
+	face_marker("vestibulo_norte", Vector3(0.5, 0.0, 4.0))
 	add_marker("pasillo", Vector3(2.4, 0.0, 4.0))
 	add_marker("salon_sofa", Vector3(-0.7, 0.0, -3.4))
+	face_marker("salon_sofa", Vector3(3.2, 0.0, -8.6))
 	add_marker("salon_chimenea", Vector3(1.4, 0.0, -7.2))
+	face_marker("salon_chimenea", Vector3(3.2, 0.0, -8.6))
 	add_marker("salon_ventana", Vector3(-3.5, 0.0, -7.4))
+	face_marker("salon_ventana", Vector3(-2.6, 0.0, -9.0))
+	# Lado este del salón, lejos de la ventana de Irene y de la chimenea de Marcos.
+	add_marker("salon_este", Vector3(4.6, 0.0, -5.6))
+	face_marker("salon_este", Vector3(2.8, 0.0, -3.0))
 	add_marker("alcoba_elena", Vector3(-9.5, 0.0, -4.6))
+	face_marker("alcoba_elena", Vector3(-9.6, 0.0, -9.0))
 	add_marker("cuarto_lucia", Vector3(-8.0, 0.0, 5.6))
+	face_marker("cuarto_lucia", Vector3(-11.4, 0.0, 4.6))
 	add_marker("office", Vector3(9.6, 0.0, 4.0))
+	face_marker("office", Vector3(8.2, 0.0, 7.4))

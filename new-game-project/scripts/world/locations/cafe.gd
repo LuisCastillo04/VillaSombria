@@ -9,6 +9,7 @@ const WALL_DARK := Color("47362c")
 func build() -> void:
 	Atmosphere.add_interior(self)
 	camera_limits = Rect2(-9.0, -3.5, 16.0, 7.5)
+	play_area = Rect2(-15.0, -6.0, 28.0, 12.0)
 	collider(Vector3(0.0, -0.5, 0.0), Vector3(40.0, 1.0, 24.0))
 	InteriorKit.tile_floor(self, Vector2(-8.0, -6.0), Vector2(8.0, 6.0), Color("7d6a52"), Color("372a22"), 1.0)
 	InteriorKit.plank_floor(self, Vector2(-15.0, -6.0), Vector2(-8.0, 6.0), Palette.WOOD_DARK.lightened(0.1))
@@ -29,6 +30,7 @@ func _build_walls() -> void:
 	InteriorKit.wall(self, Vector2(13.0, -6.0), Vector2(13.0, 6.0), 0.5, WALL_DARK)
 	var front_gaps: Array[Vector2] = [Vector2(0.0, 2.2)]
 	InteriorKit.wall(self, Vector2(-15.0, 6.0), Vector2(13.0, 6.0), 0.5, WALL_DARK, front_gaps)
+	InteriorKit.seal_street_door(self, Vector2(-15.0, 6.0), Vector2(13.0, 6.0), front_gaps[0])
 	var left_gaps: Array[Vector2] = [Vector2(-1.5, 1.6)]
 	InteriorKit.wall(self, Vector2(-8.0, -6.0), Vector2(-8.0, 6.0), low, WALL_COLOR, left_gaps)
 	var right_gaps: Array[Vector2] = [Vector2(-1.5, 1.6)]
@@ -98,7 +100,17 @@ func _build_back_room() -> void:
 func _register_points() -> void:
 	add_spawn("desde_plaza", Vector3(0.0, 0.1, 4.4), 0.0)
 	add_spawn("cama", Vector3(-11.4, 0.1, -2.4), 90.0)
-	add_marker("barra", Vector3(0.0, 0.0, -5.0))
+	# Detrás de la barra, de cara a la clientela y no a las botellas.
+	for spot: Array in [["barra", 0.0], ["barra_izquierda", -2.8], ["barra_derecha", 2.8]]:
+		add_marker(spot[0], Vector3(spot[1], 0.0, -4.95))
+		face_marker(spot[0], Vector3(spot[1], 0.0, 0.0))
+	# Del lado de los clientes, en los extremos de la barra y sin ocupar los taburetes.
+	add_marker("barra_cliente", Vector3(3.6, 0.0, -2.9))
+	face_marker("barra_cliente", Vector3(3.6, 0.0, -4.0))
+	add_marker("barra_extremo", Vector3(-4.2, 0.0, -2.7))
+	face_marker("barra_extremo", Vector3(-4.2, 0.0, -4.0))
 	add_marker("mesa_ventana", Vector3(4.2, 0.0, 1.6))
+	face_marker("mesa_ventana", Vector3(5.8, 0.0, 1.0))
 	add_marker("mesa_fondo", Vector3(-4.0, 0.0, 0.8))
+	face_marker("mesa_fondo", Vector3(-5.2, 0.0, 2.0))
 	add_marker("trastienda", Vector3(10.4, 0.0, 0.0))

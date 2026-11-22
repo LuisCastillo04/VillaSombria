@@ -95,15 +95,20 @@ Game
 
 ## Clases principales
 
-- `LocationBase`: base de los escenarios. Registra puntos de aparición y marcadores, y coloca
-  a los NPC según su rutina.
+- `LocationBase`: base de los escenarios. Registra puntos de aparición, marcadores (con su
+  orientación) y huecos de paso, declara el área transitable, hornea la navegación y coloca a los
+  NPC según su rutina. Ver [NPC.md](NPC.md).
+- `LocationNavigation`: malla de navegación del escenario, horneada con sus colisiones en un mapa
+  propio.
 - `MeshBatcher`: fusiona primitivas de caras planas en una malla por capa, con colores de
   vértice. Un escenario completo son tres mallas como máximo.
 - `BuildingKit`, `PropsKit`, `InteriorKit`: piezas de arquitectura y atrezo.
 - `CharacterModel`: personaje procedural animado, descrito con un diccionario.
 - `Interactable`: base de lo que responde a E. Hereda `ClueObject`, `LocationExit`,
   `RestPoint` y `NpcInteraction`.
-- `Npc`: estados de reposo, marcha, espera y conversación.
+- `Npc`: estados `IDLE`, `WANDER`, `PATROL`, `RETURN`, `INTERACT` y `DIALOGUE`; camina con
+  `NavigationAgent3D` y evitación. `NpcProfile` reúne sus parámetros.
+- `FallGuard`: red de seguridad contra caídas del detective y de los NPC.
 - `Conditions` y `Effects`: interpretan los bloques `if` y `effects` de los datos.
 
 ## Señales de `EventBus`
@@ -160,8 +165,8 @@ Una pregunta puede llevar `variants` para responder según el estado, y una esce
 - **Pista:** añádela a `data/clues.json` y colócala con `add_interactable(ClueObject.new("id"), posición)`
   o concédela desde un diálogo. Al examinarla se ve en la ficha de investigación; con `image` lleva
   ilustración y con `presentation` se presenta como carta o periódico. Ver [EVIDENCIAS.md](EVIDENCIAS.md).
-- **NPC:** añade su entrada en `characters.json`, su rutina en `schedules.json` y su archivo en
-  `data/dialogues/`.
+- **NPC:** añade su entrada en `characters.json` (con su bloque `ambient`), su rutina en
+  `schedules.json` y su archivo en `data/dialogues/`. Ver [NPC.md](NPC.md).
 - **Deducción:** añádela a `data/deductions.json`; el tablero la detecta sola y dibuja su hilo.
 - **Sospechoso:** `"suspect": true` en su entrada de `characters.json`; el tablero y el expediente
   le dan ficha sin tocar código.
@@ -275,8 +280,12 @@ en `CATEGORIES`. Avanzar y confirmar sí usan `interact` y `ui_accept`.
 ## Decisiones técnicas
 
 - **Niebla por postproceso.** La niebla volumétrica no se usa porque la cámara es ortográfica.
-- **NPC con puntos de ruta.** Caminan en línea recta entre marcadores y saltan al destino si
-  se atascan cuatro segundos. No se usa `NavigationRegion3D`.
+- **NPC con navegación horneada en tiempo de ejecución.** Cada escenario hornea su malla con sus
+  propias colisiones al construirse, en un mapa propio; los NPC la recorren con `NavigationAgent3D`
+  y evitación, y un camino bloqueado se recalcula en lugar de saltar al destino. Ver
+  [NPC.md](NPC.md).
+- **Área transitable y red de seguridad.** Cada escenario declara su `play_area`; las colisiones
+  impiden salir de ella y `FallGuard` devuelve al último suelo válido si alguna fallase.
 - **Corte de casa de muñecas.** Las paredes entre la cámara y el jugador son bajas, pero su
   colisión es completa.
 - **Sincronización vertical desactivada por defecto.** Ver `ESTADO_PROYECTO.md`.

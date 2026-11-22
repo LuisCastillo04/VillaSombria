@@ -161,7 +161,7 @@ func test_vertical_slice_flow() -> void:
 	check(game.player.detector.get_focused() is NpcInteraction, "el NPC debe quedar enfocado")
 	game.player.detector.trigger(game.player)
 	check(DialogueManager.active, "se abre el interrogatorio")
-	check_equal(hilario.state, Npc.State.TALKING, "el NPC se detiene")
+	check_equal(hilario.state, Npc.State.DIALOGUE, "el NPC se detiene")
 
 
 func _available(npc_id: String, topic_id: String) -> bool:

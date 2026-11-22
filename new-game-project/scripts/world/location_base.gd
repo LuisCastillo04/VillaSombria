@@ -5,15 +5,35 @@ extends Node3D
 ## registra los puntos de aparición y los marcadores que usan los NPC.
 
 const NPC_SCENE := "res://scenes/actors/npc.tscn"
+## Altura del suelo transitable de todos los escenarios.
+const FLOOR_HEIGHT := 0.0
+## Altura de los muros invisibles: más que cualquier salto o pendiente posible.
+const BARRIER_HEIGHT := 3.0
+## Separación mínima entre los sitios donde se paran dos NPC a la vez.
+const NPC_SPACING := 1.2
+## Distancia mínima entre un sitio de parada y un hueco de paso: un NPC no cierra puertas.
+const NPC_DOORWAY_CLEARANCE := 1.1
+## Distancia mínima entre un sitio de parada y una pista, salida o cama: no las tapa.
+const NPC_INTERACTABLE_CLEARANCE := 0.9
 
 @export var location_id := ""
 
 ## Límites XZ del punto que enfoca la cámara.
 var camera_limits := Rect2()
+## Rectángulo XZ que encierra todo lo transitable. Lo usan la red de seguridad contra caídas y
+## la navegación de los NPC; las colisiones deben impedir salir de él. Sin área, sólo se vigila
+## la altura.
+var play_area := Rect2()
 var batch := MeshBatcher.new()
+## Navegación de los NPC, horneada con las colisiones del escenario al construirlo.
+var navigation: LocationNavigation
 
 var _spawns: Dictionary = {}
 var _markers: Dictionary = {}
+## Orientación (yaw del modelo) con la que se espera en los marcadores que la tienen.
+var _marker_facing: Dictionary = {}
+## Centros de los huecos de paso entre estancias y hacia la calle.
+var _doorways: Array[Vector3] = []
 var _body: StaticBody3D
 var _npcs: Dictionary = {}
 
@@ -24,6 +44,10 @@ func _ready() -> void:
 	add_child(_body)
 	build()
 	batch.attach_to(self)
+	navigation = LocationNavigation.new()
+	navigation.name = "Navegacion"
+	add_child(navigation)
+	navigation.bake(_body, play_area)
 	EventBus.time_changed.connect(_on_time_changed)
 	DialogueManager.closed.connect(_on_dialogue_closed)
 	refresh_npcs()
@@ -36,6 +60,36 @@ func build() -> void:
 
 func get_npc(npc_id: String) -> Npc:
 	return _npcs.get(npc_id)
+
+
+func get_npcs() -> Array:
+	return _npcs.values()
+
+
+## Indica si un NPC puede pararse en `point` sin estorbar: lejos de los huecos de paso, de las
+## pistas y salidas, y de los puestos, posiciones y destinos de los demás NPC.
+func is_spot_clear_for_npc(point: Vector3, npc: Npc = null) -> bool:
+	for doorway in _doorways:
+		if _flat_distance(point, doorway) < NPC_DOORWAY_CLEARANCE:
+			return false
+	for child in get_children():
+		if child is Interactable and _flat_distance(point, (child as Node3D).global_position) < NPC_INTERACTABLE_CLEARANCE:
+			return false
+	for other: Npc in _npcs.values():
+		if other == npc:
+			continue
+		for occupied: Vector3 in [other.home, other.global_position, other.get_target()]:
+			if _flat_distance(point, occupied) < NPC_SPACING:
+				return false
+	return true
+
+
+## Indica si un recorrido cruza algún hueco de paso (cambia de estancia o sale a la calle).
+func path_crosses_doorway(path: PackedVector3Array) -> bool:
+	for doorway in _doorways:
+		if LocationNavigation.passes_near(path, doorway, 0.6):
+			return true
+	return false
 
 
 ## Sincroniza los NPC presentes con sus rutinas para la hora actual.
@@ -60,17 +114,13 @@ func _spawn_npc(npc_id: String, slot: Dictionary) -> void:
 	var npc: Npc = (load(NPC_SCENE) as PackedScene).instantiate()
 	add_child(npc)
 	npc.setup(npc_id)
-	npc.global_position = get_marker(slot["marker"]) + Vector3.UP * 0.05
 	_npcs[npc_id] = npc
-	_assign_slot(npc, slot)
+	npc.place(self, slot)
 
 
+## Nuevo tramo en el mismo escenario: el NPC camina hasta su nuevo puesto.
 func _assign_slot(npc: Npc, slot: Dictionary) -> void:
-	npc.current_slot = slot
-	var points: Array[Vector3] = []
-	for marker_id: String in slot.get("patrol", [slot["marker"]]):
-		points.append(get_marker(marker_id))
-	npc.set_route(points)
+	npc.assign(slot)
 
 
 func _on_time_changed(_day: int, minutes: int) -> void:
@@ -98,12 +148,75 @@ func collider(center: Vector3, size: Vector3, yaw: float = 0.0) -> void:
 	_body.add_child(shape)
 
 
+## Muro invisible entre dos puntos del suelo, en coordenadas del escenario. Sirve para cerrar
+## huecos concretos sin rodear el escenario con una caja que bloquearía caminos válidos.
+func block_passage(from: Vector2, to: Vector2, thickness: float = 0.3) -> void:
+	var length := from.distance_to(to)
+	if length <= 0.01:
+		return
+	var middle := (from + to) * 0.5
+	var yaw := -atan2(to.y - from.y, to.x - from.x)
+	var previous := batch.xform
+	batch.xform = Transform3D.IDENTITY
+	collider(Vector3(middle.x, BARRIER_HEIGHT * 0.5, middle.y), Vector3(length, BARRIER_HEIGHT, thickness), yaw)
+	batch.xform = previous
+
+
+## Registra un hueco de paso. Los NPC no se detienen en ellos para no cerrarle el camino al
+## detective. `InteriorKit.wall` lo hace con cada hueco de pared.
+func add_doorway(center: Vector3) -> void:
+	_doorways.append(batch.xform * center)
+
+
+func get_doorways() -> Array[Vector3]:
+	return _doorways
+
+
+## Indica si un punto está dentro del área transitable, con un margen en metros.
+func is_inside_play_area(point: Vector3, margin: float = 0.0) -> bool:
+	if not play_area.has_area():
+		return true
+	return play_area.grow(margin).has_point(Vector2(point.x, point.z))
+
+
+## Indica si alguien puede estar de pie en ese punto: dentro del área, sin obstáculos y con
+## suelo debajo. Sirve para validar posiciones guardadas o recuperadas.
+func is_standing_point(point: Vector3, radius: float = 0.3) -> bool:
+	if not is_inside_play_area(point) or absf(point.y - FLOOR_HEIGHT) > 0.6:
+		return false
+	var space := get_world_3d().direct_space_state
+	var ray := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.5, point + Vector3.DOWN * 0.8, 1)
+	if space.intersect_ray(ray).is_empty():
+		return false
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = radius
+	capsule.height = 1.8
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = capsule
+	query.transform = Transform3D(Basis.IDENTITY, Vector3(point.x, FLOOR_HEIGHT + 1.0, point.z))
+	query.collision_mask = 1
+	return space.intersect_shape(query, 1).is_empty()
+
+
 func add_spawn(spawn_id: String, where: Vector3, yaw_degrees: float = 0.0) -> void:
 	_spawns[spawn_id] = {"position": batch.xform * where, "yaw": deg_to_rad(yaw_degrees)}
 
 
 func add_marker(marker_id: String, where: Vector3) -> void:
 	_markers[marker_id] = batch.xform * where
+
+
+## Orienta a quien espera en un marcador hacia un punto, en las mismas coordenadas que el
+## marcador: la camarera hacia la clientela, el sargento hacia la puerta.
+func face_marker(marker_id: String, toward: Vector3) -> void:
+	var direction := batch.xform * toward - get_marker(marker_id)
+	if Vector2(direction.x, direction.z).length_squared() > 0.0001:
+		_marker_facing[marker_id] = atan2(-direction.x, -direction.z)
+
+
+## Yaw del modelo con el que se espera en el marcador, o null si da igual hacia dónde mire.
+func get_marker_facing(marker_id: String) -> Variant:
+	return _marker_facing.get(marker_id)
 
 
 func has_marker(marker_id: String) -> bool:
@@ -167,3 +280,7 @@ func add_sign(text: String, where: Vector3, height: float, color: Color, yaw: fl
 	label.transform = batch.xform * Transform3D(Basis(Vector3.UP, yaw), where)
 	add_child(label)
 	return label
+
+
+static func _flat_distance(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()

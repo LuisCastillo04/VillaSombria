@@ -10,6 +10,7 @@ const VERGE_TINT := Color("3f4640")
 func build() -> void:
 	Atmosphere.add_exterior(self)
 	camera_limits = Rect2(-8.0, -5.0, 22.0, 9.0)
+	play_area = Rect2(-16.0, -4.3, 39.0, 18.8)
 	collider(Vector3(5.0, -0.5, 0.0), Vector3(90.0, 1.0, 60.0))
 	batch.ground(Vector2(-50.0, -50.0), Vector2(60.0, 50.0), VERGE_TINT, -0.04)
 	batch.ground(Vector2(-17.0, -4.0), Vector2(22.0, 8.0), PLATFORM_TINT, 0.01)
@@ -111,7 +112,8 @@ func _build_platform() -> void:
 
 
 func _build_edges() -> void:
-	PropsKit.low_wall(self, Vector3(-1.4, 0.3, 8.2), Vector3(26.0, 0.6, 0.4))
+	# El murete llega hasta el límite oeste: si se queda corto, la esquina deja salir del andén.
+	PropsKit.low_wall(self, Vector3(-2.2, 0.3, 8.2), Vector3(27.6, 0.6, 0.4))
 	PropsKit.low_wall(self, Vector3(22.2, 0.3, 3.0), Vector3(0.4, 0.6, 14.0))
 	PropsKit.hedge(self, Vector3(12.0, 0.4, 11.0), Vector3(0.7, 0.8, 6.0))
 	collider(Vector3(-16.0, 2.0, 2.0), Vector3(1.0, 4.0, 14.0))
@@ -128,5 +130,7 @@ func _register_points() -> void:
 	add_spawn("anden", Vector3(5.0, 0.1, -1.8), 180.0)
 	add_spawn("desde_plaza", Vector3(17.0, 0.1, 10.4), 0.0)
 	add_marker("taquilla", Vector3(-7.6, 0.0, 2.0))
+	face_marker("taquilla", Vector3(0.0, 0.0, 2.0))
 	add_marker("banco_anden", Vector3(-3.0, 0.0, -1.8))
+	face_marker("banco_anden", Vector3(-3.0, 0.0, -6.0))
 	add_marker("anden_norte", Vector3(6.0, 0.0, -0.8))
