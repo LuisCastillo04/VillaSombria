@@ -74,6 +74,6 @@ func close() -> void:
 func _input(event: InputEvent) -> void:
 	if not is_open:
 		return
-	if event.is_action_pressed("interact") or event.is_action_pressed("ui_accept") or event.is_action_pressed("pause"):
+	if event.is_action_pressed("interact") or event.is_action_pressed("ui_accept") or event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		close()

@@ -56,6 +56,8 @@ func _ready() -> void:
 	EventBus.location_changed.connect(_on_location_changed)
 	EventBus.objectives_changed.connect(_refresh_objective.bind(true))
 	EventBus.player_locks_changed.connect(_queue_visibility)
+	# Al pasar del teclado al mando (o al revés), las teclas y el aviso cambian de rótulo.
+	Controls.input_device_changed.connect(_on_input_device_changed.unbind(1))
 	DialogueManager.opened.connect(_on_conversation_changed.unbind(1))
 	DialogueManager.closed.connect(_on_conversation_changed.unbind(1))
 	_root.resized.connect(_queue_layout)
@@ -285,6 +287,12 @@ func _refresh_objective(animate: bool) -> void:
 
 
 # --- Teclas y aviso de interacción ---
+
+func _on_input_device_changed() -> void:
+	refresh_controls()
+	if _prompt.is_shown():
+		_prompt.show_prompt(_prompt.get_text(), HudInfo.action_key("interact"))
+
 
 ## Con algo al alcance aparece el aviso y la tecla de interactuar de la barra se enciende.
 func _on_focus_changed(prompt: String) -> void:

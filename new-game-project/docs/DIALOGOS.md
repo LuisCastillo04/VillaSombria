@@ -169,7 +169,7 @@ Comprobado con pruebas a 16:9, 4:3, 5:4, 16:10 y 21:9, y con capturas a 1280 × 
 | Líneas por página | `DialogueStyle.TEXT_LINES` |
 | Rótulos de las respuestas | `DialogueChoices.TOPICS_HEADING` y `REPLIES_HEADING` |
 | Voces | Como prevé la arquitectura, un campo por línea; `DialogueUi._on_line_shown` es donde reproducirla |
-| Mandos | `DialogueControls` decide qué avanza, elige y confirma, e `InputLabels` qué nombre se muestra |
+| Mandos | `DialogueControls` decide qué avanza, elige y confirma, e `InputLabels` qué nombre se muestra; con el mando, «[A] Continuar» y la ayuda de las preguntas cambian solos (ver [CONTROLES.md](CONTROLES.md)) |
 | Android | Las tarjetas son botones y «Continuar» avanza con un toque, que llega como un clic; no hay controles táctiles propios |
 | Color, letra, medida o tiempo | `DialogueStyle` |
 

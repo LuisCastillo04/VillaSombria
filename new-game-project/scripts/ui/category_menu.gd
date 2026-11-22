@@ -104,12 +104,18 @@ func _build_categories() -> void:
 	pass
 
 
-## Filete y, debajo, las funciones previstas que todavía no existen.
-func add_planned_section(page: VBoxContainer, planned_options: Array[Dictionary]) -> void:
+## Filete dorado con rombo que separa dos bloques de una página.
+func add_divider(page: VBoxContainer) -> GoldDivider:
 	var divider := GoldDivider.new()
 	divider.custom_minimum_size = Vector2(0.0, 16.0)
 	divider.color = Color(MenuStyle.GOLD, 0.45)
 	page.add_child(divider)
+	return divider
+
+
+## Filete y, debajo, las funciones previstas que todavía no existen.
+func add_planned_section(page: VBoxContainer, planned_options: Array[Dictionary]) -> void:
+	add_divider(page)
 	for planned: Dictionary in planned_options:
 		page.add_child(planned_row(planned))
 

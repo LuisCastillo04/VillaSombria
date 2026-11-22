@@ -28,6 +28,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/core/` | Escena de juego, condiciones y efectos |
 | `scripts/save/` | Formato de las partidas, escritura segura e imagen de cada ranura |
 | `scripts/settings/` | Esquema de las preferencias del jugador y lo que las aplica; ver [CONFIGURACION.md](CONFIGURACION.md) |
+| `scripts/input/` | Teclas reasignables y navegación de los menús con el mando; ver [CONTROLES.md](CONTROLES.md) |
 | `scripts/map/` | Calibración, zonas y lugares del mapa del pueblo |
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
@@ -54,6 +55,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `ExitManager` | Cierre controlado: la X, Alt + F4 y los botones de salida guardan antes de salir |
 | `ConfirmDialog` | Ventana de confirmación común, con cuenta atrás opcional; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | `Settings` | Preferencias del jugador por categorías (audio, gráficos, jugabilidad, accesibilidad, controles) en `user://ajustes.cfg`, validadas con `SettingsSchema`; ver [CONFIGURACION.md](CONFIGURACION.md) |
+| `Controls` | Teclas del jugador aplicadas al InputMap y guardadas en `ajustes.cfg`, conflictos, restaurar, dispositivo en uso, mandos conectados y navegación de los menús con el mando; ver [CONTROLES.md](CONTROLES.md) |
 | `AudioManager` | Sonido sintetizado al arrancar |
 | `TownMap` | Mapa del pueblo: lugares, calibración, posición del detective en el mapa y lugares visitados; ver [MAPA.md](MAPA.md) |
 
@@ -227,10 +229,13 @@ congelado por `get_tree().paused`. Los fundidos funcionan en pausa porque `Pause
 | `CategoryMenu` | `MenuScreen` con pestañas (`CategoryTab`) y páginas desplazables; base de las dos siguientes |
 | `SettingsMenu` | Audio, Gráficos, Jugabilidad y Accesibilidad con las preferencias reales de `Settings`; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | `OptionSelector` | Fila «‹ valor ›» de una lista cerrada: izquierda y derecha, aceptar y ratón |
-| `ControlsMenu` | Teclas leídas del InputMap al abrir, en filas `BindingRow` con `KeyCap`; nombres en `InputLabels` |
+| `ControlsMenu` | Teclas leídas del InputMap al abrir, en filas `BindingRow` con `KeyCap`; nombres en `InputLabels`. En «Otros», las tres herramientas (`MenuActionRow`): reasignar, mando y restaurar; ver [CONTROLES.md](CONTROLES.md) |
+| `RebindMenu` | «Reasignar teclas», encima de Controles: tecla principal y alternativa de cada acción (`RebindRow`, `KeySlotButton`), conflictos con `ConfirmDialog` |
+| `GamepadMenu` | «Jugar con mando», encima de Controles: el esquema de botones leído del InputMap |
 | `MapScreen` | Mapa del pueblo sobre la pausa, con M o con la opción «Mapa»; ver [MAPA.md](MAPA.md) |
 
-Escape cierra siempre la pantalla de arriba: expediente o configuración → pausa → juego. El mapa
+Escape (o B en el mando) cierra siempre la pantalla de arriba: expediente o configuración → pausa →
+juego; reasignar teclas o el esquema del mando → Controles → pausa. El mapa
 abierto con M vuelve directamente al juego; abierto desde la pausa, a la pausa. Al
 volver, el foco regresa a la opción que abrió la pantalla. Las pestañas se recorren con
 arriba y abajo y cambian la página; a la derecha se entra en la página y a la izquierda se
@@ -238,15 +243,14 @@ vuelve a su pestaña.
 
 ### Funcionalidades preparadas para futuras versiones
 
-Lo previsto se muestra desactivado, sin foco y con «Próximamente»; no guarda nada. Configuración ya
-no tiene nada previsto; quedan las ampliaciones de Controles.
+Lo previsto se mostraría desactivado, sin foco y con «Próximamente» (`CategoryMenu.add_planned_section`);
+no guarda nada. Hoy ni Configuración ni Controles tienen nada previsto: todas sus opciones existen.
 
 | Ampliación | Qué tocar |
 | --- | --- |
 | Opción de Configuración nueva | Describirla en `SettingsSchema`, aplicarla donde corresponda y crear su fila con `_add_switch_row` o `_add_selector` en la página de su categoría de `scripts/ui/settings_menu.gd`; ver [CONFIGURACION.md](CONFIGURACION.md) |
-| Acción o categoría de controles | Crear la acción en el InputMap y añadir su fila o categoría a `CATEGORIES` de `scripts/ui/controls_menu.gd` |
-| Reasignación de teclas | `BindingRow.actions` dice qué acciones cambiar; pedir la tecla al pulsar la fila, guardar el InputMap en `Settings` y llamar a `ControlsMenu.refresh()` |
-| Mandos y esquemas de entrada | `InputLabels` sólo lee el teclado; ahí hay que añadir los botones del mando |
+| Acción o categoría de controles | Crear la acción en el InputMap (con su botón del mando) y añadir su fila o categoría a `CATEGORIES` de `scripts/ui/controls_menu.gd`; si se puede reasignar, también a `InputBindings.ACTIONS`. Ver [CONTROLES.md](CONTROLES.md) |
+| Reasignar el mando u otra disposición de botones | Ver «Ampliaciones» en [CONTROLES.md](CONTROLES.md) |
 | Categoría nueva en cualquier menú por categorías | Otra llamada a `add_category()` en `_build_categories()` |
 
 Las teclas 1 a 9 de las respuestas (fila superior y teclado numérico) y el clic de las

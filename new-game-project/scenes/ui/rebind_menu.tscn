@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/ui/category_menu.tscn" id="1"]
+[ext_resource type="Script" path="res://scripts/ui/rebind_menu.gd" id="2"]
+
+[node name="RebindMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+title = "REASIGNAR TECLAS"
+emblem_icon = "teclado"
+panel_size = Vector2(1120, 760)

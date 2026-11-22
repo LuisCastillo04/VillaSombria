@@ -28,6 +28,8 @@ var _mode := Mode.CLOSED
 var _waiting_input := false
 ## La próxima intervención es la primera desde que se abrió la conversación.
 var _first_line := false
+## Respuestas en pantalla, para rehacer su ayuda si cambia el dispositivo.
+var _option_count := 0
 var _npc_id := ""
 ## Última respuesta elegida: al volver al menú, el foco regresa a ella.
 var _last_choice := ""
@@ -74,6 +76,7 @@ func _ready() -> void:
 	_text.completed.connect(_on_text_completed)
 	_choices.chosen.connect(_choose)
 	DialogueManager.opened.connect(_on_opened)
+	Controls.input_device_changed.connect(_on_input_device_changed.unbind(1))
 	DialogueManager.line_shown.connect(_on_line_shown)
 	DialogueManager.options_shown.connect(_on_options_shown)
 	DialogueManager.closed.connect(_on_closed)
@@ -182,6 +185,14 @@ func _process(delta: float) -> void:
 		if _auto_wait <= 0.0:
 			_stop_auto_wait()
 			_advance()
+
+
+## Al pasar del teclado al mando (o al revés), «Continuar» y la ayuda de las respuestas cambian de
+## rótulo.
+func _on_input_device_changed() -> void:
+	_continue.refresh()
+	if _mode == Mode.CHOOSING:
+		_hint.set_text(DialogueControls.choice_hint(_option_count))
 
 
 func _input(event: InputEvent) -> void:
@@ -310,7 +321,8 @@ func _on_options_shown(options: Array) -> void:
 	_waiting_input = false
 	_continue.set_waiting(false)
 	_enter_mode(Mode.CHOOSING, animate)
-	_hint.set_text(DialogueControls.choice_hint(options.size()))
+	_option_count = options.size()
+	_hint.set_text(DialogueControls.choice_hint(_option_count))
 	_choices.show_options(options)
 	_plate.set_text(DialogueChoices.heading_for(options))
 	var list_height := _choices_list_height()

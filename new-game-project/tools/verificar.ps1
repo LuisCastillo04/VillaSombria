@@ -45,6 +45,10 @@ if (-not $SinPruebas -and (Test-Path (Join-Path $proyecto 'tests\persistencia\re
     # Las preferencias también: se cambian en un proceso y se leen y aplican en otro.
     Invoke-Paso 'Reinicio: guardar preferencias' @('--headless', '--path', $proyecto, 'res://tests/persistencia/ajustes.tscn', '--', '--fase=guardar')
     Invoke-Paso 'Reinicio: preferencias en un proceso nuevo' @('--headless', '--path', $proyecto, 'res://tests/persistencia/ajustes.tscn', '--', '--fase=comprobar')
+    # Las teclas personalizadas se recuperan al arrancar, y las restauradas siguen siéndolo.
+    Invoke-Paso 'Reinicio: personalizar teclas' @('--headless', '--path', $proyecto, 'res://tests/persistencia/controles.tscn', '--', '--fase=personalizar')
+    Invoke-Paso 'Reinicio: teclas en un proceso nuevo y restaurar' @('--headless', '--path', $proyecto, 'res://tests/persistencia/controles.tscn', '--', '--fase=comprobar')
+    Invoke-Paso 'Reinicio: teclas de fábrica en otro proceso' @('--headless', '--path', $proyecto, 'res://tests/persistencia/controles.tscn', '--', '--fase=restaurados')
 }
 if ($ConVentana -and -not $SinPruebas) {
     Invoke-Paso 'Imágenes de las ranuras (con ventana)' @('--path', $proyecto, '--resolution', '1280x720', 'res://tests/visual/vista_previa.tscn')

@@ -37,6 +37,7 @@ func _ready() -> void:
 	_folder.tabs.tab_changed.connect(_on_tab_changed)
 	_folder.footer.close_pressed.connect(close)
 	_root.resized.connect(_layout)
+	Controls.input_device_changed.connect(_on_input_device_changed.unbind(1))
 	EventBus.clue_discovered.connect(_on_state_changed.unbind(1))
 	EventBus.testimony_recorded.connect(_on_state_changed.unbind(1))
 	EventBus.deduction_made.connect(_on_state_changed.unbind(1))
@@ -101,10 +102,17 @@ func select_tab(tab: int) -> void:
 		_focus_current()
 
 
+## Al pasar del teclado al mando (o al revés), el pie cambia de rótulos.
+func _on_input_device_changed() -> void:
+	if is_open:
+		_folder.footer.refresh_keys()
+
+
 func _input(event: InputEvent) -> void:
 	if not is_open:
 		return
-	if event.is_action_pressed("open_journal") or event.is_action_pressed("pause"):
+	# Su tecla, Esc o el botón de volver del mando lo cierran.
+	if event.is_action_pressed("open_journal") or event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		close()
 		return

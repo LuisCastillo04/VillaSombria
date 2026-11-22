@@ -11,9 +11,11 @@ extends RefCounted
 ## Versión del formato. La 1 guardaba `volumen/*`, `pantalla/completa` y `pantalla/vsync`.
 const VERSION := 2
 
-## Secciones del archivo, una por categoría. `controles` queda reservada para las teclas que guarde
-## un sistema de reasignación: `Settings` nunca borra lo que haya en ella.
+## Secciones del archivo, una por categoría. `controles` es de las teclas que guarda `Controls`.
 const SECTIONS: Array[String] = ["audio", "graficos", "jugabilidad", "accesibilidad", "controles"]
+## Secciones que gestiona otro sistema con `Settings.read_section` y `write_section`: su contenido no
+## está en `DEFINITIONS` y `Settings` nunca lo borra ni lo reescribe por su cuenta.
+const EXTERNAL_SECTIONS: Array[String] = ["controles"]
 ## Secciones del formato anterior, que se migran al leerlas y después se retiran del archivo.
 const LEGACY_SECTIONS: Array[String] = ["volumen", "pantalla"]
 

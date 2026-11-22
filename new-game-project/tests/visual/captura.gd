@@ -17,9 +17,18 @@ extends Node
 ##                         intervención y un número elige esa respuesta (1 la primera)
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar] | esperar
+##                         | reasignar:n | mando:n | restaurar
 ##                         (settings y controls se abren desde la pausa; n es la categoría;
 ##                         map abre el mapa con la tecla M y, con un lugar, señala su chincheta;
-##                         esperar pulsa la tecla de dejar pasar una hora)
+##                         esperar pulsa la tecla de dejar pasar una hora; reasignar abre la
+##                         pantalla de reasignar teclas en la categoría n; mando, la del esquema
+##                         del mando; las dos, con su fila de Controles; restaurar pide restaurar
+##                         las teclas de fábrica)
+##   --mando[=estilo]      rótulos del mando en lugar de los del teclado; estilo: xbox (por
+##                         defecto), playstation o nintendo
+##   --esperar-tecla=accion[:hueco]
+##                         con --open=reasignar, elige ese hueco (0 principal, 1 alternativa) y
+##                         lo deja esperando la tecla nueva
 ##   --seleccion=a,b       con --open=board, elige esos elementos para compararlos
 ##   --relacionar          con --open=board y --seleccion, pulsa «Relacionar»
 ##   --editar=id           con --open=board, abre la hipótesis de ese sospechoso
@@ -46,6 +55,9 @@ func _ready() -> void:
 	SaveSystem.autosave_enabled = false
 	SaveSystem.use_storage("user://pruebas_guardado/capturas")
 	_apply_settings(args)
+	if args.has("mando"):
+		Controls.style_override = String(args["mando"]) if String(args["mando"]) in InputLabels.STYLE_NAMES else "xbox"
+		Controls.set_using_gamepad(true)
 	if args.has("menu"):
 		await _capture_menu(args)
 		get_tree().quit()
@@ -220,6 +232,28 @@ func _open_panel(game: Game, what: String) -> void:
 			slots.select_slot("manual_2")
 			if what == "confirm":
 				slots.get_action_button().pressed.emit()
+		"mando", "reasignar", "restaurar":
+			# Como el jugador: la pausa, Controles, «Otros» y la fila de la herramienta.
+			await _wait_seconds(0.6)
+			var pause: PauseMenu = game.get_node("PauseMenu")
+			pause.open()
+			(pause.get_node("Root/Center/Panel/Box/Controls") as Button).pressed.emit()
+			var controls: ControlsMenu = pause.get_node("Root/ControlsMenu")
+			controls.select_category(ControlsMenu.CATEGORIES.size() - 1)
+			await get_tree().process_frame
+			controls.get_tool(parts[0]).pressed.emit()
+			await get_tree().process_frame
+			var screen: CategoryMenu = controls.get_gamepad_menu() if parts[0] == "mando" else controls.get_rebind_menu()
+			if parts[0] != "restaurar" and parts.size() > 1:
+				screen.select_category(int(parts[1]))
+			var rebind := controls.get_rebind_menu()
+			var args := _parse_args()
+			if args.has("esperar-tecla"):
+				var target := String(args["esperar-tecla"]).split(":")
+				await get_tree().process_frame
+				var slot := rebind.get_row(target[0]).get_slot(int(target[1]) if target.size() > 1 else 0)
+				slot.grab_focus()
+				slot.pressed.emit()
 		"esperar":
 			# La tecla de dejar pasar una hora, con las confirmaciones activadas.
 			await _wait_seconds(0.6)

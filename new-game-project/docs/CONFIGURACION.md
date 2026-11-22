@@ -74,7 +74,7 @@ movimiento_reducido=false
 | | `avance_automatico`, `confirmaciones` | Sí o no |
 | `accesibilidad` | `tamano_letra` | `normal`, `grande`, `muy_grande` |
 | | `contraste_alto`, `subtitulos`, `movimiento_reducido` | Sí o no |
-| `controles` | Reservada para las teclas de un sistema de reasignación | `Settings` nunca la borra |
+| `controles` | Teclas personalizadas de `Controls`; ver [CONTROLES.md](CONTROLES.md) | `Settings` nunca la borra; se lee y se escribe con `read_section` y `write_section` |
 
 ### Reglas
 
@@ -87,8 +87,11 @@ movimiento_reducido=false
 - **Cambios independientes.** `Settings.set_value(clave, valor)` valida, aplica, escribe sólo esa
   clave sobre el archivo existente y emite `Settings.changed(clave, valor)`. Repetir el valor vigente
   no escribe ni avisa.
-- **Lo ajeno se conserva.** Las secciones y claves que `Settings` no conoce (por ejemplo, lo que
-  guarde un sistema de reasignación en `controles`) siguen en el archivo después de cada escritura.
+- **Lo ajeno se conserva.** Las secciones y claves que `Settings` no conoce siguen en el archivo
+  después de cada escritura. Las de otros sistemas (`SettingsSchema.EXTERNAL_SECTIONS`: hoy, las teclas
+  de `Controls` en `controles`) las gestiona ese sistema con `read_section` y `write_section`, que
+  sustituye la sección entera y conserva el resto; las secciones de las preferencias no se pueden
+  escribir así.
 - **Formato anterior.** La versión 1 guardaba `volumen/*`, `pantalla/completa` y `pantalla/vsync`.
   Al leerla se migra (pantalla completa pasa a ser el modo `pantalla_completa`), se retiran las
   secciones antiguas y el archivo se reescribe con `version=2`.
@@ -96,7 +99,8 @@ movimiento_reducido=false
   corregido. Si el archivo entero es ilegible, se aparta una copia con el sufijo `.danado` y se
   empieza con los valores por defecto.
 - **Arranque.** `Settings` lee el archivo en su `_ready`, antes de la primera escena, y aplica lo que
-  depende del motor.
+  depende del motor. Cada vez que lee el archivo (también con `use_file`) emite `reloaded`, y `Controls`
+  vuelve a leer sus teclas.
 
 ### Atajos que se mantienen
 
@@ -303,9 +307,9 @@ avance automático también, porque informa.
 
 Todas las opciones nuevas funcionan con ratón, teclado y mando. Los interruptores y selectores reciben el
 foco en el orden de la página (arriba y abajo), los selectores cambian de valor con izquierda y derecha y
-con aceptar, y la confirmación retiene el foco en sus dos botones. Las acciones `ui_*` de Godot incluyen
-la cruceta, el stick izquierdo y los botones A y B del mando. La reasignación de teclas y los botones del
-mando para jugar (fuera de los menús) no existen todavía: ver «Limitaciones».
+con aceptar, y la confirmación retiene el foco en sus dos botones. Con el mando, la cruceta y el stick
+izquierdo mueven el foco (una vez por empujón, y repiten al mantenerlos), A acepta y B vuelve; ver
+[CONTROLES.md](CONTROLES.md).
 
 ## Confirmaciones
 
@@ -373,13 +377,6 @@ Cierra el juego y vuelve a abrirlo: todo sigue como lo dejaste. Las preferencias
 
 ## Limitaciones
 
-- **Sistema de controles personalizables.** La rama `feature/controles-personalizables` y su trabajo
-  (reasignación de teclas, conflictos, botones del mando para jugar, restaurar las teclas) no existen
-  en el repositorio: en Controles siguen como «Próximamente». Lo nuevo no depende de él: las acciones se
-  leen del InputMap (dejar pasar una hora usa `wait_time`, sea cual sea su tecla), la sección
-  `controles` del archivo está reservada y se conserva, y los menús ya se manejan con la cruceta, el
-  stick y los botones A y B porque usan las acciones `ui_*`. Jugar (moverse, interactuar, abrir el
-  expediente) con mando sigue sin estar asignado.
 - **Resolución en pantalla completa.** Godot 4 no cambia el modo de vídeo del monitor, ni en pantalla
   completa exclusiva: ahí manda la resolución del monitor y el selector lo explica.
 - **Subtítulos sin contenido.** El juego no tiene voces; la opción y la barra están listas para cuando
@@ -390,8 +387,8 @@ Cierra el juego y vuelve a abrirlo: todo sigue como lo dejaste. Las preferencias
   Las siluetas de las conversaciones mantienen su tamaño.
 - **Sincronización vertical en este portátil.** Con doble GPU, hasta un proyecto vacío cae a unos 5 FPS
   con ella al lanzarlo desde la terminal; por eso sigue desactivada por defecto.
-- **Mando real.** Las pruebas envían las mismas acciones que un mando (`ui_*`), pero no se ha probado con
-  uno físico.
+- **Mando real.** Las pruebas envían eventos de mando con `Input.parse_input_event`, el mismo camino que
+  uno real, pero no se ha probado con uno físico; ver [CONTROLES.md](CONTROLES.md).
 
 ## Añadir una preferencia
 
