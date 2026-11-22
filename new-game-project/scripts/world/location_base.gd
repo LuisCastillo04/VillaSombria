@@ -5,15 +5,25 @@ extends Node3D
 ## registra los puntos de aparición y los marcadores que usan los NPC.
 
 const NPC_SCENE := "res://scenes/actors/npc.tscn"
+## Altura del suelo transitable de todos los escenarios.
+const FLOOR_HEIGHT := 0.0
+## Altura de los muros invisibles: más que cualquier salto o pendiente posible.
+const BARRIER_HEIGHT := 3.0
 
 @export var location_id := ""
 
 ## Límites XZ del punto que enfoca la cámara.
 var camera_limits := Rect2()
+## Rectángulo XZ que encierra todo lo transitable. Lo usan la red de seguridad contra caídas y
+## la navegación de los NPC; las colisiones deben impedir salir de él. Sin área, sólo se vigila
+## la altura.
+var play_area := Rect2()
 var batch := MeshBatcher.new()
 
 var _spawns: Dictionary = {}
 var _markers: Dictionary = {}
+## Centros de los huecos de paso entre estancias y hacia la calle.
+var _doorways: Array[Vector3] = []
 var _body: StaticBody3D
 var _npcs: Dictionary = {}
 
@@ -96,6 +106,56 @@ func collider(center: Vector3, size: Vector3, yaw: float = 0.0) -> void:
 	shape.shape = box
 	shape.transform = batch.xform * Transform3D(Basis(Vector3.UP, yaw), center)
 	_body.add_child(shape)
+
+
+## Muro invisible entre dos puntos del suelo, en coordenadas del escenario. Sirve para cerrar
+## huecos concretos sin rodear el escenario con una caja que bloquearía caminos válidos.
+func block_passage(from: Vector2, to: Vector2, thickness: float = 0.3) -> void:
+	var length := from.distance_to(to)
+	if length <= 0.01:
+		return
+	var middle := (from + to) * 0.5
+	var yaw := -atan2(to.y - from.y, to.x - from.x)
+	var previous := batch.xform
+	batch.xform = Transform3D.IDENTITY
+	collider(Vector3(middle.x, BARRIER_HEIGHT * 0.5, middle.y), Vector3(length, BARRIER_HEIGHT, thickness), yaw)
+	batch.xform = previous
+
+
+## Registra un hueco de paso. Los NPC no se detienen en ellos para no cerrarle el camino al
+## detective. `InteriorKit.wall` lo hace con cada hueco de pared.
+func add_doorway(center: Vector3) -> void:
+	_doorways.append(batch.xform * center)
+
+
+func get_doorways() -> Array[Vector3]:
+	return _doorways
+
+
+## Indica si un punto está dentro del área transitable, con un margen en metros.
+func is_inside_play_area(point: Vector3, margin: float = 0.0) -> bool:
+	if not play_area.has_area():
+		return true
+	return play_area.grow(margin).has_point(Vector2(point.x, point.z))
+
+
+## Indica si alguien puede estar de pie en ese punto: dentro del área, sin obstáculos y con
+## suelo debajo. Sirve para validar posiciones guardadas o recuperadas.
+func is_standing_point(point: Vector3, radius: float = 0.3) -> bool:
+	if not is_inside_play_area(point) or absf(point.y - FLOOR_HEIGHT) > 0.6:
+		return false
+	var space := get_world_3d().direct_space_state
+	var ray := PhysicsRayQueryParameters3D.create(point + Vector3.UP * 0.5, point + Vector3.DOWN * 0.8, 1)
+	if space.intersect_ray(ray).is_empty():
+		return false
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = radius
+	capsule.height = 1.8
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = capsule
+	query.transform = Transform3D(Basis.IDENTITY, Vector3(point.x, FLOOR_HEIGHT + 1.0, point.z))
+	query.collision_mask = 1
+	return space.intersect_shape(query, 1).is_empty()
 
 
 func add_spawn(spawn_id: String, where: Vector3, yaw_degrees: float = 0.0) -> void:

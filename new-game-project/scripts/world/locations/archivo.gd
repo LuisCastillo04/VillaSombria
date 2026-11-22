@@ -8,6 +8,7 @@ const WALL_DARK := Color("3a3a3e")
 func build() -> void:
 	Atmosphere.add_interior(self)
 	camera_limits = Rect2(-5.0, -3.0, 10.0, 6.0)
+	play_area = Rect2(-10.0, -7.0, 20.0, 14.0)
 	collider(Vector3(0.0, -0.5, 0.0), Vector3(30.0, 1.0, 24.0))
 	InteriorKit.plank_floor(self, Vector2(-10.0, -7.0), Vector2(10.0, 7.0), Color("4d4238"), false)
 	_build_walls()
@@ -27,6 +28,7 @@ func _build_walls() -> void:
 	InteriorKit.wall(self, Vector2(10.0, -7.0), Vector2(10.0, 7.0), 0.5, WALL_DARK)
 	var front_gaps: Array[Vector2] = [Vector2(0.0, 2.2)]
 	InteriorKit.wall(self, Vector2(-10.0, 7.0), Vector2(10.0, 7.0), 0.5, WALL_DARK, front_gaps)
+	InteriorKit.seal_street_door(self, Vector2(-10.0, 7.0), Vector2(10.0, 7.0), front_gaps[0])
 	add_interactable(LocationExit.new("plaza", "desde_archivo", "Salir a la plaza"), Vector3(0.0, 0.0, 6.4))
 
 

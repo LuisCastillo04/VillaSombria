@@ -71,7 +71,22 @@ static func wall(
 	for gap in gaps:
 		_wall_segment(location, from, along_x, cursor, gap.x - gap.y * 0.5, height, color, trim)
 		cursor = gap.x + gap.y * 0.5
+		location.add_doorway(Vector3(gap.x, 0.0, from.y) if along_x else Vector3(from.x, 0.0, gap.x))
 	_wall_segment(location, from, along_x, cursor, finish, height, color, trim)
+
+
+## Cierra por fuera el hueco de la puerta que da a la calle. Detrás de esa pared no hay
+## escenario: el detective puede llegar al umbral para usar la salida (con E), pero no cruzarlo.
+## `outward` es el sentido (+1 o -1) hacia fuera del edificio en el eje perpendicular a la pared.
+static func seal_street_door(location: LocationBase, from: Vector2, to: Vector2, gap: Vector2, outward: float = 1.0) -> void:
+	var along_x := is_equal_approx(from.y, to.y)
+	# La barrera queda justo detrás del grosor de la pared y la solapa por los dos lados.
+	var offset := outward * 0.35
+	var half := gap.y * 0.5 + 0.3
+	if along_x:
+		location.block_passage(Vector2(gap.x - half, from.y + offset), Vector2(gap.x + half, from.y + offset))
+	else:
+		location.block_passage(Vector2(from.x + offset, gap.x - half), Vector2(from.x + offset, gap.x + half))
 
 
 static func _wall_segment(

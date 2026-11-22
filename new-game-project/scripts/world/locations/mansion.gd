@@ -11,6 +11,7 @@ const FABRIC := Color("5a2a30")
 func build() -> void:
 	Atmosphere.add_interior(self)
 	camera_limits = Rect2(-9.0, -6.0, 18.0, 13.0)
+	play_area = Rect2(-14.0, -9.0, 28.0, 18.0)
 	collider(Vector3(0.0, -0.5, 0.0), Vector3(40.0, 1.0, 30.0))
 	_build_floors()
 	_build_walls()
@@ -40,6 +41,7 @@ func _build_walls() -> void:
 	InteriorKit.wall(self, Vector2(14.0, -9.0), Vector2(14.0, 9.0), 0.5, WALL_DARK)
 	var front_gaps: Array[Vector2] = [Vector2(0.5, 2.4)]
 	InteriorKit.wall(self, Vector2(-14.0, 9.0), Vector2(14.0, 9.0), 0.5, WALL_DARK, front_gaps)
+	InteriorKit.seal_street_door(self, Vector2(-14.0, 9.0), Vector2(14.0, 9.0), front_gaps[0])
 	var salon_gaps: Array[Vector2] = [Vector2(-5.0, 1.8)]
 	InteriorKit.wall(self, Vector2(-5.0, -9.0), Vector2(-5.0, -1.0), low, WALL_COLOR, salon_gaps)
 	var study_gaps: Array[Vector2] = [Vector2(-5.0, 1.8)]

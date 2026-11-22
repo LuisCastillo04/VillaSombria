@@ -12,6 +12,7 @@ const VERGE_TINT := Color("3f4640")
 func build() -> void:
 	Atmosphere.add_exterior(self)
 	camera_limits = Rect2(-9.0, -9.0, 24.0, 19.0)
+	play_area = Rect2(-14.5, -14.5, 44.1, 28.5)
 	_build_ground()
 	_build_cafe()
 	_build_narrow_house()
