@@ -84,13 +84,37 @@ func test_rooms_connect_through_their_doorways() -> void:
 		return
 	check(Vector2(path[path.size() - 1].x - to.x, path[path.size() - 1].z - to.z).length() < 0.3, "el camino llega a la alcoba")
 	check(mansion.path_crosses_doorway(path), "y pasa por las puertas")
-	var straight := Vector2(to.x - from.x, to.z - from.z).length()
-	check(LocationNavigation.path_length(path) > straight + 1.0, "rodea las paredes en lugar de cruzarlas")
-	# Cada tramo del recorrido pasa por suelo libre.
-	for index in range(1, path.size()):
-		var middle := (path[index - 1] + path[index]) * 0.5
-		middle.y = 0.0
-		check(mansion.is_standing_point(middle, 0.25), "el tramo %d pasa por suelo libre (%s)" % [index, str(middle)])
+	# En línea recta habría que atravesar paredes; el recorrido, en cambio, va siempre por suelo
+	# libre. Se comprueba punto a punto (cada 0,25 m), no por la longitud: con las puertas
+	# despejadas el rodeo por ellas es corto.
+	check(not _blocked_points(mansion, PackedVector3Array([from, to])).is_empty(), "en línea recta se atravesarían paredes")
+	var blocked := _blocked_points(mansion, path)
+	check(blocked.is_empty(), "el recorrido rodea las paredes en lugar de cruzarlas: %s" % str(blocked.slice(0, 3)))
+
+
+## Cuarto de Lucía: la cómoda está contra la pared del fondo, no suelta en mitad del cuarto delante
+## de la puerta de la alcoba. El centro queda libre y entre sus dos puertas se va casi en línea
+## recta.
+func test_maid_room_dresser_stands_against_the_wall() -> void:
+	var mansion := await _load("mansion", false)
+	var space := mansion.get_world_3d().direct_space_state
+	check(not _solid_at(space, Vector3(-9.0, 0.42, 0.0)), "ya no hay un mueble donde estaba, delante de la puerta de la alcoba")
+	check(_solid_at(space, Vector3(-12.0, 0.42, -0.6)), "la cómoda está junto a la pared del fondo")
+	# Su espalda queda a ras de la pared (cara sur en z = -0,88) y su frente, despejado.
+	check(_solid_at(space, Vector3(-12.0, 0.42, -0.78)), "pegada a la pared")
+	check(not _solid_at(space, Vector3(-12.0, 0.42, -0.25)), "y con el frente libre")
+	for x: float in [-11.5, -10.5, -9.5, -8.5, -7.5, -6.5]:
+		for z: float in [0.6, 1.8, 3.0]:
+			check(mansion.is_standing_point(Vector3(x, 0.0, z), 0.35), "el centro del cuarto está despejado en (%.1f, %.1f)" % [x, z])
+	for z: float in [-0.5, 0.0, 0.6]:
+		check(mansion.is_standing_point(Vector3(-9.5, 0.0, z), 0.35), "el paso a la alcoba está libre en z = %.1f" % z)
+	# De la puerta del vestíbulo (x = -5, z = 4) a la de la alcoba (x = -9,5, z = -1).
+	var from := Vector3(-5.6, 0.0, 4.0)
+	var to := Vector3(-9.5, 0.0, -1.6)
+	var path := mansion.navigation.find_path(from, to)
+	check(not path.is_empty() and _flat(path[path.size() - 1], to) < 0.3, "hay camino entre las dos puertas del cuarto")
+	var straight := _flat(from, to)
+	check(LocationNavigation.path_length(path) < straight * 1.15, "casi en línea recta (%.1f m frente a %.1f m)" % [LocationNavigation.path_length(path), straight])
 
 
 ## Cada escenario tiene su mapa: dos cargados a la vez no se mezclan.
@@ -101,3 +125,32 @@ func test_each_location_has_its_own_map() -> void:
 	check(cafe.navigation.get_map() != cafe.get_world_3d().navigation_map, "y distintos del mapa del mundo")
 	# En el café no hay malla donde la mansión tiene su salón.
 	check(not cafe.navigation.is_on_floor_mesh(Vector3(0.0, 0.0, -8.0)), "el café no ve la malla de la mansión")
+
+
+## Puntos de un recorrido (cada 0,25 m) que caen dentro de una pared o un mueble. El radio es
+## pequeño a propósito: en las esquinas el camino roza el margen de la malla de navegación.
+func _blocked_points(location: LocationBase, path: PackedVector3Array) -> Array[Vector3]:
+	var blocked: Array[Vector3] = []
+	for index in range(1, path.size()):
+		var steps := maxi(int(ceil(_flat(path[index - 1], path[index]) / 0.25)), 1)
+		for step in steps + 1:
+			var point := path[index - 1].lerp(path[index], float(step) / float(steps))
+			point.y = 0.0
+			if not location.is_standing_point(point, 0.12):
+				blocked.append(point.snapped(Vector3.ONE * 0.01))
+	return blocked
+
+
+## Hay algo sólido (del escenario) en ese punto: una esfera pequeña choca con las colisiones.
+func _solid_at(space: PhysicsDirectSpaceState3D, point: Vector3) -> bool:
+	var sphere := SphereShape3D.new()
+	sphere.radius = 0.05
+	var query := PhysicsShapeQueryParameters3D.new()
+	query.shape = sphere
+	query.transform = Transform3D(Basis.IDENTITY, point)
+	query.collision_mask = 1
+	return not space.intersect_shape(query, 1).is_empty()
+
+
+func _flat(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()
