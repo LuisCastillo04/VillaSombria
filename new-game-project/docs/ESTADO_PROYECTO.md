@@ -42,13 +42,14 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Controles personalizables y mando | Hecho | Pruebas de teclas, conflictos, guardado y restauración; pantalla de reasignación con pulsaciones reales; mando con eventos simulados (navegación, botones, partida, conversación, rótulos, conexión y desconexión); reinicio en tres procesos y capturas a 1280×720; sin mando físico; ver [CONTROLES.md](CONTROLES.md) |
 | Filtros visuales | Hecho | Pruebas del catálogo, la preferencia única y su validación; con la escena de juego real, el filtro en el mundo, la interfaz siempre encima, luces, lluvia y calidad intactas, cambios de lugar, guardar y cargar, menú principal y la pestaña con ratón, teclado y mando; reinicio en dos procesos; imágenes de las ranuras en color con ventana real; capturas de los cuatro filtros en la estación, la plaza y el café a 1024×576, 1280×720 y 1920×1080 y medición de GPU; ver [FILTROS.md](FILTROS.md) |
 | Rediseño de las conversaciones | Hecho | Pruebas con la escena de juego real y entradas de teclado y ratón (placa y luz de quien habla, escritura, páginas, voces de una escena, respuestas y sus consecuencias, rótulos, foco, HUD y avisos, escenas encadenadas, guardar y cargar, proporciones) y capturas a 1280×720, 1366×768, 1600×900 y 1920×1080 comparadas con las referencias; ver [DIALOGOS.md](DIALOGOS.md) |
+| NPC, colisiones y límites de los escenarios | Hecho | Recorrido de cada escenario con la cápsula del detective (suelo y área), puertas con teclas reales, red de seguridad, navegación en los cinco escenarios, reparto de las rutinas cada media hora de los tres días, NPC en movimiento con la escena de juego real (paseos, rondas, mobiliario, convivencia, atención, conversación, guardar y cargar), mediciones de física y carga frente a `main` y capturas del café, la mansión, la puerta del café y la estación; ver [NPC.md](NPC.md) |
 | Interfaces de evidencias | Hecho | Pruebas con la escena de juego real (plantillas y textos de la carta, el periódico y el reloj, las diecinueve pruebas, «Evidencia obtenida» y su duración, cierre anticipado, relectura, guardar y cargar, tecla mantenida, Esc, ratón, bloqueo y HUD, proporciones y tamaños de letra), mutaciones de las pruebas del aviso y de la tecla, y capturas a 1280×720, 1920×1080 y 1024×768 comparadas con las referencias; ver [EVIDENCIAS.md](EVIDENCIAS.md) |
 
 Diferencias con el encargo:
 
 - **Fase 3:** se pasó directamente a los personajes reales, sin NPC de prueba.
-- **Fase 3:** los NPC usan puntos de ruta, no navegación. Al cambiar de escenario según su rutina,
-  aparecen y desaparecen en lugar de caminar hasta la puerta.
+- **Fase 3:** al cambiar de escenario según su rutina, los NPC aparecen y desaparecen en lugar de
+  caminar hasta la puerta. Dentro de un escenario sí caminan con navegación (ver [NPC.md](NPC.md)).
 - **Fase 8:** el piso superior de la mansión y la bodega no existen como espacios recorribles.
 
 ## Pruebas
@@ -58,20 +59,24 @@ guarda una partida en un proceso de Godot para cargarla en otro nuevo y hace lo 
 preferencias. Con `-ConVentana` además comprueba las imágenes de las ranuras, los modos de pantalla
 y la resolución con la ventana real, y cierra la ventana con la X y con Alt + F4.
 
-Último resultado, tras las interfaces de evidencias, con `-ConVentana`: 445 pruebas correctas, 0
-fallos; reinicio de la partida, de las preferencias (filtro incluido) y de las teclas en procesos
-separados, imágenes de las ranuras (en color con el modo noir activo), modos de pantalla y cierre con
-la X y con Alt + F4, correctos. El paso «Importación» sale fallido por el `Code.exe` del editor (ver
-Problemas conocidos). En la ejecución anterior falló de forma intermitente una prueba del expediente
-por una carrera de la propia prueba entre su temporizador y el fundido de cierre; las esperas de
-`test_journal` y `test_evidence` aguardan ahora un fotograma más.
+Último resultado, tras los NPC, colisiones y límites de los escenarios, con `-ConVentana` sobre una
+copia limpia de la rama: 483 pruebas correctas, 0 fallos; reinicio de la partida, de las
+preferencias y de las teclas en procesos separados, imágenes de las ranuras, modos de pantalla y
+cierre con la X y con Alt + F4, correctos. En esa copia limpia también salió correcto el paso
+«Importación», que en la carpeta habitual falla por el `Code.exe` del editor (ver Problemas
+conocidos).
 
 | Archivo | Cubre |
 | --- | --- |
 | `test_player` | Movimiento relativo a la cámara, colisiones, interacción, bloqueos |
 | `test_world` | Mallas agrupadas, salidas, marcadores, pistas obtenibles, alcance real |
+| `test_world_bounds` | Suelo y área en todo lo alcanzable de cada escenario, puertas de la calle con teclas reales, huecos interiores abiertos |
+| `test_fall_guard` | Red de seguridad: punto seguro, caída, salida del área, bucles, guardar en plena caída y cargar posiciones inválidas |
+| `test_location_navigation` | Malla de navegación de cada escenario: lista, marcadores, muebles, área, puertas y mapas independientes |
 | `test_data_integrity` | Referencias de los datos, rutinas sin huecos, siluetas |
-| `test_npc` | Rutinas, marcha, espera, conversación |
+| `test_npc` | Rutinas, rondas, paseos, convivencia, camino cortado, caídas, visitas, coste de navegación, conversación, mobiliario del café, estancias |
+| `test_npc_layout` | Reparto de las rutinas cada media hora, puntos de parada libres, orientación y comportamientos |
+| `test_npc_interaction` | NPC en movimiento con la escena de juego real: atención, conversación, rodeos, alcance y guardado |
 | `test_dialogue` | Flujo, condiciones, efectos, tiempo, bloqueo |
 | `test_dialogue_ui` | Conversaciones rediseñadas: nombre y luz de quien habla, sólo texto en la ventana, escritura y avance de uno en uno, páginas sin perder palabras, voces de una escena, respuestas y consecuencias de `DialogueManager`, rótulos, flechas, números, ratón, protección y foco, listas largas, cierre y HUD, teclas aisladas, avisos por encima, escenas encadenadas, guardar y cargar, InputMap y proporciones de pantalla |
 | `test_investigation` | Pistas, deducciones, acusación, eventos, vertical slice |
