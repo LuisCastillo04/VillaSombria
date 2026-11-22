@@ -42,6 +42,9 @@ func _free_game() -> void:
 
 func _wait(seconds: float) -> void:
 	await get_tree().create_timer(seconds).timeout
+	# Los temporizadores se atienden antes que las animaciones del mismo fotograma: si uno largo hace
+	# vencer a la vez el temporizador y un fundido, se espera a que el fundido termine de verdad.
+	await get_tree().process_frame
 
 
 ## Una pulsación tal como llega del teclado o del mando.
@@ -214,8 +217,10 @@ func test_clues_list_details_and_empty_state() -> void:
 	var texts := _field_text(section)
 	check(texts.contains(clue["where"]), "su procedencia")
 	check(texts.contains(clue["description"]), "y la descripción completa")
-	check_equal(section.detail.get_photo().get_mode(), JournalPhoto.Mode.EMBLEM, "sin imagen propia, el emblema de su categoría")
+	check_equal(section.detail.get_photo().get_mode(), JournalPhoto.Mode.PHOTO, "con imagen propia (la ilustración del reloj), su fotografía")
 	check_equal(section.list.get_item("reloj_despacho").get_thumb().get_icon_name(), "reloj", "la fila lleva el icono de su categoría")
+	section.list.select("huellas_betun")
+	check_equal(section.detail.get_photo().get_mode(), JournalPhoto.Mode.EMBLEM, "sin imagen propia, el emblema de su categoría")
 
 
 func test_a_clue_image_from_the_data_becomes_its_photo() -> void:

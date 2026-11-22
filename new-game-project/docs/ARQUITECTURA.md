@@ -84,7 +84,7 @@ Game
 ├── Hud                lugar, objetivo, teclas y avisos; ver HUD.md
 ├── Subtitles          subtítulos opcionales de voces y sonidos; ver CONFIGURACION.md
 ├── DialogueUi         conversaciones: siluetas, lectura y respuestas; ver DIALOGOS.md
-├── ClueInspector
+├── ClueInspector      inspección de evidencias: carta, periódico y ficha; ver EVIDENCIAS.md
 ├── JournalUi          expediente: carpeta, pestañas y cinco secciones; ver EXPEDIENTE.md
 ├── BoardUi            tablero: sospechosos, corcho, comparación e hipótesis; ver TABLERO.md
 ├── AccusationUi
@@ -158,7 +158,8 @@ Una pregunta puede llevar `variants` para responder según el estado, y una esce
 - **Lugar:** su entrada en `data/locations.json` con `name`, `icon` (icono del HUD), `scene` y
   `outdoor`. Ver [HUD.md](HUD.md).
 - **Pista:** añádela a `data/clues.json` y colócala con `add_interactable(ClueObject.new("id"), posición)`
-  o concédela desde un diálogo.
+  o concédela desde un diálogo. Al examinarla se ve en la ficha de investigación; con `image` lleva
+  ilustración y con `presentation` se presenta como carta o periódico. Ver [EVIDENCIAS.md](EVIDENCIAS.md).
 - **NPC:** añade su entrada en `characters.json`, su rutina en `schedules.json` y su archivo en
   `data/dialogues/`.
 - **Deducción:** añádela a `data/deductions.json`; el tablero la detecta sola y dibuja su hilo.
@@ -199,6 +200,18 @@ piezas (`JournalFolder`, `JournalTabs`, `JournalList`, `JournalDetail`, `Journal
 `JournalEmptyState`...) y su estilo (`JournalStyle`) son reutilizables. Las secciones se crean una
 vez y se ponen al día con `EventBus`. Detalle, recorrido con teclado y pruebas en
 [EXPEDIENTE.md](EXPEDIENTE.md).
+
+## Inspección de evidencias
+
+`ClueInspector` (`scenes/ui/clue_inspector.tscn`) es el componente general de las evidencias que se
+examinan en el escenario: registra la prueba la primera vez (sin el aviso del HUD) y deja pasar su
+tiempo, bloquea al jugador con el motivo `inspeccion`, atiende teclado, mando y ratón, coloca el
+documento escalado dentro de un marco ornamental y anuncia el hallazgo con «Evidencia obtenida».
+Lo que va sobre el papel lo dibuja una plantilla (`EvidenceLetter`, `EvidenceNewspaper` o
+`EvidenceRecordCard`, todas sobre `EvidenceDocument`) que elige `EvidenceInfo` a partir del bloque
+opcional `presentation` de `data/clues.json`; sin él, la ficha. Las piezas y su estilo
+(`EvidenceStyle`) están en `scripts/ui/evidence/`. No guarda estado propio. Detalle, datos, controles
+y pruebas en [EVIDENCIAS.md](EVIDENCIAS.md).
 
 ## Tablero de deducción
 

@@ -42,6 +42,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Controles personalizables y mando | Hecho | Pruebas de teclas, conflictos, guardado y restauración; pantalla de reasignación con pulsaciones reales; mando con eventos simulados (navegación, botones, partida, conversación, rótulos, conexión y desconexión); reinicio en tres procesos y capturas a 1280×720; sin mando físico; ver [CONTROLES.md](CONTROLES.md) |
 | Filtros visuales | Hecho | Pruebas del catálogo, la preferencia única y su validación; con la escena de juego real, el filtro en el mundo, la interfaz siempre encima, luces, lluvia y calidad intactas, cambios de lugar, guardar y cargar, menú principal y la pestaña con ratón, teclado y mando; reinicio en dos procesos; imágenes de las ranuras en color con ventana real; capturas de los cuatro filtros en la estación, la plaza y el café a 1024×576, 1280×720 y 1920×1080 y medición de GPU; ver [FILTROS.md](FILTROS.md) |
 | Rediseño de las conversaciones | Hecho | Pruebas con la escena de juego real y entradas de teclado y ratón (placa y luz de quien habla, escritura, páginas, voces de una escena, respuestas y sus consecuencias, rótulos, foco, HUD y avisos, escenas encadenadas, guardar y cargar, proporciones) y capturas a 1280×720, 1366×768, 1600×900 y 1920×1080 comparadas con las referencias; ver [DIALOGOS.md](DIALOGOS.md) |
+| Interfaces de evidencias | Hecho | Pruebas con la escena de juego real (plantillas y textos de la carta, el periódico y el reloj, las diecinueve pruebas, «Evidencia obtenida» y su duración, cierre anticipado, relectura, guardar y cargar, tecla mantenida, Esc, ratón, bloqueo y HUD, proporciones y tamaños de letra), mutaciones de las pruebas del aviso y de la tecla, y capturas a 1280×720, 1920×1080 y 1024×768 comparadas con las referencias; ver [EVIDENCIAS.md](EVIDENCIAS.md) |
 
 Diferencias con el encargo:
 
@@ -57,11 +58,13 @@ guarda una partida en un proceso de Godot para cargarla en otro nuevo y hace lo 
 preferencias. Con `-ConVentana` además comprueba las imágenes de las ranuras, los modos de pantalla
 y la resolución con la ventana real, y cierra la ventana con la X y con Alt + F4.
 
-Último resultado, tras los filtros visuales, con `-ConVentana`: 425 pruebas correctas, 0 fallos;
-reinicio de la partida, de las preferencias (filtro incluido) y de las teclas en procesos separados,
-imágenes de las ranuras (en color con el modo noir activo), modos de pantalla y cierre con la X y con
-Alt + F4, correctos. El paso «Importación» sale fallido por el `Code.exe` del editor (ver Problemas
-conocidos).
+Último resultado, tras las interfaces de evidencias, con `-ConVentana`: 445 pruebas correctas, 0
+fallos; reinicio de la partida, de las preferencias (filtro incluido) y de las teclas en procesos
+separados, imágenes de las ranuras (en color con el modo noir activo), modos de pantalla y cierre con
+la X y con Alt + F4, correctos. El paso «Importación» sale fallido por el `Code.exe` del editor (ver
+Problemas conocidos). En la ejecución anterior falló de forma intermitente una prueba del expediente
+por una carrera de la propia prueba entre su temporizador y el fundido de cierre; las esperas de
+`test_journal` y `test_evidence` aguardan ahora un fotograma más.
 
 | Archivo | Cubre |
 | --- | --- |
@@ -102,6 +105,7 @@ conocidos).
 | `test_rebind_menu` | Reasignar con pulsaciones reales: la tecla que elige no cuenta, cancelar, modificadoras, Alt + F4, conflictos, Supr y una tecla nueva en la partida |
 | `test_gamepad` | Botones de cada acción, zona muerta, navegación con el stick y la cruceta, A y B, partida, conversación, rótulos, fabricantes, conexión y desconexión |
 | `test_controls_menu` | Herramientas de Controles sin «Próximamente», reasignar y el esquema encima, restaurar con su pregunta |
+| `test_evidence` | Inspección de evidencias: plantilla, placa y textos de la carta, el periódico y el reloj, las diecinueve pruebas, presentaciones frente a las descripciones, «Evidencia obtenida» (sólo al registrar, sin aviso repetido, duración, se va sin cerrar la hoja, cierre anticipado, relectura y carga), tecla mantenida, Esc, ratón, bloqueo, tecla reasignada, proporciones de pantalla y tamaños de letra |
 | `test_journal` | Expediente: apertura y cierre con las teclas reales, datos reales de las cinco secciones, estados vacíos, nada sin descubrir, teclado y ratón, restauración sin reconstruir, proporciones de pantalla y partida cargada |
 | `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
 | `persistencia/ajustes` | Cambiar preferencias de todas las categorías y leerlas y aplicarlas en otro proceso, filtro visual incluido |
@@ -150,6 +154,8 @@ arranca desde él sin errores en modo sin ventana.
 - **El tablero en movimiento.** Los fundidos, el brillo de la selección, el hilo que se tiende y
   el temblor de una comparación sin relación se comprobaron con pruebas y capturas fijas, no
   viéndolos jugando; tampoco con un mando real.
+- **Las evidencias en movimiento.** La entrada y salida de «Evidencia obtenida» y los fundidos de la
+  hoja se comprobaron con pruebas y capturas fijas, no viéndolos jugando; tampoco con un mando real.
 - **El expediente en movimiento.** Los fundidos de apertura, cierre, sección y ficha se
   comprobaron con pruebas y capturas fijas, no viéndolos jugando; tampoco con un mando real.
 - **La tasa de fotogramas en primer plano.** Ver el apartado siguiente.

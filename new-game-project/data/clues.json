@@ -10,7 +10,23 @@
     "category": "documentos",
     "where": "Quiosco de la plaza",
     "description": "El Eco de Villa Sombría del sábado: «Treinta años del Banco Valdés. Esta noche, cena privada en la mansión». Una nota al pie añade que don Julián lleva semanas consultando documentos en el archivo municipal.",
-    "prompt": "Leer el periódico"
+    "prompt": "Leer el periódico",
+    "presentation": {
+      "template": "periodico",
+      "masthead": "El Eco de Villa Sombría",
+      "tagline": "Diario regional independiente",
+      "issue": "Año XXXII · N.º 4.218",
+      "date": "Sábado, 16 de octubre de 1948",
+      "price": "5 centavos",
+      "headline": "Treinta años del Banco Valdés",
+      "subheadline": "Esta noche, cena privada en la mansión.",
+      "columns": [
+        "Villa Sombría celebra hoy el trigésimo aniversario del Banco Valdés. Esta noche, la familia ofrecerá una cena privada en la mansión a varios socios del banco.",
+        "Fuentes cercanas indican que don Julián Valdés lleva semanas consultando documentos en el archivo municipal."
+      ],
+      "image": "res://assets/ui/mansion_grabado.svg",
+      "vignette": "res://assets/ui/mansion_grabado.svg"
+    }
   },
   "lista_invitados": {
     "name": "Lista de invitados",
@@ -24,7 +40,8 @@
     "category": "relojes",
     "where": "Despacho de Julián Valdés",
     "description": "Reloj de bronce caído junto al sillón, con la esfera rota. Las agujas marcan las 22:15. Parece que Julián lo arrastró al desplomarse, lo que fijaría la hora de la muerte. Curiosamente, no hay ni un cristal fuera de la alfombra.",
-    "prompt": "Examinar el reloj roto"
+    "prompt": "Examinar el reloj roto",
+    "image": "res://assets/ui/evidencias/reloj_sobremesa.svg"
   },
   "copa_lavada": {
     "name": "Copa de brandy recién lavada",
@@ -52,7 +69,15 @@
     "category": "cartas",
     "where": "Cuarto de Lucía",
     "description": "«Lucía: el sábado, cuando acabe la cena, te espero en la ropería de arriba. Mi padre lo sabe y va a echarte. Tengo que hablar contigo. M.» Está doblada dentro de un misal.",
-    "prompt": "Examinar el misal de la mesilla"
+    "prompt": "Examinar el misal de la mesilla",
+    "presentation": {
+      "template": "carta",
+      "salutation": "Lucía:",
+      "body": "El sábado, cuando acabe la cena, te espero en la ropería de arriba. Mi padre lo sabe y va a echarte. Tengo que hablar contigo.",
+      "signature": "M.",
+      "note": "Está doblada dentro de un misal.",
+      "ornament": "res://assets/ui/evidencias/flores_violetas.svg"
+    }
   },
   "foto_clara": {
     "name": "Fotografía de Clara",

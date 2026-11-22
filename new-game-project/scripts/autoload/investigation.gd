@@ -10,8 +10,10 @@ const CLUE_MINUTES := 5
 const HYPOTHESIS_STATUSES: Array[String] = ["", "sospechoso", "principal", "descartado"]
 
 
-## Registra una pista una sola vez. Devuelve si era nueva.
-func discover_clue(clue_id: String) -> bool:
+## Registra una pista una sola vez. Devuelve si era nueva. Con `announce`, el HUD lo avisa
+## («Pista registrada»); la inspección de evidencias pasa `false` porque muestra su propio aviso
+## («Evidencia obtenida») y así no aparecen dos mensajes por el mismo hallazgo.
+func discover_clue(clue_id: String, announce: bool = true) -> bool:
 	if GameState.clues.has(clue_id):
 		return false
 	if not GameData.clues.has(clue_id):
@@ -20,7 +22,8 @@ func discover_clue(clue_id: String) -> bool:
 	GameState.clues.append(clue_id)
 	EventBus.clue_discovered.emit(clue_id)
 	EventBus.objectives_changed.emit()
-	EventBus.notification_requested.emit("Pista registrada", GameData.clues[clue_id]["name"], "pista")
+	if announce:
+		EventBus.notification_requested.emit("Pista registrada", GameData.clues[clue_id]["name"], "pista")
 	return true
 
 

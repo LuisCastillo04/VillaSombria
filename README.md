@@ -16,6 +16,8 @@ participación en diseño, programación, narrativa y dirección.
 - Cinco escenarios: plaza, mansión Valdés, Café La Luna, archivo municipal y estación de tren.
 - Interrogatorios con siluetas 2D a contraluz, preguntas que se desbloquean con las pruebas y
   respuestas que dependen de lo que ya sabes.
+- Pruebas que se examinan con su propio aspecto: cartas manuscritas, el periódico del pueblo y
+  fichas de investigación con su ilustración.
 - Expediente con pistas, testimonios, sospechosos y deducciones.
 - Tablero de deducción que comprueba relaciones reales entre pruebas y declaraciones.
 - Calendario de tres días con rutinas de personajes. Nada se pierde por llegar tarde.
@@ -98,6 +100,7 @@ Si Godot no está en la ruta de Steam por defecto, define antes la variable `GOD
 - [Arquitectura](new-game-project/docs/ARQUITECTURA.md)
 - [Guardado](new-game-project/docs/GUARDADO.md): ranura activa, autoguardado, salida, imágenes y cómo ampliarlo
 - [Mapa](new-game-project/docs/MAPA.md): posición del detective, calibración, lugares y cómo ampliarlo
+- [Evidencias](new-game-project/docs/EVIDENCIAS.md): carta, periódico y ficha al examinar pruebas, «Evidencia obtenida» y cómo añadir plantillas
 - [Historia](new-game-project/docs/HISTORIA.md) (contiene la solución del caso)
 - [Recursos](new-game-project/docs/RECURSOS.md): origen y condiciones de los recursos
 - [Godlink MCP](new-game-project/docs/GODLINK_MCP.md): conexión de Claude Code con el editor de Godot

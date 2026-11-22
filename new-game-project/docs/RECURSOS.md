@@ -14,10 +14,11 @@ Todo el contenido actual se genera en el propio repositorio:
 | Personajes 3D | Modelo procedural (`scripts/actors/character_model.gd`) |
 | Siluetas de los interrogatorios | SVG generados con `tools/generar_siluetas.py` |
 | Grabados sepia del expediente | SVG generados con `tools/generar_grabados.py` |
+| Ilustraciones de las evidencias (reloj de sobremesa, violetas prensadas) | SVG generados con `tools/generar_evidencias.py`; provisionales, ver [EVIDENCIAS.md](EVIDENCIAS.md) |
 | Iconos de la interfaz | SVG escritos a mano en el repositorio (`assets/ui/iconos/`) |
 | Materiales y efectos | Shaders propios (`assets/shaders/`) |
 | Sonido y música | Síntesis al arrancar (`scripts/autoload/audio_manager.gd`) |
-| Fuentes | Fuentes del sistema; no se incluyen archivos de fuentes |
+| Fuentes | Fuentes del sistema; no se incluyen archivos de fuentes. Las manuscritas de las cartas y la del periódico usan familias de Microsoft Office si el equipo las tiene y, si no, Segoe Script y Georgia, que vienen con Windows; ver [EVIDENCIAS.md](EVIDENCIAS.md) |
 | Motor | Godot Engine 4.7, licencia MIT |
 
 ## Herramientas de desarrollo de terceros
