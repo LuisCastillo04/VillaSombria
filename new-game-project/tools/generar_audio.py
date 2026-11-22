@@ -96,9 +96,9 @@ def mark_loop_import(target: Path) -> None:
     if settings.exists():
         text = settings.read_text(encoding="utf-8")
         if "loop=false" in text:
-            settings.write_text(text.replace("loop=false", "loop=true"), encoding="utf-8")
+            settings.write_text(text.replace("loop=false", "loop=true"), encoding="utf-8", newline="\n")
     else:
-        settings.write_text(LOOP_IMPORT, encoding="utf-8")
+        settings.write_text(LOOP_IMPORT, encoding="utf-8", newline="\n")
 
 
 def write_ogg(data: np.ndarray, target: Path, quality: float, loop: bool, temp: Path) -> float | None:
@@ -224,7 +224,7 @@ def write_inventory(report: Report) -> None:
             f"| `{row['path'].removeprefix('assets/audio/')}` | {row['kind']} | {row['seconds']:.1f} s | {row['channels']} | "
             f"{'sí' if row['loop'] else 'no'} | {row['bytes'] / 1024:.0f} KB | {row['rms']:.1f} / {row['peak']:.1f} | {seam} | "
             f"{row['text']} | `{row['generator']}` |")
-    INVENTORY.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    INVENTORY.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
 
 
 def main() -> None:
