@@ -21,7 +21,9 @@ func before_each() -> void:
 func after_each() -> void:
 	DialogueManager.close()
 	GameState.clear_player_locks()
-	game.queue_free()
+	SaveSystem.take_pending_load()
+	if game != null:
+		game.queue_free()
 	await get_tree().process_frame
 
 
@@ -150,6 +152,36 @@ func test_quest_npc_stays_within_reach() -> void:
 	check(not path.is_empty() and _flat(path[path.size() - 1], ortega.global_position) < 0.6, "hay camino desde la entrada hasta él")
 	check(LocationNavigation.path_length(path) < 8.0, "y es corto")
 
+
+## Guardar con los NPC a medio camino y cargar en otra escena de juego: el detective vuelve a su
+## sitio y cada NPC aparece en un punto válido de su rutina, sin solaparse.
+func test_save_and_load_keep_valid_positions() -> void:
+	TestCase.clear_save_storage()
+	await wait_physics_frames(240)
+	var spot := Vector3(2.0, 0.1, 6.0)
+	game.player.teleport(spot)
+	await wait_physics_frames(20)
+	check(await save_and_wait("manual_1"), "se guarda la partida")
+	game.queue_free()
+	game = null
+	await get_tree().process_frame
+	check(SaveSystem.request_load("manual_1")["ok"], "se prepara la carga")
+	game = await make_game()
+	for frame in 120:
+		if game.current_location.navigation.is_map_ready():
+			break
+		await get_tree().physics_frame
+	check_equal(game.current_location.location_id, "mansion", "reanuda en la mansión")
+	check(_flat(game.player.global_position, spot) < 0.1, "el detective vuelve a su sitio")
+	var npcs: Array = game.current_location.get_npcs()
+	check_equal(npcs.size(), 6, "los seis personajes de la mañana del domingo")
+	for npc: Npc in npcs:
+		check(game.current_location.is_standing_point(npc.global_position, 0.25), "%s aparece en un punto válido" % npc.npc_id)
+		check(_flat(npc.global_position, npc.home) < 0.6, "%s, en su puesto" % npc.npc_id)
+	await wait_physics_frames(120)
+	for npc: Npc in npcs:
+		check(npc.is_on_floor(), "%s sigue en el suelo tras cargar" % npc.npc_id)
+	TestCase.clear_save_storage()
 
 func _wait_state(npc: Npc, wanted: Npc.State, frames: int) -> void:
 	await _wait_until(func() -> bool: return npc.state == wanted, frames)

@@ -259,5 +259,82 @@ func test_conversation_pauses_and_resumes_activity() -> void:
 	check(_flat(ortega.get_target(), heading) < 0.1, "hacia el mismo punto")
 	watcher.queue_free()
 
+## Café La Luna, el lunes a mediodía (Rosa, Irene y Marcos) con las pausas acortadas: siempre en
+## suelo libre (nunca dentro de la barra, las mesas o los taburetes), dentro del salón y sin
+## pisarse entre ellos.
+func test_cafe_npcs_move_only_on_free_floor() -> void:
+	location.queue_free()
+	GameClock.day = 2
+	GameClock.minutes = GameClock.parse_time("13:00")
+	location = _instantiate("cafe")
+	await _wait_navigation(location)
+	var npcs: Array[Npc] = []
+	for npc_id: String in ["rosa", "irene", "marcos"]:
+		var npc := location.get_npc(npc_id)
+		check(npc != null, "%s está en el café el lunes a la una" % npc_id)
+		if npc != null:
+			npc.profile.pause_range = Vector2(0.3, 0.6)
+			npc.profile.wander_chance = 1.0
+			npc.profile.visit_chance = 0.5
+			npcs.append(npc)
+	var travelled := {}
+	var previous := {}
+	for npc in npcs:
+		travelled[npc.npc_id] = 0.0
+		previous[npc.npc_id] = npc.global_position
+	var problems: Array[String] = []
+	var closest := INF
+	for frame in 1500:
+		await get_tree().physics_frame
+		for npc in npcs:
+			travelled[npc.npc_id] += _flat(previous[npc.npc_id], npc.global_position)
+			previous[npc.npc_id] = npc.global_position
+		if frame % 10 != 0:
+			continue
+		for index in npcs.size():
+			var npc := npcs[index]
+			var where := npc.global_position
+			if not location.is_standing_point(where, 0.22):
+				problems.append("%s en %s" % [npc.npc_id, str(where.snapped(Vector3.ONE * 0.01))])
+			# El salón del café va de x = -8 a x = 8; la pensión y la trastienda quedan fuera.
+			if absf(where.x) > 7.9:
+				problems.append("%s sale del salón (%s)" % [npc.npc_id, str(where.snapped(Vector3.ONE * 0.01))])
+			for other in range(index + 1, npcs.size()):
+				closest = minf(closest, _flat(where, npcs[other].global_position))
+	check(problems.is_empty(), "posiciones no válidas: %s" % str(problems.slice(0, 4)))
+	check(closest > 0.55, "dos NPC del café se pisan (%.2f m)" % closest)
+	for npc in npcs:
+		check(float(travelled[npc.npc_id]) > 1.0, "%s se mueve (%.1f m)" % [npc.npc_id, travelled[npc.npc_id]])
+
+
+## Mansión el domingo por la mañana: los paseos no cambian de estancia. Sólo las rondas
+## (Ortega y Lucía) cruzan puertas, porque su recorrido lo pide.
+func test_mansion_wanderers_stay_in_their_room() -> void:
+	location.queue_free()
+	GameClock.minutes = GameClock.parse_time("09:00")
+	location = _instantiate("mansion")
+	await _wait_navigation(location)
+	var rooms := {}
+	for npc_id: String in ["marcos", "anselmo", "irene"]:
+		var npc := location.get_npc(npc_id)
+		npc.profile.pause_range = Vector2(0.3, 0.6)
+		npc.profile.wander_chance = 1.0
+		rooms[npc_id] = _room_of(npc.home)
+	for frame in 1200:
+		await get_tree().physics_frame
+		if frame % 15 != 0:
+			continue
+		for npc_id: String in rooms:
+			var npc := location.get_npc(npc_id)
+			check(_room_of(npc.global_position) == rooms[npc_id], "%s sale de su estancia (%s)" % [npc_id, str(npc.global_position.snapped(Vector3.ONE * 0.01))])
+			if _room_of(npc.global_position) != rooms[npc_id]:
+				return
+
+
+## Estancia de la mansión por su posición: la planta es una cuadrícula de 3 × 2.
+func _room_of(point: Vector3) -> Vector2i:
+	var column := 0 if point.x < -5.0 else (1 if point.x < 6.0 else 2)
+	return Vector2i(column, 0 if point.z < -1.0 else 1)
+
 func _flat(a: Vector3, b: Vector3) -> float:
 	return Vector2(a.x - b.x, a.z - b.z).length()
