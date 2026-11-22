@@ -27,6 +27,9 @@ var play_area := Rect2()
 var batch := MeshBatcher.new()
 ## Navegación de los NPC, horneada con las colisiones del escenario al construirlo.
 var navigation: LocationNavigation
+## Superficies del suelo por zonas («madera», «baldosa», «alfombra»), para el sonido de los pasos.
+## Las declaran los kits al poner un suelo; la última que contiene un punto es la de encima.
+var _surfaces: Array[Dictionary] = []
 
 var _spawns: Dictionary = {}
 var _markers: Dictionary = {}
@@ -266,6 +269,22 @@ func block_passage(from: Vector2, to: Vector2, thickness: float = 0.3) -> void:
 
 ## Registra un hueco de paso. Los NPC no se detienen en ellos para no cerrarle el camino al
 ## detective. `InteriorKit.wall` lo hace con cada hueco de pared.
+## Declara el tipo de suelo de un rectángulo XZ (en coordenadas del escenario).
+func register_surface(from: Vector2, to: Vector2, kind: String) -> void:
+	_surfaces.append({"rect": Rect2(from, to - from).abs(), "kind": kind})
+
+
+## Suelo bajo un punto global: la última zona declarada que lo contiene, o vacío si no hay ninguna
+## (la calle, que es empedrado).
+func get_surface_at(point: Vector3) -> String:
+	var local := to_local(point)
+	var flat := Vector2(local.x, local.z)
+	for index in range(_surfaces.size() - 1, -1, -1):
+		if (_surfaces[index]["rect"] as Rect2).has_point(flat):
+			return _surfaces[index]["kind"]
+	return ""
+
+
 func add_doorway(center: Vector3) -> void:
 	_doorways.append(batch.xform * center)
 
