@@ -20,6 +20,14 @@ Todo el contenido actual se genera en el propio repositorio:
 | Fuentes | Fuentes del sistema; no se incluyen archivos de fuentes |
 | Motor | Godot Engine 4.7, licencia MIT |
 
+## Herramientas de desarrollo de terceros
+
+No forman parte del contenido del juego.
+
+| Carpeta | Origen | Licencia | Uso |
+| --- | --- | --- | --- |
+| `addons/godot_mcp/` | Godlink MCP 0.6.0 («Godot MCP»), de Tomer Yud, instalado desde la Asset Store de Godot ([tomyud1/godot-mcp](https://github.com/tomyud1/godot-mcp)) | MIT (`addons/godot_mcp/LICENSE`) | Conecta Claude Code con el editor. Hay que desactivarlo antes de exportar una versión para jugadores; ver [GODLINK_MCP.md](GODLINK_MCP.md) |
+
 ## Recursos previstos
 
 ### Retratos generados con ChatGPT (confirmado)
