@@ -31,6 +31,8 @@ var camera_yaw := deg_to_rad(45.0)
 @onready var detector: InteractionDetector = $InteractionDetector
 ## Red de seguridad: si una colisión fallase, devuelve al detective al último suelo válido.
 @onready var guard: FallGuard = $FallGuard
+## Obstáculo para la evitación de los NPC: lo rodean en lugar de chocar con él.
+@onready var avoidance: NavigationObstacle3D = $Avoidance
 
 
 func _ready() -> void:
@@ -43,6 +45,11 @@ func teleport(where: Vector3, facing_yaw: float = 0.0) -> void:
 	velocity = Vector3.ZERO
 	model.rotation.y = facing_yaw
 	guard.reset(where)
+
+
+## Mapa de navegación del escenario actual, para que sus NPC esquiven al detective.
+func set_navigation_map(map: RID) -> void:
+	avoidance.set_navigation_map(map)
 
 
 func look_towards(point: Vector3) -> void:
@@ -72,6 +79,7 @@ func _move(input: Vector2, sprinting: bool, delta: float) -> void:
 	velocity.z = horizontal.z
 	velocity.y = -0.5 if is_on_floor() else velocity.y - gravity * delta
 	move_and_slide()
+	avoidance.velocity = Vector3(velocity.x, 0.0, velocity.z)
 	if wish.length_squared() > 0.01:
 		var target_yaw := atan2(-wish.x, -wish.z)
 		model.rotation.y = lerp_angle(model.rotation.y, target_yaw, 1.0 - exp(-turn_speed * delta))

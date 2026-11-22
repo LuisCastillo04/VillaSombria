@@ -7,8 +7,9 @@ extends CharacterBody3D
 
 ## IDLE: en reposo, con pausas, miradas y giros. WANDER: paseo corto o visita a un punto.
 ## PATROL: hacia el siguiente punto de su ronda. RETURN: de vuelta a su puesto.
+## INTERACT: el detective lo enfoca para hablarle; se detiene y lo mira.
 ## DIALOGUE: conversación activa.
-enum State { IDLE, WANDER, PATROL, RETURN, DIALOGUE }
+enum State { IDLE, WANDER, PATROL, RETURN, INTERACT, DIALOGUE }
 
 signal state_changed(state: State)
 
@@ -27,6 +28,8 @@ const WANDER_ATTEMPTS := 8
 const GRAVITY := 22.0
 ## Rapidez con que el cuerpo gira hacia donde quiere mirar.
 const TURN_RATE := 5.0
+## Distancia a la que alguien plantado delante obliga a apartarse para rodearlo.
+const SIDESTEP_DISTANCE := 1.6
 
 var npc_id := ""
 var display_name := ""
@@ -58,6 +61,8 @@ var _blocked := 0.0
 var _return_failures := 0
 var _resume_state := State.IDLE
 var _resume_pending := false
+var _attend_left := 0.0
+var _attend_cooldown := 0.0
 var _partner: Node3D
 var _rng := RandomNumberGenerator.new()
 
@@ -121,9 +126,28 @@ func face_towards(point: Vector3) -> void:
 		_desired_yaw = model.rotation.y
 
 
+## El detective enfoca (o deja de enfocar) a este NPC para hablarle. Al enfocarlo se detiene y lo
+## mira; si no le habla, al cabo de `attend_seconds` sigue con lo suyo y tarda otro tanto en
+## volver a pararse, para no cerrarle el paso.
+func notice_player(focused: bool) -> void:
+	if state == State.DIALOGUE:
+		return
+	if not focused:
+		if state == State.INTERACT:
+			_resume()
+		return
+	if state == State.INTERACT or _attend_cooldown > 0.0:
+		return
+	_partner = _find_player()
+	_resume_state = state
+	_attend_left = profile.attend_seconds
+	_stop()
+	_set_state(State.INTERACT)
+
+
 ## Detiene al personaje para conversar, mirando a su interlocutor.
 func begin_talk(with: Node3D) -> void:
-	if state != State.DIALOGUE:
+	if state != State.DIALOGUE and state != State.INTERACT:
 		_resume_state = state
 	_partner = with
 	_stop()
@@ -173,11 +197,14 @@ func _configure(where: LocationBase, slot: Dictionary) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_attend_cooldown = maxf(_attend_cooldown - delta, 0.0)
 	match state:
 		State.IDLE:
 			_update_idle(delta)
 		State.WANDER, State.PATROL, State.RETURN:
 			_update_walk(delta)
+		State.INTERACT:
+			_update_interact(delta)
 	model.rotation.y = lerp_angle(model.rotation.y, _desired_yaw, 1.0 - exp(-TURN_RATE * delta))
 	# Quieto en el suelo no hace falta mover el cuerpo: sólo si está en el aire (al aparecer).
 	if not is_walking() and not is_on_floor():
@@ -335,8 +362,30 @@ func _update_walk(delta: float) -> void:
 	var direction := agent.get_next_path_position() - global_position
 	direction.y = 0.0
 	if direction.length_squared() > 0.0001:
-		agent.velocity = direction.normalized() * profile.walk_speed
+		agent.velocity = _steer_around_people(direction.normalized()) * profile.walk_speed
 	_count_blocked(delta)
+
+
+## Con alguien plantado justo delante, la evitación no sabe hacia qué lado ir y se para. Como un
+## peatón, el NPC se aparta hacia un lado con suelo (la derecha si puede) para rodearlo.
+func _steer_around_people(direction: Vector3) -> Vector3:
+	var people: Array = location.get_npcs() if location != null else []
+	var player := _find_player()
+	if player != null:
+		people.append(player)
+	for person: Node3D in people:
+		if person == self:
+			continue
+		var offset := person.global_position - global_position
+		offset.y = 0.0
+		var distance := offset.length()
+		if distance < 0.01 or distance > SIDESTEP_DISTANCE or offset.dot(direction) < distance * 0.85:
+			continue
+		var side := Vector3(-direction.z, 0.0, direction.x)
+		if location != null and not location.navigation.is_on_floor_mesh(global_position + side * 0.8, 0.2):
+			side = -side
+		return (direction + side).normalized()
+	return direction
 
 
 ## Mueve el cuerpo con la velocidad que deja la evitación de otros personajes.
@@ -401,9 +450,22 @@ func _stop() -> void:
 	model.set_motion(0.0)
 
 
-# --- Conversación -----------------------------------------------------------------------------
+# --- Atención y conversación ------------------------------------------------------------------
 
-## Retoma lo que hacía antes de la conversación.
+func _update_interact(delta: float) -> void:
+	if _partner != null and is_instance_valid(_partner):
+		var direction := _partner.global_position - global_position
+		if Vector2(direction.x, direction.z).length_squared() > 0.01:
+			_desired_yaw = atan2(-direction.x, -direction.z)
+			model.set_head_turn(0.0)
+	_attend_left -= delta
+	if _attend_left <= 0.0:
+		# Lleva un rato mirándolo sin que le hable: sigue con lo suyo.
+		_attend_cooldown = profile.attend_seconds
+		_resume()
+
+
+## Retoma lo que hacía antes de que el detective lo interrumpiera.
 func _resume() -> void:
 	match _resume_state:
 		State.WANDER, State.PATROL, State.RETURN:
@@ -417,6 +479,8 @@ func _on_dialogue_closed(finished_npc: String) -> void:
 		return
 	model.set_talking(false)
 	interaction.refresh_marker()
+	# Tras hablar no vuelve a pararse en cuanto el detective lo enfoque de nuevo.
+	_attend_cooldown = profile.attend_seconds
 	# Recupera poco a poco lo que hacía: primero una pausa, todavía pendiente del detective.
 	_resume_pending = true
 	_enter_idle(profile.random_talk_pause(_rng))

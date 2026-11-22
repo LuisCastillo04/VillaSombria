@@ -174,6 +174,7 @@ func _load_location(location_id: String, spawn_id: String) -> void:
 	var spawn := current_location.get_spawn(spawn_id)
 	player.guard.location = current_location
 	player.guard.fallback = spawn["position"]
+	player.set_navigation_map(current_location.navigation.get_map())
 	player.teleport(spawn["position"], spawn["yaw"])
 	camera.limits = current_location.camera_limits
 	camera.snap()

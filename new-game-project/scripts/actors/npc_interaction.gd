@@ -13,6 +13,13 @@ func setup(npc: Npc) -> void:
 	refresh_marker()
 
 
+## El detective lo enfoca o deja de enfocarlo: el NPC se detiene a mirarlo o sigue con lo suyo.
+func set_focused(value: bool) -> void:
+	super.set_focused(value)
+	if _npc != null:
+		_npc.notice_player(value)
+
+
 func wants_attention() -> bool:
 	return _npc != null and DialogueManager.has_new_topics(_npc.npc_id)
 

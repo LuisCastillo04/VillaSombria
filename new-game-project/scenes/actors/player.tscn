@@ -37,3 +37,7 @@ shape = SubResource("reach_shape")
 
 [node name="FallGuard" type="Node" parent="."]
 script = ExtResource("4")
+
+[node name="Avoidance" type="NavigationObstacle3D" parent="."]
+radius = 0.45
+height = 1.8
