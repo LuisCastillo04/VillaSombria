@@ -9,6 +9,12 @@ const NPC_SCENE := "res://scenes/actors/npc.tscn"
 const FLOOR_HEIGHT := 0.0
 ## Altura de los muros invisibles: más que cualquier salto o pendiente posible.
 const BARRIER_HEIGHT := 3.0
+## Separación mínima entre los sitios donde se paran dos NPC a la vez.
+const NPC_SPACING := 1.2
+## Distancia mínima entre un sitio de parada y un hueco de paso: un NPC no cierra puertas.
+const NPC_DOORWAY_CLEARANCE := 1.1
+## Distancia mínima entre un sitio de parada y una pista, salida o cama: no las tapa.
+const NPC_INTERACTABLE_CLEARANCE := 0.9
 
 @export var location_id := ""
 
@@ -22,6 +28,8 @@ var batch := MeshBatcher.new()
 
 var _spawns: Dictionary = {}
 var _markers: Dictionary = {}
+## Orientación (yaw del modelo) con la que se espera en los marcadores que la tienen.
+var _marker_facing: Dictionary = {}
 ## Centros de los huecos de paso entre estancias y hacia la calle.
 var _doorways: Array[Vector3] = []
 var _body: StaticBody3D
@@ -71,6 +79,9 @@ func _spawn_npc(npc_id: String, slot: Dictionary) -> void:
 	add_child(npc)
 	npc.setup(npc_id)
 	npc.global_position = get_marker(slot["marker"]) + Vector3.UP * 0.05
+	var facing: Variant = get_marker_facing(slot["marker"])
+	if facing != null:
+		npc.model.rotation.y = float(facing)
 	_npcs[npc_id] = npc
 	_assign_slot(npc, slot)
 
@@ -164,6 +175,19 @@ func add_spawn(spawn_id: String, where: Vector3, yaw_degrees: float = 0.0) -> vo
 
 func add_marker(marker_id: String, where: Vector3) -> void:
 	_markers[marker_id] = batch.xform * where
+
+
+## Orienta a quien espera en un marcador hacia un punto, en las mismas coordenadas que el
+## marcador: la camarera hacia la clientela, el sargento hacia la puerta.
+func face_marker(marker_id: String, toward: Vector3) -> void:
+	var direction := batch.xform * toward - get_marker(marker_id)
+	if Vector2(direction.x, direction.z).length_squared() > 0.0001:
+		_marker_facing[marker_id] = atan2(-direction.x, -direction.z)
+
+
+## Yaw del modelo con el que se espera en el marcador, o null si da igual hacia dónde mire.
+func get_marker_facing(marker_id: String) -> Variant:
+	return _marker_facing.get(marker_id)
 
 
 func has_marker(marker_id: String) -> bool:

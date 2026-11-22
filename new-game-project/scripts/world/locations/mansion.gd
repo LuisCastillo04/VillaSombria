@@ -139,11 +139,24 @@ func _build_office() -> void:
 
 func _register_points() -> void:
 	add_spawn("desde_plaza", Vector3(0.5, 0.1, 7.2), 0.0)
+	# Vestíbulo: el lado oeste vigila la entrada sin cortar el paso de la alfombra.
 	add_marker("vestibulo", Vector3(-2.2, 0.0, 5.8))
+	face_marker("vestibulo", Vector3(0.5, 0.0, 8.4))
+	add_marker("vestibulo_norte", Vector3(-2.4, 0.0, 2.6))
+	face_marker("vestibulo_norte", Vector3(0.5, 0.0, 4.0))
 	add_marker("pasillo", Vector3(2.4, 0.0, 4.0))
 	add_marker("salon_sofa", Vector3(-0.7, 0.0, -3.4))
+	face_marker("salon_sofa", Vector3(3.2, 0.0, -8.6))
 	add_marker("salon_chimenea", Vector3(1.4, 0.0, -7.2))
+	face_marker("salon_chimenea", Vector3(3.2, 0.0, -8.6))
 	add_marker("salon_ventana", Vector3(-3.5, 0.0, -7.4))
+	face_marker("salon_ventana", Vector3(-2.6, 0.0, -9.0))
+	# Lado este del salón, lejos de la ventana de Irene y de la chimenea de Marcos.
+	add_marker("salon_este", Vector3(4.6, 0.0, -5.6))
+	face_marker("salon_este", Vector3(2.8, 0.0, -3.0))
 	add_marker("alcoba_elena", Vector3(-9.5, 0.0, -4.6))
+	face_marker("alcoba_elena", Vector3(-9.6, 0.0, -9.0))
 	add_marker("cuarto_lucia", Vector3(-8.0, 0.0, 5.6))
+	face_marker("cuarto_lucia", Vector3(-11.4, 0.0, 4.6))
 	add_marker("office", Vector3(9.6, 0.0, 4.0))
+	face_marker("office", Vector3(8.2, 0.0, 7.4))

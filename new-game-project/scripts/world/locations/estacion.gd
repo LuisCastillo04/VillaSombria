@@ -130,5 +130,7 @@ func _register_points() -> void:
 	add_spawn("anden", Vector3(5.0, 0.1, -1.8), 180.0)
 	add_spawn("desde_plaza", Vector3(17.0, 0.1, 10.4), 0.0)
 	add_marker("taquilla", Vector3(-7.6, 0.0, 2.0))
+	face_marker("taquilla", Vector3(0.0, 0.0, 2.0))
 	add_marker("banco_anden", Vector3(-3.0, 0.0, -1.8))
+	face_marker("banco_anden", Vector3(-3.0, 0.0, -6.0))
 	add_marker("anden_norte", Vector3(6.0, 0.0, -0.8))

@@ -92,6 +92,7 @@ static func cafe_table(location: LocationBase, where: Vector3) -> void:
 		var seat := where + Vector3(cos(angle), 0.0, sin(angle)) * 0.72
 		batch.cylinder(seat, 0.03, 0.03, 0.42, Palette.IRON, 5)
 		batch.cylinder(seat + Vector3.UP * 0.42, 0.18, 0.18, 0.04, Palette.WOOD, 6)
+		location.collider(seat + Vector3.UP * 0.23, Vector3(0.34, 0.46, 0.34))
 
 
 ## Sedán de los años cuarenta. `yaw_degrees` orienta el morro.

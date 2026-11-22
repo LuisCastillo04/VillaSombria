@@ -16,16 +16,16 @@
   ],
   "marcos": [
     {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "salon_chimenea", "activity": "Bebiendo junto a la chimenea"},
-    {"day": 2, "from": "08:00", "to": "12:00", "location": "mansion", "marker": "pasillo", "activity": "Dando vueltas por la mansión", "patrol": ["pasillo", "vestibulo"]},
+    {"day": 2, "from": "08:00", "to": "12:00", "location": "mansion", "marker": "vestibulo", "activity": "Dando vueltas por la mansión", "patrol": ["vestibulo", "vestibulo_norte"]},
     {"day": 2, "from": "12:00", "to": "24:00", "location": "cafe", "marker": "mesa_fondo", "activity": "En el Café La Luna"},
     {"day": 3, "from": "08:00", "to": "14:00", "location": "cafe", "marker": "mesa_fondo", "activity": "En el Café La Luna"},
     {"day": 3, "from": "14:00", "to": "24:00", "location": "mansion", "marker": "salon_chimenea", "activity": "Junto a la chimenea de la mansión"}
   ],
   "lucia": [
-    {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "pasillo", "activity": "Trabajando en la mansión", "patrol": ["pasillo", "salon_ventana"]},
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "pasillo", "activity": "Trabajando en la mansión", "patrol": ["pasillo", "salon_este"]},
     {"day": 2, "from": "08:00", "to": "12:00", "location": "plaza", "marker": "kiosco", "activity": "Hace recados en la plaza"},
     {"day": 2, "from": "12:00", "to": "24:00", "location": "mansion", "marker": "cuarto_lucia", "activity": "En su cuarto de la mansión"},
-    {"day": 3, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "pasillo", "activity": "Trabajando en la mansión", "patrol": ["pasillo", "salon_ventana"]}
+    {"day": 3, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "pasillo", "activity": "Trabajando en la mansión", "patrol": ["pasillo", "salon_este"]}
   ],
   "anselmo": [
     {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "office", "activity": "En el office de la mansión"},

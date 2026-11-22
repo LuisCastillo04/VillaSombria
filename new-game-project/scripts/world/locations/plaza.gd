@@ -229,11 +229,17 @@ func _register_points() -> void:
 	add_spawn("desde_archivo", Vector3(9.5, 0.1, -11.4), 180.0)
 	add_spawn("desde_mansion", Vector3(-12.2, 0.1, -3.0), -90.0)
 	add_spawn("desde_estacion", Vector3(26.5, 0.1, -10.0), 90.0)
+	# Alrededor de la fuente, mirándola: los puntos de la ronda del sargento.
 	add_marker("banco_fuente", Vector3(3.5, 0.0, -2.4))
 	add_marker("fuente_oeste", Vector3(-1.4, 0.0, 3.0))
 	add_marker("fuente_este", Vector3(8.6, 0.0, 3.0))
+	add_marker("fuente_sur", Vector3(3.5, 0.0, 7.8))
+	for marker_id: String in ["banco_fuente", "fuente_oeste", "fuente_este", "fuente_sur"]:
+		face_marker(marker_id, Vector3(3.5, 0.0, 3.0))
 	add_marker("kiosco", Vector3(-3.6, 0.0, 9.2))
+	face_marker("kiosco", Vector3(-6.0, 0.0, 10.6))
 	add_marker("terraza", Vector3(-4.6, 0.0, -11.2))
+	face_marker("terraza", Vector3(-4.6, 0.0, -14.0))
 	add_marker("calle_oeste", Vector3(-10.0, 0.0, -9.0))
 	add_marker("calle_este", Vector3(13.0, 0.0, -9.4))
 	add_marker("puerta_banco", Vector3(-11.8, 0.0, 9.0))

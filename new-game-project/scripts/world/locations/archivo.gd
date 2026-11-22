@@ -17,7 +17,11 @@ func build() -> void:
 	_build_reading_room()
 	add_spawn("desde_plaza", Vector3(0.0, 0.1, 5.4), 0.0)
 	add_marker("mostrador", Vector3(0.0, 0.0, -3.6))
+	face_marker("mostrador", Vector3(0.0, 0.0, 0.0))
+	add_marker("ficheros", Vector3(-6.9, 0.0, -5.4))
+	face_marker("ficheros", Vector3(-6.9, 0.0, -7.0))
 	add_marker("sala_lectura", Vector3(-5.8, 0.0, 3.0))
+	face_marker("sala_lectura", Vector3(-5.8, 0.0, 1.4))
 	add_marker("estanterias", Vector3(6.4, 0.0, 0.0))
 
 

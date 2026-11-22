@@ -106,13 +106,12 @@ func test_new_game_shows_the_inspector_on_the_platform() -> void:
 
 func test_marker_follows_the_inspector_across_the_plaza() -> void:
 	await game.go_to("plaza", "desde_cafe")
-	# Caminar de verdad, con el mismo sistema de movimiento que el jugador.
+	# Caminar de verdad, con el mismo sistema de movimiento que el jugador. En diagonal hacia la
+	# plaza abierta: hacia el este, la terraza del café tiene mesas y taburetes sólidos.
 	var start := game.player.global_position
 	Input.action_press("move_back")
-	Input.action_press("move_right")
 	await wait_physics_frames(45)
 	Input.action_release("move_back")
-	Input.action_release("move_right")
 	await wait_physics_frames(10)
 	check(game.player.global_position.distance_to(start) > 2.0, "el detective se ha movido por la plaza")
 	await _open_with_key()
