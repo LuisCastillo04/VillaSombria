@@ -25,6 +25,8 @@ var camera_limits := Rect2()
 ## la altura.
 var play_area := Rect2()
 var batch := MeshBatcher.new()
+## Navegación de los NPC, horneada con las colisiones del escenario al construirlo.
+var navigation: LocationNavigation
 
 var _spawns: Dictionary = {}
 var _markers: Dictionary = {}
@@ -42,6 +44,10 @@ func _ready() -> void:
 	add_child(_body)
 	build()
 	batch.attach_to(self)
+	navigation = LocationNavigation.new()
+	navigation.name = "Navegacion"
+	add_child(navigation)
+	navigation.bake(_body, play_area)
 	EventBus.time_changed.connect(_on_time_changed)
 	DialogueManager.closed.connect(_on_dialogue_closed)
 	refresh_npcs()
@@ -54,6 +60,18 @@ func build() -> void:
 
 func get_npc(npc_id: String) -> Npc:
 	return _npcs.get(npc_id)
+
+
+func get_npcs() -> Array:
+	return _npcs.values()
+
+
+## Indica si un recorrido cruza algún hueco de paso (cambia de estancia o sale a la calle).
+func path_crosses_doorway(path: PackedVector3Array) -> bool:
+	for doorway in _doorways:
+		if LocationNavigation.passes_near(path, doorway, 0.6):
+			return true
+	return false
 
 
 ## Sincroniza los NPC presentes con sus rutinas para la hora actual.
