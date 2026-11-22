@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "fades": {"location": 2.5, "music": 3.0, "silence": 1.8, "intensity": 4.0, "duck": 0.6, "unduck": 1.4},
+  "rests": {"after": [150, 240], "silence": [40, 75]},
+  "music": {
+    "menu": {"base": "res://assets/audio/musica/menu/tema_villa_sombria.ogg", "volume_db": -2.0},
+    "pueblo": {"base": "res://assets/audio/musica/exploracion/calle_lluviosa.ogg", "tension": "res://assets/audio/musica/exploracion/calle_lluviosa_tension.ogg", "volume_db": -5.0, "rests": true},
+    "cafe": {"base": "res://assets/audio/musica/cafe/medianoche_en_la_luna.ogg", "tension": "res://assets/audio/musica/cafe/medianoche_en_la_luna_tension.ogg", "volume_db": -8.0, "rests": true},
+    "mansion": {"base": "res://assets/audio/musica/misterio/ecos_de_la_casa_valdes.ogg", "tension": "res://assets/audio/musica/misterio/ecos_de_la_casa_valdes_tension.ogg", "volume_db": -4.0, "rests": true},
+    "archivo": {"base": "res://assets/audio/musica/misterio/legajos.ogg", "tension": "res://assets/audio/musica/misterio/legajos_tension.ogg", "volume_db": -6.0, "rests": true},
+    "acusacion": {"base": "res://assets/audio/musica/tension/la_acusacion.ogg", "tension": "res://assets/audio/musica/tension/la_acusacion_tension.ogg", "volume_db": -3.0},
+    "epilogo": {"base": "res://assets/audio/musica/resolucion/lo_que_el_reloj_callo.ogg", "volume_db": -3.0}
+  },
+  "ambience": {
+    "lluvia_calle": {"file": "res://assets/audio/ambiente/exteriores/lluvia_calle.ogg", "volume_db": 0.0},
+    "viento_noche": {"file": "res://assets/audio/ambiente/exteriores/viento_noche.ogg", "volume_db": -2.0},
+    "fuente_plaza": {"file": "res://assets/audio/ambiente/exteriores/fuente_plaza.ogg", "volume_db": 0.0, "unit_size": 5.0, "max_distance": 28.0},
+    "locomotora_vapor": {"file": "res://assets/audio/ambiente/exteriores/locomotora_vapor.ogg", "volume_db": 2.0, "unit_size": 8.0, "max_distance": 40.0},
+    "lluvia_ventanas": {"file": "res://assets/audio/ambiente/interiores/lluvia_ventanas.ogg", "volume_db": 0.0},
+    "archivo_sala": {"file": "res://assets/audio/ambiente/interiores/archivo_sala.ogg", "volume_db": 4.0},
+    "sala_cafe": {"file": "res://assets/audio/ambiente/cafe/sala_cafe.ogg", "volume_db": 2.0},
+    "casa_grande": {"file": "res://assets/audio/ambiente/mansion/casa_grande.ogg", "volume_db": 3.0},
+    "reloj_pie": {"file": "res://assets/audio/ambiente/mansion/reloj_pie.ogg", "volume_db": 6.0, "unit_size": 3.0, "max_distance": 16.0},
+    "chimenea": {"file": "res://assets/audio/ambiente/mansion/chimenea.ogg", "volume_db": 6.0, "unit_size": 3.0, "max_distance": 16.0}
+  },
+  "sounds": {
+    "ui_mover": {"files": ["res://assets/audio/efectos/interfaz/mover_1.wav", "res://assets/audio/efectos/interfaz/mover_2.wav", "res://assets/audio/efectos/interfaz/mover_3.wav"], "volume_db": -6.0, "pitch": [0.98, 1.02], "cooldown": 0.045, "max": 2, "priority": 1},
+    "ui_aceptar": {"files": ["res://assets/audio/efectos/interfaz/aceptar.wav"], "volume_db": -4.0, "pitch": [0.99, 1.01], "cooldown": 0.05, "max": 2, "priority": 2},
+    "ui_cancelar": {"files": ["res://assets/audio/efectos/interfaz/cancelar.wav"], "volume_db": -4.0, "cooldown": 0.05, "max": 2, "priority": 2},
+    "ui_abrir": {"files": ["res://assets/audio/efectos/interfaz/abrir.wav"], "volume_db": -4.0, "cooldown": 0.08, "max": 1, "priority": 1},
+    "ui_cerrar": {"files": ["res://assets/audio/efectos/interfaz/cerrar.wav"], "volume_db": -4.0, "cooldown": 0.08, "max": 1, "priority": 1},
+    "click": {"alias": "ui_aceptar"},
+    "tecla": {"files": ["res://assets/audio/efectos/interfaz/tecla_1.wav", "res://assets/audio/efectos/interfaz/tecla_2.wav", "res://assets/audio/efectos/interfaz/tecla_3.wav", "res://assets/audio/efectos/interfaz/tecla_4.wav"], "volume_db": -5.0, "pitch": [0.94, 1.06], "cooldown": 0.025, "max": 2, "priority": 1},
+    "pausa_abrir": {"files": ["res://assets/audio/efectos/interfaz/pausa_abrir.wav"], "volume_db": -2.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "pausa_cerrar": {"files": ["res://assets/audio/efectos/interfaz/pausa_cerrar.wav"], "volume_db": -2.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "notificacion": {"files": ["res://assets/audio/efectos/interfaz/notificacion.wav"], "volume_db": -5.0, "cooldown": 0.6, "max": 1, "priority": 2},
+    "guardado": {"files": ["res://assets/audio/efectos/interfaz/guardado.wav"], "volume_db": -2.0, "cooldown": 0.5, "max": 1, "priority": 2},
+    "expediente_abrir": {"files": ["res://assets/audio/efectos/investigacion/expediente_abrir.wav"], "volume_db": -1.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "expediente_cerrar": {"files": ["res://assets/audio/efectos/investigacion/expediente_cerrar.wav"], "volume_db": -1.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "tablero_abrir": {"files": ["res://assets/audio/efectos/investigacion/tablero_abrir.wav"], "volume_db": -1.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "tablero_cerrar": {"files": ["res://assets/audio/efectos/investigacion/tablero_cerrar.wav"], "volume_db": -1.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "mapa_abrir": {"files": ["res://assets/audio/efectos/investigacion/mapa_abrir.wav"], "volume_db": 0.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "evidencia_abrir": {"files": ["res://assets/audio/efectos/investigacion/evidencia_abrir.wav"], "volume_db": 0.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "evidencia_cerrar": {"files": ["res://assets/audio/efectos/investigacion/evidencia_cerrar.wav"], "volume_db": 0.0, "cooldown": 0.2, "max": 1, "priority": 2},
+    "testimonio": {"files": ["res://assets/audio/efectos/investigacion/testimonio.wav"], "volume_db": -2.0, "cooldown": 0.5, "max": 1, "priority": 3},
+    "sello": {"files": ["res://assets/audio/efectos/investigacion/sello.ogg"], "volume_db": -1.0, "cooldown": 0.5, "max": 1, "priority": 3},
+    "puerta_cafe": {"files": ["res://assets/audio/efectos/interaccion/puerta_cafe.ogg"], "volume_db": -3.0, "cooldown": 0.8, "max": 1, "priority": 3},
+    "puerta_mansion": {"files": ["res://assets/audio/efectos/interaccion/puerta_mansion.ogg"], "volume_db": -3.0, "cooldown": 0.8, "max": 1, "priority": 3},
+    "puerta_archivo": {"files": ["res://assets/audio/efectos/interaccion/puerta_archivo.ogg"], "volume_db": -3.0, "cooldown": 0.8, "max": 1, "priority": 3},
+    "puerta_salida": {"files": ["res://assets/audio/efectos/interaccion/puerta_salida.ogg"], "volume_db": -3.0, "cooldown": 0.8, "max": 1, "priority": 3},
+    "puerta_cerrada": {"files": ["res://assets/audio/efectos/interaccion/puerta_cerrada.ogg"], "volume_db": -2.0, "cooldown": 0.8, "max": 1, "priority": 3},
+    "pasos_calle": {"files": ["res://assets/audio/efectos/interaccion/pasos_calle.ogg"], "volume_db": 0.0, "cooldown": 0.8, "max": 1, "priority": 3},
+    "cama": {"files": ["res://assets/audio/efectos/interaccion/cama.ogg"], "volume_db": -2.0, "cooldown": 1.0, "max": 1, "priority": 3},
+    "reloj_avanza": {"files": ["res://assets/audio/efectos/interaccion/reloj_avanza.ogg"], "volume_db": -2.0, "cooldown": 1.0, "max": 1, "priority": 3},
+    "telefono": {"files": ["res://assets/audio/efectos/interaccion/telefono.ogg"], "volume_db": -4.0, "cooldown": 2.0, "max": 1, "priority": 4},
+    "paso_piedra": {"files": ["res://assets/audio/efectos/pasos/piedra_1.wav", "res://assets/audio/efectos/pasos/piedra_2.wav", "res://assets/audio/efectos/pasos/piedra_3.wav", "res://assets/audio/efectos/pasos/piedra_4.wav"], "volume_db": -11.0, "pitch": [0.92, 1.08], "cooldown": 0.15, "max": 2, "priority": 1},
+    "paso_madera": {"files": ["res://assets/audio/efectos/pasos/madera_1.wav", "res://assets/audio/efectos/pasos/madera_2.wav", "res://assets/audio/efectos/pasos/madera_3.wav", "res://assets/audio/efectos/pasos/madera_4.wav"], "volume_db": -11.0, "pitch": [0.92, 1.08], "cooldown": 0.15, "max": 2, "priority": 1},
+    "paso_alfombra": {"files": ["res://assets/audio/efectos/pasos/madera_1.wav", "res://assets/audio/efectos/pasos/madera_2.wav", "res://assets/audio/efectos/pasos/madera_3.wav", "res://assets/audio/efectos/pasos/madera_4.wav"], "volume_db": -19.0, "pitch": [0.78, 0.86], "cooldown": 0.15, "max": 2, "priority": 1},
+    "paso_baldosa": {"files": ["res://assets/audio/efectos/pasos/baldosa_1.wav", "res://assets/audio/efectos/pasos/baldosa_2.wav", "res://assets/audio/efectos/pasos/baldosa_3.wav", "res://assets/audio/efectos/pasos/baldosa_4.wav"], "volume_db": -12.0, "pitch": [0.92, 1.08], "cooldown": 0.15, "max": 2, "priority": 1},
+    "pista_descubierta": {"files": ["res://assets/audio/musica/fragmentos/pista_descubierta.ogg"], "bus": "Musica", "volume_db": -1.0, "cooldown": 1.5, "max": 1, "priority": 5, "duck_music_db": -6.0, "hold": 2.5},
+    "pista": {"alias": "pista_descubierta"},
+    "deduccion": {"files": ["res://assets/audio/musica/fragmentos/deduccion.ogg"], "bus": "Musica", "volume_db": 0.0, "cooldown": 1.5, "max": 1, "priority": 5, "duck_music_db": -8.0, "hold": 4.0},
+    "suceso": {"files": ["res://assets/audio/musica/fragmentos/suceso.ogg"], "bus": "Musica", "volume_db": -1.0, "cooldown": 3.0, "max": 1, "priority": 5, "duck_music_db": -6.0, "hold": 3.0},
+    "nuevo_dia": {"files": ["res://assets/audio/musica/fragmentos/nuevo_dia.ogg"], "bus": "Musica", "volume_db": -2.0, "cooldown": 3.0, "max": 1, "priority": 5, "duck_music_db": -6.0, "hold": 4.0},
+    "acusacion_fallida": {"files": ["res://assets/audio/musica/fragmentos/acusacion_fallida.ogg"], "bus": "Musica", "volume_db": 0.0, "cooldown": 1.0, "max": 1, "priority": 5, "duck_music_db": -8.0, "hold": 2.5},
+    "taza_plato": {"files": ["res://assets/audio/ambiente/cafe/taza_plato_1.wav", "res://assets/audio/ambiente/cafe/taza_plato_2.wav", "res://assets/audio/ambiente/cafe/taza_plato_3.wav", "res://assets/audio/ambiente/cafe/taza_plato_4.wav"], "bus": "Ambiente", "volume_db": -4.0, "pitch": [0.95, 1.05], "cooldown": 2.0, "max": 1, "spatial": true, "unit_size": 6.0, "max_distance": 30.0},
+    "cucharilla": {"files": ["res://assets/audio/ambiente/cafe/cucharilla_1.wav", "res://assets/audio/ambiente/cafe/cucharilla_2.wav", "res://assets/audio/ambiente/cafe/cucharilla_3.wav"], "bus": "Ambiente", "volume_db": -2.0, "pitch": [0.95, 1.05], "cooldown": 2.0, "max": 1, "spatial": true, "unit_size": 6.0, "max_distance": 30.0},
+    "silla": {"files": ["res://assets/audio/ambiente/cafe/silla_1.wav", "res://assets/audio/ambiente/cafe/silla_2.wav", "res://assets/audio/ambiente/cafe/silla_3.wav"], "bus": "Ambiente", "volume_db": -6.0, "pitch": [0.93, 1.05], "cooldown": 4.0, "max": 1, "spatial": true, "unit_size": 6.0, "max_distance": 30.0},
+    "cafetera": {"files": ["res://assets/audio/ambiente/cafe/cafetera_1.ogg"], "bus": "Ambiente", "volume_db": -8.0, "pitch": [0.97, 1.03], "cooldown": 20.0, "max": 1, "spatial": true, "unit_size": 6.0, "max_distance": 30.0},
+    "caja_registradora": {"files": ["res://assets/audio/ambiente/cafe/caja_registradora_1.ogg"], "bus": "Ambiente", "volume_db": -6.0, "pitch": [0.98, 1.02], "cooldown": 30.0, "max": 1, "spatial": true, "unit_size": 6.0, "max_distance": 30.0},
+    "crujido": {"files": ["res://assets/audio/ambiente/interiores/crujido_1.ogg", "res://assets/audio/ambiente/interiores/crujido_2.ogg", "res://assets/audio/ambiente/interiores/crujido_3.ogg", "res://assets/audio/ambiente/interiores/crujido_4.ogg", "res://assets/audio/ambiente/interiores/crujido_5.ogg"], "bus": "Ambiente", "volume_db": -3.0, "pitch": [0.9, 1.08], "cooldown": 4.0, "max": 1, "spatial": true, "unit_size": 8.0, "max_distance": 40.0},
+    "pagina": {"files": ["res://assets/audio/ambiente/interiores/pagina_1.ogg", "res://assets/audio/ambiente/interiores/pagina_2.ogg", "res://assets/audio/ambiente/interiores/pagina_3.ogg", "res://assets/audio/ambiente/interiores/pagina_4.ogg"], "bus": "Ambiente", "volume_db": 0.0, "pitch": [0.95, 1.05], "cooldown": 3.0, "max": 1, "spatial": true, "unit_size": 6.0, "max_distance": 30.0},
+    "sello_lejano": {"files": ["res://assets/audio/ambiente/interiores/sello_lejano_1.ogg", "res://assets/audio/ambiente/interiores/sello_lejano_2.ogg"], "bus": "Ambiente", "volume_db": -5.0, "pitch": [0.96, 1.04], "cooldown": 10.0, "max": 1, "spatial": true, "unit_size": 6.0, "max_distance": 30.0},
+    "puerta_lejana": {"files": ["res://assets/audio/ambiente/mansion/puerta_lejana_1.ogg", "res://assets/audio/ambiente/mansion/puerta_lejana_2.ogg"], "bus": "Ambiente", "volume_db": -4.0, "pitch": [0.94, 1.04], "cooldown": 15.0, "max": 1, "spatial": true, "unit_size": 8.0, "max_distance": 40.0},
+    "rafaga_ventana": {"files": ["res://assets/audio/ambiente/mansion/rafaga_ventana_1.ogg", "res://assets/audio/ambiente/mansion/rafaga_ventana_2.ogg"], "bus": "Ambiente", "volume_db": -6.0, "cooldown": 15.0, "max": 1},
+    "reloj_campanada": {"files": ["res://assets/audio/ambiente/mansion/reloj_campanada.ogg"], "bus": "Ambiente", "volume_db": 2.0, "max": 3, "spatial": true, "unit_size": 10.0, "max_distance": 45.0},
+    "campana_torre": {"files": ["res://assets/audio/ambiente/exteriores/campana_torre.ogg"], "bus": "Ambiente", "volume_db": -3.0, "max": 3},
+    "campana_torre_amortiguada": {"files": ["res://assets/audio/ambiente/interiores/campana_torre_amortiguada.ogg"], "bus": "Ambiente", "volume_db": -4.0, "max": 3},
+    "trueno_lejano": {"files": ["res://assets/audio/ambiente/exteriores/trueno_lejano_1.ogg", "res://assets/audio/ambiente/exteriores/trueno_lejano_2.ogg", "res://assets/audio/ambiente/exteriores/trueno_lejano_3.ogg"], "bus": "Ambiente", "volume_db": -5.0, "pitch": [0.9, 1.05], "cooldown": 40.0, "max": 1},
+    "contraventana": {"files": ["res://assets/audio/ambiente/exteriores/contraventana_1.ogg", "res://assets/audio/ambiente/exteriores/contraventana_2.ogg"], "bus": "Ambiente", "volume_db": -6.0, "pitch": [0.92, 1.06], "cooldown": 12.0, "max": 1, "spatial": true, "unit_size": 10.0, "max_distance": 60.0},
+    "buho": {"files": ["res://assets/audio/ambiente/exteriores/buho_1.ogg", "res://assets/audio/ambiente/exteriores/buho_2.ogg"], "bus": "Ambiente", "volume_db": -6.0, "pitch": [0.97, 1.03], "cooldown": 25.0, "max": 1, "spatial": true, "unit_size": 12.0, "max_distance": 70.0},
+    "silbato_tren": {"files": ["res://assets/audio/ambiente/exteriores/silbato_tren_1.ogg", "res://assets/audio/ambiente/exteriores/silbato_tren_2.ogg"], "bus": "Ambiente", "volume_db": -7.0, "pitch": [0.97, 1.03], "cooldown": 40.0, "max": 1},
+    "golpe_metal": {"files": ["res://assets/audio/ambiente/exteriores/golpe_metal_1.ogg", "res://assets/audio/ambiente/exteriores/golpe_metal_2.ogg", "res://assets/audio/ambiente/exteriores/golpe_metal_3.ogg"], "bus": "Ambiente", "volume_db": -7.0, "pitch": [0.9, 1.1], "cooldown": 8.0, "max": 1, "spatial": true, "unit_size": 10.0, "max_distance": 50.0},
+    "campana_anden": {"files": ["res://assets/audio/ambiente/exteriores/campana_anden.ogg"], "bus": "Ambiente", "volume_db": -8.0, "cooldown": 60.0, "max": 1, "spatial": true, "unit_size": 10.0, "max_distance": 50.0}
+  },
+  "locations": {
+    "menu": {"music": "menu", "layers": {"lluvia_calle": -7.0, "viento_noche": -10.0}},
+    "plaza": {
+      "music": "pueblo",
+      "layers": {"lluvia_calle": 0.0},
+      "night_layers": {"viento_noche": 0.0},
+      "emitters": [{"ambience": "fuente_plaza", "position": [3.5, 1.0, 3.0]}],
+      "details": {"every": [10, 26], "area": [-14.0, -14.0, 44.0, 28.0], "height": 2.0,
+        "sounds": {"contraventana": 2.0, "trueno_lejano": 1.0, "buho": {"weight": 2.0, "hours": ["20:00", "23:59"]}}},
+      "chime": {"sound": "campana_torre", "spacing": 2.4}
+    },
+    "estacion": {
+      "music": "pueblo",
+      "layers": {"lluvia_calle": -1.0},
+      "night_layers": {"viento_noche": 0.0},
+      "emitters": [{"ambience": "locomotora_vapor", "position": [18.0, 1.8, -7.0]}],
+      "details": {"every": [12, 30], "area": [-16.0, -9.0, 39.0, 10.0], "height": 1.5,
+        "sounds": {"golpe_metal": 2.5, "silbato_tren": 1.5, "campana_anden": 1.0, "trueno_lejano": 1.0, "buho": {"weight": 1.0, "hours": ["20:00", "23:59"]}}}
+    },
+    "cafe": {
+      "music": "cafe",
+      "layers": {"sala_cafe": 0.0, "lluvia_ventanas": -6.0},
+      "details": {"every": [6, 15], "area": [-7.0, -4.5, 14.0, 9.0], "height": 1.0,
+        "sounds": {"taza_plato": 4.0, "cucharilla": 3.0, "silla": 2.0, "cafetera": 1.0, "caja_registradora": 0.7}},
+      "chime": {"sound": "campana_torre_amortiguada", "spacing": 2.4}
+    },
+    "mansion": {
+      "music": "mansion",
+      "layers": {"casa_grande": 0.0, "lluvia_ventanas": -2.0},
+      "emitters": [
+        {"ambience": "reloj_pie", "position": [-4.4, 1.4, 7.6]},
+        {"ambience": "chimenea", "position": [3.2, 0.6, -8.4]}
+      ],
+      "details": {"every": [11, 28], "area": [-14.0, -9.0, 28.0, 18.0], "height": 2.2,
+        "sounds": {"crujido": 4.0, "puerta_lejana": 1.5, "rafaga_ventana": 1.5}},
+      "chime": {"sound": "reloj_campanada", "spacing": 2.6, "position": [-4.4, 1.8, 7.6]}
+    },
+    "archivo": {
+      "music": "archivo",
+      "layers": {"archivo_sala": 0.0, "lluvia_ventanas": -5.0},
+      "details": {"every": [9, 22], "area": [-9.0, -6.5, 18.0, 13.0], "height": 1.2,
+        "sounds": {"pagina": 4.0, "crujido": 2.0, "sello_lejano": 1.5}},
+      "chime": {"sound": "campana_torre_amortiguada", "spacing": 2.4}
+    },
+    "test_ground": {"music": "", "layers": {"lluvia_calle": -6.0}}
+  },
+  "intensity": {
+    "days": {"1": 0.0, "2": 0.2, "3": 0.45},
+    "locations": {"mansion": 0.25, "archivo": 0.05},
+    "flags": {"ortega_briefing": 0.1, "hora_real_conocida": 0.15},
+    "night": 0.1,
+    "night_from": "20:00",
+    "max": 0.85,
+    "story_boost": {"amount": 0.3, "seconds": 90},
+    "resolved": {"flag": "caso_resuelto", "music": "epilogo"}
+  },
+  "screens": {
+    "dialogo": {"music_db": -9.0, "ambience_db": -5.0, "details": false},
+    "inspeccion": {"open": "evidencia_abrir", "close": "evidencia_cerrar", "music_db": -4.0, "ambience_db": -3.0},
+    "expediente": {"open": "expediente_abrir", "close": "expediente_cerrar", "music_db": -4.0, "ambience_db": -4.0},
+    "tablero": {"open": "tablero_abrir", "close": "tablero_cerrar", "music_db": -4.0, "ambience_db": -4.0},
+    "pausa": {"open": "pausa_abrir", "close": "pausa_cerrar", "music_db": -5.0, "ambience_db": -4.0, "muffle": true, "details": false},
+    "confirmacion": {"music_db": -2.0},
+    "acusacion": {"music": "acusacion", "intensity": 0.35, "music_db": -2.0, "ambience_db": -6.0},
+    "cierre": {"open": "sello", "ambience_db": -6.0}
+  },
+  "scenes": {
+    "intro": {"music": ""},
+    "llamada": {"music": "", "cue": "telefono"},
+    "dia_2": {"cue": "nuevo_dia"},
+    "dia_3": {"cue": "nuevo_dia"},
+    "confrontacion": {"music": "acusacion", "intensity": 1.0, "music_db": -4.0},
+    "epilogo": {"music": "epilogo", "music_db": -5.0}
+  },
+  "events": {
+    "clue": "pista_descubierta",
+    "deduction": "deduccion",
+    "testimony": "testimonio",
+    "story_notice": "suceso",
+    "info_notice": "notificacion",
+    "save": "guardado",
+    "rest": "cama",
+    "focus": "ui_mover"
+  },
+  "footsteps": {
+    "outdoor": "piedra",
+    "indoor": "madera",
+    "surfaces": {"piedra": "paso_piedra", "madera": "paso_madera", "baldosa": "paso_baldosa", "alfombra": "paso_alfombra"}
+  },
+  "transitions": {
+    "cafe": "puerta_cafe",
+    "mansion": "puerta_mansion",
+    "archivo": "puerta_archivo",
+    "interior": "puerta_archivo",
+    "exit": "puerta_salida",
+    "street": "pasos_calle"
+  }
+}
