@@ -47,13 +47,24 @@ func test_schedule_places_npc_at_marker() -> void:
 		check_equal(hilario.profile.mode, NpcProfile.Mode.WANDER, "el domingo pasea")
 
 
+## Quien ya no debe estar se va andando por una salida (no desaparece delante del detective) y
+## quien llega aparece en su puesto.
 func test_time_change_moves_npcs_between_locations() -> void:
+	var hilario := location.get_npc("hilario")
+	hilario.profile.walk_speed = 2.5
+	hilario.agent.max_speed = 2.5
 	GameClock.start_next_day()
 	await wait_physics_frames(2)
-	check(location.get_npc("hilario") == null, "el lunes Hilario está en el archivo")
+	check(hilario.is_leaving(), "el lunes Hilario está en el archivo: sale de la plaza andando")
+	check(not hilario.interaction.can_interact(), "mientras se va no se le puede hablar")
 	check(location.get_npc("ortega") != null, "el lunes por la mañana Ortega hace la ronda")
 	check(location.get_npc("lucia") != null, "el lunes por la mañana Lucía hace recados")
 	check_equal(location.get_npc("ortega").profile.mode, NpcProfile.Mode.PATROL, "la ronda de Ortega es una patrulla")
+	for frame in 1500:
+		await get_tree().physics_frame
+		if location.get_npc("hilario") == null:
+			break
+	check(location.get_npc("hilario") == null, "al cruzar la puerta del archivo deja la plaza")
 
 
 ## Ronda con navegación: rodea la fuente en lugar de atravesarla y espera en cada punto.

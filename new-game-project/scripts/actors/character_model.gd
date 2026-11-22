@@ -74,6 +74,14 @@ func set_head_tilt(pitch: float) -> void:
 	_head_tilt = clampf(pitch, -0.4, 0.3)
 
 
+## Desvanece el personaje entero: 0 lo deja opaco y 1 invisible. Sirve para que quien sale por
+## una puerta no desaparezca de golpe. No toca los materiales: usa la transparencia de cada malla.
+func set_fade(amount: float) -> void:
+	var value := clampf(amount, 0.0, 1.0)
+	for node in find_children("*", "GeometryInstance3D", true, false):
+		(node as GeometryInstance3D).transparency = value
+
+
 func _process(delta: float) -> void:
 	if _torso == null:
 		return

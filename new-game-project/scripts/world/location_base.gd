@@ -93,27 +93,66 @@ func path_crosses_doorway(path: PackedVector3Array) -> bool:
 
 
 ## Sincroniza los NPC presentes con sus rutinas para la hora actual.
+## Quien ya no debe estar aquí sale andando por la puerta (`Npc.leave`); quien sigue, pero con
+## otro tramo, camina hasta su nuevo puesto. Nunca hay dos copias del mismo personaje: el que se
+## va sigue en la lista hasta cruzar la salida, y si su rutina lo vuelve a traer, se queda.
 func refresh_npcs() -> void:
 	if DialogueManager.active:
 		return
 	var expected := NpcSchedule.get_npcs_at(location_id, GameClock.day, GameClock.minutes)
 	for npc_id: String in _npcs.keys():
 		if not expected.has(npc_id):
-			(_npcs[npc_id] as Npc).queue_free()
-			_npcs.erase(npc_id)
+			_send_away(_npcs[npc_id])
 	for npc_id in expected:
 		var slot := NpcSchedule.get_slot(npc_id, GameClock.day, GameClock.minutes)
-		if not _npcs.has(npc_id):
+		var npc: Npc = _npcs.get(npc_id)
+		if npc == null:
 			_spawn_npc(npc_id, slot)
-		elif (_npcs[npc_id] as Npc).current_slot != slot:
-			_assign_slot(_npcs[npc_id], slot)
+		elif npc.current_slot != slot or npc.is_leaving():
+			_assign_slot(npc, slot)
 		(_npcs[npc_id] as Npc).interaction.refresh_marker()
+
+
+## Salida por la que un NPC deja el escenario: la que lleva a su destino o, si ninguna lo hace, la
+## más cercana. Null si el escenario no tiene salidas.
+func get_exit_toward(destination: String, from: Vector3) -> LocationExit:
+	var best: LocationExit = null
+	var best_score := INF
+	for child in get_children():
+		if not child is LocationExit:
+			continue
+		var exit := child as LocationExit
+		var score := _flat_distance(from, exit.global_position)
+		if exit.target_location != destination:
+			score += 1000.0
+		if score < best_score:
+			best_score = score
+			best = exit
+	return best
+
+
+## Punto del suelo junto a una salida desde el que se cruza y hacia dónde: si la salida está junto
+## a un hueco de puerta, hacia él.
+func get_exit_route(exit: LocationExit) -> Dictionary:
+	var point := exit.global_position
+	if navigation != null and navigation.is_map_ready():
+		point = navigation.closest_point(point)
+	point.y = FLOOR_HEIGHT
+	var outward := Vector3.ZERO
+	var nearest := 1.5
+	for doorway in _doorways:
+		var distance := _flat_distance(point, doorway)
+		if distance < nearest:
+			nearest = distance
+			outward = Vector3(doorway.x - point.x, 0.0, doorway.z - point.z).normalized()
+	return {"point": point, "outward": outward}
 
 
 func _spawn_npc(npc_id: String, slot: Dictionary) -> void:
 	var npc: Npc = (load(NPC_SCENE) as PackedScene).instantiate()
 	add_child(npc)
 	npc.setup(npc_id)
+	npc.left.connect(_on_npc_left)
 	_npcs[npc_id] = npc
 	npc.place(self, slot)
 
@@ -121,6 +160,26 @@ func _spawn_npc(npc_id: String, slot: Dictionary) -> void:
 ## Nuevo tramo en el mismo escenario: el NPC camina hasta su nuevo puesto.
 func _assign_slot(npc: Npc, slot: Dictionary) -> void:
 	npc.assign(slot)
+
+
+## Su rutina lo lleva a otro lugar: camina hasta la salida hacia allí y la cruza. Sin salidas (el
+## campo de pruebas) desaparece sin más.
+func _send_away(npc: Npc) -> void:
+	if npc.is_leaving():
+		return
+	var destination: String = NpcSchedule.get_slot(npc.npc_id, GameClock.day, GameClock.minutes).get("location", "none")
+	var exit := get_exit_toward(destination, npc.global_position)
+	if exit == null:
+		_npcs.erase(npc.npc_id)
+		npc.queue_free()
+		return
+	var route := get_exit_route(exit)
+	npc.leave(route["point"], route["outward"])
+
+
+func _on_npc_left(npc: Npc) -> void:
+	if _npcs.get(npc.npc_id) == npc:
+		_npcs.erase(npc.npc_id)
 
 
 func _on_time_changed(_day: int, minutes: int) -> void:

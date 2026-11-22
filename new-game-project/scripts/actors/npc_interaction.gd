@@ -20,8 +20,9 @@ func set_focused(value: bool) -> void:
 		_npc.notice_player(value)
 
 
+## Avisa de que tiene preguntas nuevas, salvo si se está yendo del escenario.
 func wants_attention() -> bool:
-	return _npc != null and DialogueManager.has_new_topics(_npc.npc_id)
+	return _npc != null and not _npc.is_leaving() and DialogueManager.has_new_topics(_npc.npc_id)
 
 
 func interact(actor: Node) -> void:
