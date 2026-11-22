@@ -31,6 +31,8 @@ const OPEN_CUTOFF_HZ := 20500.0
 const LOCATION_MUSIC_DELAY := 1.0
 ## Ventana en la que un cambio de foco cuenta como navegación del jugador (y suena).
 const NAVIGATION_WINDOW_MS := 250
+## Espera al salir para que el servidor de audio suelte las reproducciones (unos ocho bloques de mezcla).
+const EXIT_RELEASE_MS := 100
 const NAVIGATION_ACTIONS: Array[StringName] = [&"ui_up", &"ui_down", &"ui_left", &"ui_right", &"ui_focus_next", &"ui_focus_prev"]
 
 var catalog: AudioCatalog
@@ -91,7 +93,9 @@ func _ready() -> void:
 	_connect_game()
 
 
-## Los bucles siguen sonando hasta el último fotograma: hay que soltarlos al salir.
+## Los bucles siguen sonando hasta el último fotograma: hay que soltarlos al salir. El servidor de
+## audio libera las reproducciones detenidas en su propio hilo, al mezclar el siguiente bloque; sin
+## esa espera, las pistas cargadas seguirían en uso al cerrar el motor.
 func _exit_tree() -> void:
 	if music != null:
 		music.stop_now()
@@ -101,6 +105,7 @@ func _exit_tree() -> void:
 		effects.stop_all()
 	if catalog != null:
 		catalog.clear_cache()
+	OS.delay_msec(EXIT_RELEASE_MS)
 
 
 func _input(event: InputEvent) -> void:
