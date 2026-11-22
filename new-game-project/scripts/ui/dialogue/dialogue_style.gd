@@ -119,6 +119,20 @@ const FIRST_LINE_DELAY := 0.22
 const CHARACTERS_PER_SECOND := 48.0
 const SENTENCE_PAUSE := 0.14
 const CLAUSE_PAUSE := 0.05
+## Letras por segundo de cada «Velocidad del texto» de Configuración. Con 0, cada página aparece
+## entera de golpe. Las pausas tras un punto o una coma se respetan en las tres velocidades con
+## escritura.
+const TEXT_SPEEDS := {"lento": 24.0, "normal": CHARACTERS_PER_SECOND, "rapido": 96.0, "instantaneo": 0.0}
+## Con el texto instantáneo, una pulsación no cuenta hasta este instante después de aparecer la
+## página: dos pulsaciones seguidas no se saltan una intervención sin haberla visto.
+const INSTANT_ADVANCE_GUARD := 0.15
+## Avance automático. Cuando la página ya se lee entera, se deja a la vista el tiempo de leerla a
+## `AUTO_READING_SPEED` letras por segundo, descontando lo que se tardó en escribirla, más un margen
+## (`AUTO_BASE_HOLD`), entre `AUTO_MIN_HOLD` y `AUTO_MAX_HOLD` segundos.
+const AUTO_READING_SPEED := 22.0
+const AUTO_BASE_HOLD := 1.2
+const AUTO_MIN_HOLD := 1.2
+const AUTO_MAX_HOLD := 8.0
 ## Latido de «Continuar» cuando el texto ya se lee entero.
 const PULSE_SECONDS := 1.1
 ## Resaltado de la respuesta señalada y destello al confirmarla.
@@ -129,6 +143,20 @@ const CONFIRM_SECONDS := 0.22
 const CONFIRM_GUARD_SECONDS := 0.3
 
 static var _speech_font: SystemFont
+
+
+## Letras por segundo de una velocidad de Configuración («lento», «normal», «rapido»,
+## «instantaneo»); con un valor desconocido, la normal.
+static func text_speed(speed_id: Variant) -> float:
+	return float(TEXT_SPEEDS.get(String(speed_id), CHARACTERS_PER_SECOND))
+
+
+## Segundos que se deja a la vista una página de `characters` letras antes de pasar sola, sabiendo
+## que se escribió a `characters_per_second` (0: apareció de golpe y no dio tiempo a leer nada).
+static func auto_hold(characters: int, characters_per_second: float) -> float:
+	var reading := float(characters) / AUTO_READING_SPEED
+	var typing := float(characters) / characters_per_second if characters_per_second > 0.0 else 0.0
+	return clampf(AUTO_BASE_HOLD + maxf(reading - typing, 0.0), AUTO_MIN_HOLD, AUTO_MAX_HOLD)
 
 
 # --- Letras ---

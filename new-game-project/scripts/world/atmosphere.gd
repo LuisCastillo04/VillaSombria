@@ -33,6 +33,7 @@ static func add_exterior(parent: Node3D) -> DirectionalLight3D:
 	moon.shadow_enabled = true
 	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
 	moon.directional_shadow_max_distance = 90.0
+	GraphicsQuality.register_light(moon)
 	parent.add_child(moon)
 	apply_time_of_day(parent, GameClock.minutes)
 	return moon
@@ -81,4 +82,5 @@ static func _attach_environment(parent: Node3D, environment: Environment) -> voi
 	var node := WorldEnvironment.new()
 	node.name = "Ambiente"
 	node.environment = environment
+	GraphicsQuality.register_environment(node)
 	parent.add_child(node)

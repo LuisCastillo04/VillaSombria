@@ -13,6 +13,10 @@ extends CanvasLayer
 ## (respuestas y ayuda). Al pasar de uno a otro el contenido se funde y el borde superior de la
 ## ventana, con la placa, sube o baja hasta su nueva altura; lo de dentro está anclado al pie, así
 ## que no se mueve bajo el cursor.
+##
+## La velocidad del texto y el avance automático son preferencias de Configuración y se aplican al
+## momento, también en mitad de una conversación. El avance automático sólo pasa de página o de
+## intervención: nunca elige una respuesta, y con las respuestas en pantalla se detiene.
 
 enum Mode { CLOSED, READING, CHOOSING }
 
@@ -36,6 +40,11 @@ var _slide := 1.0
 ## Alto actual de la ventana (animado) y el que debe alcanzar.
 var _panel_height := DialogueStyle.NARRATIVE_HEIGHT
 var _target_height := DialogueStyle.NARRATIVE_HEIGHT
+## Avance automático: segundos que faltan para pasar sola y espera total (-1: sin cuenta).
+var _auto_wait := -1.0
+var _auto_total := 0.0
+## Con el texto instantáneo, tiempo durante el que una pulsación todavía no cuenta.
+var _advance_guard := 0.0
 
 @onready var _root: Control = $Root
 @onready var _dim: ColorRect = $Root/Dim
@@ -68,6 +77,8 @@ func _ready() -> void:
 	DialogueManager.line_shown.connect(_on_line_shown)
 	DialogueManager.options_shown.connect(_on_options_shown)
 	DialogueManager.closed.connect(_on_closed)
+	_text.characters_per_second = DialogueStyle.text_speed(Settings.get_value("jugabilidad/velocidad_texto"))
+	Settings.changed.connect(_on_settings_changed)
 
 
 # --- Estado, para las pruebas y para otras pantallas ---
@@ -90,6 +101,15 @@ func is_waiting_for_input() -> bool:
 ## Si se están mostrando las respuestas.
 func is_choosing() -> bool:
 	return _mode == Mode.CHOOSING
+
+
+## Si el avance automático está contando para pasar sola, y cuánto le falta.
+func is_auto_advancing() -> bool:
+	return _auto_wait >= 0.0
+
+
+func get_auto_advance_remaining() -> float:
+	return maxf(_auto_wait, 0.0)
 
 
 func get_option_ids() -> Array[String]:
@@ -147,11 +167,21 @@ func get_target_height() -> float:
 
 # --- Entradas ---
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if not _root.visible:
 		return
 	_cast.talking = is_typing()
 	_layout_window()
+	_advance_guard = maxf(_advance_guard - delta, 0.0)
+	if _auto_wait >= 0.0:
+		if _mode != Mode.READING or not _waiting_input:
+			_stop_auto_wait()
+			return
+		_auto_wait -= delta
+		_continue.set_auto_progress(1.0 - _auto_wait / _auto_total)
+		if _auto_wait <= 0.0:
+			_stop_auto_wait()
+			_advance()
 
 
 func _input(event: InputEvent) -> void:
@@ -161,7 +191,8 @@ func _input(event: InputEvent) -> void:
 		_choices_input(event)
 	elif (_text.is_typing() or _waiting_input) and DialogueControls.is_advance(event):
 		get_viewport().set_input_as_handled()
-		_advance()
+		if _advance_guard <= 0.0:
+			_advance()
 
 
 ## Con las respuestas en pantalla: su número las elige, arriba y abajo las recorren y la tecla de
@@ -189,12 +220,48 @@ func _advance() -> void:
 	if _text.is_typing():
 		_text.complete()
 		return
+	_stop_auto_wait()
 	_waiting_input = false
 	_continue.set_waiting(false)
 	if _text.has_next_page():
 		_text.next_page()
+		_guard_instant_page()
 	else:
 		DialogueManager.advance()
+
+
+## Con el texto instantáneo, la página nueva no acepta una pulsación hasta pasado un instante.
+func _guard_instant_page() -> void:
+	if _text.characters_per_second <= 0.0:
+		_advance_guard = DialogueStyle.INSTANT_ADVANCE_GUARD
+
+
+# --- Preferencias ---
+
+func _on_settings_changed(key: String, value: Variant) -> void:
+	match key:
+		"jugabilidad/velocidad_texto":
+			_text.characters_per_second = DialogueStyle.text_speed(value)
+		"jugabilidad/avance_automatico":
+			if bool(value):
+				_start_auto_wait()
+			else:
+				_stop_auto_wait()
+
+
+## Empieza a contar para pasar sola, si el jugador lo quiere y se está leyendo una página entera.
+func _start_auto_wait() -> void:
+	if not bool(Settings.get_value("jugabilidad/avance_automatico")) or _mode != Mode.READING or not _waiting_input:
+		_stop_auto_wait()
+		return
+	_auto_total = DialogueStyle.auto_hold(_text.get_page_length(), _text.characters_per_second)
+	_auto_wait = _auto_total
+	_continue.set_auto_progress(0.0)
+
+
+func _stop_auto_wait() -> void:
+	_auto_wait = -1.0
+	_continue.set_auto_progress(-1.0)
 
 
 # --- Señales de la conversación ---
@@ -226,17 +293,20 @@ func _on_line_shown(speaker_id: String, text: String) -> void:
 	_set_height(_narrative_height(), animate)
 	_cast.set_speaker(speaker_id)
 	_plate.set_text(_speaker_name(speaker_id))
+	_stop_auto_wait()
 	_waiting_input = false
 	_continue.set_waiting(false)
 	var delay := DialogueStyle.FIRST_LINE_DELAY if _first_line else 0.0
 	_first_line = false
 	_text.show_line(text, speaker_id == NARRATOR, delay)
+	_guard_instant_page()
 
 
 func _on_options_shown(options: Array) -> void:
 	var animate := not _first_line
 	_first_line = false
 	_text.stop()
+	_stop_auto_wait()
 	_waiting_input = false
 	_continue.set_waiting(false)
 	_enter_mode(Mode.CHOOSING, animate)
@@ -267,6 +337,7 @@ func _choose(option_id: String) -> void:
 func _on_closed(_finished_npc: String) -> void:
 	_mode = Mode.CLOSED
 	_text.stop()
+	_stop_auto_wait()
 	_waiting_input = false
 	_last_choice = ""
 	_continue.set_waiting(false)
@@ -277,6 +348,7 @@ func _on_closed(_finished_npc: String) -> void:
 func _on_text_completed() -> void:
 	_waiting_input = true
 	_continue.set_waiting(true)
+	_start_auto_wait()
 
 
 ## Mientras se desvanece, la conversación ya no acepta clics ni foco: el control vuelve al juego.
@@ -390,7 +462,7 @@ static func _speaker_name(speaker_id: String) -> String:
 func _layout_window() -> void:
 	var view := _root.size
 	var width := minf(view.x - DialogueStyle.SCREEN_MARGIN * 2.0, DialogueStyle.MAX_WIDTH)
-	var bottom := view.y - DialogueStyle.BOTTOM_MARGIN + _slide * WINDOW_SLIDE
+	var bottom := view.y - DialogueStyle.BOTTOM_MARGIN + _slide * WINDOW_SLIDE * UiAccessibility.motion()
 	_window.position = Vector2((view.x - width) * 0.5, bottom - _panel_height)
 	_window.size = Vector2(width, _panel_height)
 

@@ -57,7 +57,7 @@ Desde la terminal:
 | J o Tab | Abrir el expediente |
 | B | Abrir el tablero de deducción |
 | M | Abrir el mapa del pueblo |
-| T | Dejar pasar una hora |
+| T | Dejar pasar una hora (pide confirmación; se puede desactivar en Configuración) |
 | Esc | Pausa |
 
 ## Cómo se juega
@@ -70,7 +70,11 @@ En el tablero, selecciona dos elementos y pulsa **Relacionar**. Una deducción s
 como prueba para la siguiente. Pulsa un sospechoso para anotar tu valoración y tu hipótesis:
 el expediente las recoge y se guardan con la partida.
 
-Si el juego va a tirones, prueba a cambiar **Sincronización vertical** en Configuración.
+Si el juego va a tirones, prueba a cambiar **Sincronización vertical** o a bajar **Sombras e
+iluminación** y **Efectos y partículas** en Configuración → Gráficos. En Jugabilidad se elige la
+velocidad del texto y el avance automático de las conversaciones, y en Accesibilidad, el tamaño de
+letra, el contraste aumentado, los subtítulos y la reducción de movimiento. Ver
+[CONFIGURACION.md](new-game-project/docs/CONFIGURACION.md).
 
 ## Verificación
 

@@ -41,7 +41,8 @@ func _process(delta: float) -> void:
 	# La pausa procesa siempre a sus hijos: con el mapa cerrado no hay nada que animar.
 	if not is_visible_in_tree():
 		return
-	_pulse = fmod(_pulse + delta / PULSE_SECONDS, 1.0)
+	# Con el movimiento reducido, la onda queda quieta a media distancia.
+	_pulse = 0.35 if UiAccessibility.reduced_motion() else fmod(_pulse + delta / PULSE_SECONDS, 1.0)
 	if not shown_point.is_equal_approx(target_point):
 		shown_point = shown_point.lerp(target_point, 1.0 - exp(-FOLLOW_RATE * delta))
 		if shown_point.distance_to(target_point) < 0.05:

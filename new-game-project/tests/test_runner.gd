@@ -15,6 +15,8 @@ func _ready() -> void:
 	SaveSystem.autosave_enabled = false
 	SaveSystem.use_storage(TEST_STORAGE)
 	TestCase.clear_save_storage()
+	# Ni los ajustes del jugador: las pruebas parten siempre de los valores por defecto.
+	TestCase.reset_test_settings()
 	_check_scripts_load()
 	var filter := ""
 	for argument in OS.get_cmdline_user_args():

@@ -8,6 +8,8 @@ const NEW_GAME_SPAWN := "anden"
 const REST_LOCATION := "cafe"
 const REST_SPAWN := "cama"
 const WAIT_MINUTES := 60
+## Bloqueo del detective mientras se pregunta si dejar pasar una hora.
+const CONFIRM_LOCK := "confirmacion"
 
 ## Las pruebas lo desactivan para arrancar sin la escena de introducción.
 static var play_intro := true
@@ -15,6 +17,8 @@ static var play_intro := true
 var current_location: LocationBase
 var _changing := false
 var _rain: RainEffect
+## Hay una pregunta de «dejar pasar una hora» en pantalla.
+var _asking_wait := false
 ## Posición leída de la partida, pendiente hasta que el escenario esté construido.
 var _saved_pose: Dictionary = {}
 
@@ -180,10 +184,26 @@ func _apply_weather(outdoor: bool) -> void:
 		_rain = null
 
 
+## Deja pasar una hora. Con las confirmaciones activadas en Configuración, antes se pregunta; el
+## detective no se mueve mientras tanto y la tecla es la que tenga asignada `wait_time`.
 func _wait_an_hour() -> void:
 	if GameClock.is_at_limit():
 		EventBus.notification_requested.emit("Es muy tarde", "Deberías descansar en la pensión del café.", "info")
 		return
+	if ConfirmDialog.confirmations_enabled():
+		if _asking_wait:
+			return
+		_asking_wait = true
+		GameState.lock_player(CONFIRM_LOCK)
+		var later_minutes := mini(GameClock.minutes + WAIT_MINUTES, GameClock.DAY_LIMIT)
+		var later := "%02d:%02d" % [later_minutes / 60, later_minutes % 60]
+		var accepted := await ConfirmDialog.ask("DEJAR PASAR EL TIEMPO",
+			"¿Quieres dejar pasar una hora?\nSon las %s; pasarán a ser las %s." % [GameClock.format_time(), later],
+			{"focus": "confirm"})
+		_asking_wait = false
+		GameState.unlock_player(CONFIRM_LOCK)
+		if not accepted or not is_inside_tree():
+			return
 	GameClock.advance(WAIT_MINUTES)
 	EventBus.notification_requested.emit("Pasa el tiempo", "Son las %s." % GameClock.format_time(), "info")
 

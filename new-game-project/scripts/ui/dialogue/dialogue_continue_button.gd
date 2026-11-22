@@ -19,6 +19,8 @@ var _label := "Continuar"
 var _hover := 0.0
 var _waiting := false
 var _pulse := 0.0
+## Avance automático: parte transcurrida de la espera (0 a 1), o -1 si no hay cuenta.
+var _auto_progress := -1.0
 var _clock := 0.0
 var _hover_tween: Tween
 
@@ -67,9 +69,27 @@ func is_waiting() -> bool:
 	return _waiting
 
 
+## Con el avance automático, un filete bajo el rótulo se llena mientras se espera para pasar sola;
+## con -1 desaparece.
+func set_auto_progress(progress: float) -> void:
+	var value := clampf(progress, 0.0, 1.0) if progress >= 0.0 else -1.0
+	if is_equal_approx(value, _auto_progress):
+		return
+	_auto_progress = value
+	queue_redraw()
+
+
+func get_auto_progress() -> float:
+	return _auto_progress
+
+
 func _process(delta: float) -> void:
 	_clock += delta
-	_pulse = 0.5 - 0.5 * cos(_clock * TAU / DialogueStyle.PULSE_SECONDS)
+	# Con el movimiento reducido no late: queda encendida a media luz mientras espera.
+	if UiAccessibility.reduced_motion():
+		_pulse = 0.5
+	else:
+		_pulse = 0.5 - 0.5 * cos(_clock * TAU / DialogueStyle.PULSE_SECONDS)
 	queue_redraw()
 
 
@@ -127,3 +147,9 @@ func _draw() -> void:
 	var baseline := middle - font.get_height(DialogueStyle.CONTINUE_SIZE) * 0.5 + font.get_ascent(DialogueStyle.CONTINUE_SIZE)
 	draw_string(font, Vector2(x, baseline + 1.5), _label, HORIZONTAL_ALIGNMENT_LEFT, -1, DialogueStyle.CONTINUE_SIZE, Color(0.0, 0.0, 0.0, 0.4))
 	draw_string(font, Vector2(x, baseline), _label, HORIZONTAL_ALIGNMENT_LEFT, -1, DialogueStyle.CONTINUE_SIZE, DialogueStyle.CREAM)
+	if _auto_progress >= 0.0:
+		var start := SLANT + PADDING_LEFT
+		var finish := rect.size.x - PADDING_RIGHT
+		var y := rect.size.y - 8.0
+		draw_line(Vector2(start, y), Vector2(finish, y), Color(0.0, 0.0, 0.0, 0.45), 4.0, true)
+		draw_line(Vector2(start, y), Vector2(lerpf(start, finish, _auto_progress), y), DialogueStyle.GOLD_LIGHT, 4.0, true)

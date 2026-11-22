@@ -183,13 +183,23 @@ func _set_backlight(intensity: float, animate: bool) -> void:
 ## Coloca las figuras con la entrada, la respiración y el leve balanceo de la que habla.
 func _apply_layout() -> void:
 	var stage := get_stage_rect()
-	var breath := sin(_clock * BREATH_SPEED) * BREATH_HEIGHT
+	# Con el movimiento reducido, las siluetas no respiran, no se balancean ni entran deslizándose:
+	# sólo se funden.
+	var motion := UiAccessibility.motion()
+	var breath := sin(_clock * BREATH_SPEED) * BREATH_HEIGHT * motion
 	var speaking := talking and _speaker != DETECTIVE and _speaker != NARRATOR and not _speaker.is_empty()
-	var talk := sin(_clock * TALK_SPEED) * TALK_HEIGHT if speaking else 0.0
-	_place(_detective, Vector2(stage.position.x, stage.end.y), DETECTIVE_RECT, Vector2(-_slide * DETECTIVE_SLIDE, breath))
-	_place(_portrait, stage.end, PORTRAIT_RECT, Vector2(_slide * PORTRAIT_SLIDE, breath + talk))
+	var talk := sin(_clock * TALK_SPEED) * TALK_HEIGHT * motion if speaking else 0.0
+	# Las siluetas son decorado, no texto: con una letra más grande conservan su tamaño en pantalla
+	# en lugar de crecer con la interfaz y salirse por arriba.
+	var unscale := 1.0 / UiAccessibility.text_scale()
+	_place(_detective, Vector2(stage.position.x, stage.end.y), _scaled(DETECTIVE_RECT, unscale), Vector2(-_slide * DETECTIVE_SLIDE * motion, breath))
+	_place(_portrait, stage.end, _scaled(PORTRAIT_RECT, unscale), Vector2(_slide * PORTRAIT_SLIDE * motion, breath + talk))
 	_backlight.position = Vector2(stage.position.x + stage.size.x * BACKLIGHT_LEFT, stage.size.y * BACKLIGHT_TOP)
 	_backlight.size = Vector2(stage.end.x - _backlight.position.x, stage.size.y * (1.0 - BACKLIGHT_TOP))
+
+
+static func _scaled(rect: Rect2, factor: float) -> Rect2:
+	return Rect2(rect.position * factor, rect.size * factor)
 
 
 func _place(figure: TextureRect, origin: Vector2, rect: Rect2, offset: Vector2) -> void:

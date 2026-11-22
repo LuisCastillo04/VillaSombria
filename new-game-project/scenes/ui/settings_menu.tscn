@@ -7,4 +7,4 @@
 script = ExtResource("2")
 title = "CONFIGURACIÓN"
 emblem_icon = "engranaje"
-panel_size = Vector2(1000, 700)
+panel_size = Vector2(1000, 760)

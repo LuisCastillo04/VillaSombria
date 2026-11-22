@@ -1,11 +1,16 @@
 class_name SettingsMenu
 extends CategoryMenu
-## Configuración por categorías, compartida por la pausa y el menú principal. Audio y Gráficos
-## usan los ajustes reales del autoload `Settings`, que los aplica y los guarda al momento.
-## Lo que todavía no existe se muestra desactivado con «Próximamente» y sin conexión alguna.
+## Configuración por categorías, compartida por la pausa y el menú principal: Audio, Gráficos,
+## Jugabilidad y Accesibilidad. Cada control lee y escribe una preferencia real de `Settings`, que la
+## valida, la aplica y la guarda al momento; si otra pantalla la cambia, el control se pone al día.
 ##
-## Para añadir una opción: guárdala y aplícala en `Settings` (scripts/autoload/settings.gd), crea
-## su fila en la página que corresponda (`_add_switch_row` u otra) y quítala de `PLANNED_*`.
+## Los cambios de pantalla (pantalla completa, modo de ventana y resolución) se prueban y piden
+## confirmación (`Settings.request_display_change`): si no se confirman, los controles vuelven a
+## mostrar lo que hay. El interruptor de pantalla completa y el selector de modo leen la misma
+## preferencia, así que nunca se contradicen.
+##
+## Para añadir una opción: descríbela en `SettingsSchema`, aplícala donde corresponda y crea su fila
+## en la página de su categoría con `_add_switch_row` o `_add_selector`. Ver docs/CONFIGURACION.md.
 
 ## Volumen por canal de audio: el canal de `Settings` y cómo se presenta.
 const VOLUME_ROWS: Array[Dictionary] = [
@@ -14,25 +19,27 @@ const VOLUME_ROWS: Array[Dictionary] = [
 	{"bus": "Efectos", "label": "Efectos", "icon": "destellos"},
 	{"bus": "Ambiente", "label": "Lluvia y ambiente", "icon": "lluvia"},
 ]
-## Opciones gráficas previstas que aún no existen.
-const PLANNED_GRAPHICS: Array[Dictionary] = [
-	{"label": "Resolución de pantalla", "detail": "Tamaño de la ventana y escalado"},
-	{"label": "Modo de ventana", "detail": "Ventana, ventana sin bordes o pantalla completa"},
-	{"label": "Calidad de sombras e iluminación", "detail": "Detalle de las luces de las farolas"},
-	{"label": "Efectos y partículas", "detail": "Intensidad del postproceso y de la lluvia"},
-]
-## Opciones de jugabilidad previstas que aún no existen.
-const PLANNED_GAMEPLAY: Array[Dictionary] = [
-	{"label": "Velocidad del texto", "detail": "Rapidez con la que aparecen los diálogos"},
-	{"label": "Avance automático de diálogos", "detail": "Pasar de línea sin pulsar ninguna tecla"},
-	{"label": "Confirmaciones", "detail": "Preguntar antes de acciones como dejar pasar una hora"},
-	{"label": "Accesibilidad", "detail": "Tamaño de letra, contraste y subtítulos"},
-]
+const MODE_KEY := "graficos/modo_ventana"
+const RESOLUTION_KEY := "graficos/resolucion"
+const RESOLUTION_DETAIL := "Tamaño de la ventana; la interfaz se escala sin deformarse."
+## Nombres cortos de los modos en su selector, para que quepan junto al título; la explicación de
+## debajo y la pregunta de confirmación usan los completos de `SettingsSchema`.
+const MODE_LABELS := {"ventana": "Ventana", "sin_bordes": "Sin bordes", "pantalla_completa": "Pantalla completa", "exclusiva": "Completa exclusiva"}
 
 var _sliders: Dictionary = {}
 var _percentages: Dictionary = {}
 var _fullscreen: CheckButton
 var _vsync: CheckButton
+## Interruptores y selectores de cada preferencia, por su clave de `Settings`.
+var _switches: Dictionary = {}
+var _selectors: Dictionary = {}
+## Mientras se pone al día con los ajustes, los controles no deben escribir nada.
+var _syncing := false
+
+
+func _ready() -> void:
+	super._ready()
+	Settings.changed.connect(_on_setting_changed)
 
 
 ## Al abrir se leen los valores vigentes, por si cambiaron desde la otra pantalla.
@@ -42,12 +49,19 @@ func open() -> void:
 
 
 func refresh() -> void:
+	_syncing = true
 	for bus: String in _sliders:
 		var value: float = Settings.volumes[bus]
 		(_sliders[bus] as HSlider).set_value_no_signal(value)
 		_show_percentage(bus, value)
+	for key: String in _switches:
+		(_switches[key] as CheckButton).set_pressed_no_signal(bool(Settings.get_value(key)))
 	_fullscreen.set_pressed_no_signal(Settings.fullscreen)
-	_vsync.set_pressed_no_signal(Settings.vsync)
+	for key: String in _selectors:
+		if key != RESOLUTION_KEY:
+			(_selectors[key] as OptionSelector).set_value_no_signal(String(Settings.get_value(key)))
+	_refresh_resolution()
+	_syncing = false
 
 
 func get_volume_slider(bus: String) -> HSlider:
@@ -66,10 +80,23 @@ func get_vsync_switch() -> CheckButton:
 	return _vsync
 
 
+## Interruptor de una preferencia de sí o no («jugabilidad/confirmaciones»).
+func get_switch(key: String) -> CheckButton:
+	if key == "graficos/vsync":
+		return _vsync
+	return _switches.get(key)
+
+
+## Selector de una preferencia de lista («graficos/calidad_efectos»).
+func get_selector(key: String) -> OptionSelector:
+	return _selectors.get(key)
+
+
 func _build_categories() -> void:
 	_build_audio(add_category("Audio", "altavoz"))
 	_build_graphics(add_category("Gráficos", "monitor"))
 	_build_gameplay(add_category("Jugabilidad", "ajustes"))
+	_build_accessibility(add_category("Accesibilidad", "persona"))
 	refresh()
 
 
@@ -80,19 +107,45 @@ func _build_audio(page: VBoxContainer) -> void:
 
 
 func _build_graphics(page: VBoxContainer) -> void:
-	_fullscreen = _add_switch_row(page, "Pantalla completa", "Ocupa todo el monitor.", Settings.set_fullscreen)
+	_fullscreen = _add_switch_row(page, "Pantalla completa", "Ocupa todo el monitor. Pide confirmación al cambiar.", _on_fullscreen_toggled)
 	_vsync = _add_switch_row(page, "Sincronización vertical",
-		"Desactivada por defecto para evitar caídas de fotogramas.",
-		Settings.set_vsync)
-	add_planned_section(page, PLANNED_GRAPHICS)
+		"Evita cortes en la imagen. Desactivada por defecto.", Settings.set_vsync)
+	_add_divider(page)
+	var mode := _add_selector(page, MODE_KEY, "Modo de ventana", "Con bordes, sin bordes o pantalla completa (normal o exclusiva).", _on_mode_selected)
+	var modes := DisplaySettings.available_modes()
+	var mode_labels: Array[String] = []
+	for value in modes:
+		mode_labels.append(String(MODE_LABELS.get(value, SettingsSchema.label_of(value))))
+	mode.set_options(modes, mode_labels)
+	_add_selector(page, RESOLUTION_KEY, "Resolución de pantalla", RESOLUTION_DETAIL, _on_resolution_selected)
+	_add_selector(page, "graficos/calidad_iluminacion", "Calidad de sombras e iluminación",
+		"Sombras de las farolas y de la luz exterior, y su resplandor.")
+	_add_selector(page, "graficos/calidad_efectos", "Efectos y partículas",
+		"Cantidad de lluvia, detalle de la niebla y grano de película.")
 
 
 func _build_gameplay(page: VBoxContainer) -> void:
-	var note := MenuStyle.make_label("Estas opciones están en preparación y todavía no se pueden cambiar.", 20, MenuStyle.TEXT_SECONDARY, CaseFileStyle.serif_italic())
-	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	page.add_child(note)
-	for planned: Dictionary in PLANNED_GAMEPLAY:
-		page.add_child(planned_row(planned))
+	_add_selector(page, "jugabilidad/velocidad_texto", "Velocidad del texto", "Rapidez con la que aparecen los diálogos.")
+	_add_switch_row(page, "Avance automático de diálogos",
+		"Pasa de línea cuando ha dado tiempo a leerla. Nunca elige una respuesta.",
+		Callable(), "jugabilidad/avance_automatico")
+	_add_switch_row(page, "Confirmaciones",
+		"Preguntar antes de acciones como dejar pasar una hora. Borrar o sobrescribir partidas pregunta siempre.",
+		Callable(), "jugabilidad/confirmaciones")
+
+
+func _build_accessibility(page: VBoxContainer) -> void:
+	_add_selector(page, "accesibilidad/tamano_letra", "Tamaño de letra",
+		"Agranda los textos de todas las pantallas y sus recuadros.")
+	_add_switch_row(page, "Contraste aumentado",
+		"Texto más nítido y un contorno de foco inconfundible.",
+		Callable(), "accesibilidad/contraste_alto")
+	_add_switch_row(page, "Subtítulos",
+		"De voces y sonidos narrados. Las conversaciones se leen siempre.",
+		Callable(), "accesibilidad/subtitulos")
+	_add_switch_row(page, "Reducir movimiento",
+		"Sin deslizamientos, latidos ni balanceos decorativos.",
+		Callable(), "accesibilidad/movimiento_reducido")
 
 
 ## Icono, nombre, barra de volumen y porcentaje del canal.
@@ -136,20 +189,124 @@ func _show_percentage(bus: String, value: float) -> void:
 	(_percentages[bus] as Label).text = "%d%%" % roundi(value * 100.0)
 
 
-## Interruptor con su explicación debajo. `apply` recibe el nuevo valor.
-func _add_switch_row(page: VBoxContainer, label_text: String, detail: String, apply: Callable) -> CheckButton:
+## Interruptor con su explicación debajo. `apply` recibe el nuevo valor; sin él, el interruptor
+## escribe directamente la preferencia `key`.
+func _add_switch_row(page: VBoxContainer, label_text: String, detail: String, apply: Callable, key: String = "") -> CheckButton:
 	var block := VBoxContainer.new()
 	block.add_theme_constant_override("separation", 0)
 	var button := CheckButton.new()
 	button.text = label_text
 	MenuStyle.style_switch(button)
 	button.toggled.connect(func(value: bool) -> void:
+		if _syncing:
+			return
 		AudioManager.play("click")
-		apply.call(value))
+		if apply.is_valid():
+			apply.call(value)
+		else:
+			Settings.set_value(key, value))
 	block.add_child(button)
 	var explanation := MenuStyle.make_label(detail, 18, MenuStyle.TEXT_SECONDARY, CaseFileStyle.serif_italic())
 	explanation.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	block.add_child(explanation)
 	page.add_child(block)
+	if not key.is_empty():
+		_switches[key] = button
 	return button
 
+
+## Selector de una preferencia de lista, con los valores y los nombres de `SettingsSchema`. Sin
+## `handler`, el valor elegido se escribe directamente en la preferencia.
+func _add_selector(page: VBoxContainer, key: String, title: String, detail: String, handler: Callable = Callable()) -> OptionSelector:
+	var selector := OptionSelector.new()
+	selector.name = "Selector_" + SettingsSchema.name_of(key)
+	selector.setup(title, detail)
+	var values := SettingsSchema.options(key)
+	if not values.is_empty():
+		selector.set_options(values, _labels(values))
+	if handler.is_valid():
+		selector.value_changed.connect(handler)
+	else:
+		selector.value_changed.connect(_on_selector_changed.bind(key))
+	page.add_child(selector)
+	_selectors[key] = selector
+	return selector
+
+
+func _add_divider(page: VBoxContainer) -> void:
+	var divider := GoldDivider.new()
+	divider.custom_minimum_size = Vector2(0.0, 16.0)
+	divider.color = Color(MenuStyle.GOLD, 0.45)
+	page.add_child(divider)
+
+
+func _on_selector_changed(value: String, key: String) -> void:
+	if not _syncing:
+		Settings.set_value(key, value)
+
+
+## Otra pantalla (o la confirmación de un cambio de pantalla) cambió una preferencia.
+func _on_setting_changed(_key: String, _value: Variant) -> void:
+	refresh()
+
+
+# --- Pantalla: se prueba, se confirma o se restaura ---
+
+func _on_fullscreen_toggled(value: bool) -> void:
+	var mode := "pantalla_completa" if value else "ventana"
+	await _request_display(mode, Settings.get_value(RESOLUTION_KEY))
+
+
+func _on_mode_selected(mode: String) -> void:
+	if not _syncing:
+		await _request_display(mode, Settings.get_value(RESOLUTION_KEY))
+
+
+func _on_resolution_selected(value: String) -> void:
+	if not _syncing:
+		await _request_display(String(Settings.get_value(MODE_KEY)), SettingsSchema.to_size(value))
+
+
+## Mientras se pregunta, el interruptor, el modo y la resolución muestran lo que se está probando,
+## sin contradecirse; al contestar (o al restaurarse), todos vuelven a mostrar lo que hay de verdad.
+func _request_display(mode: String, size: Vector2i) -> void:
+	_syncing = true
+	_fullscreen.set_pressed_no_signal(DisplaySettings.is_fullscreen_mode(mode))
+	(_selectors[MODE_KEY] as OptionSelector).set_value_no_signal(mode)
+	_syncing = false
+	_refresh_resolution(mode, size)
+	await Settings.request_display_change(mode, size)
+	refresh()
+
+
+## Resoluciones del modo vigente (o del que se está probando). En pantalla completa manda el monitor:
+## el selector se desactiva y lo explica.
+func _refresh_resolution(mode: String = "", trying: Vector2i = Vector2i.ZERO) -> void:
+	var selector: OptionSelector = _selectors.get(RESOLUTION_KEY)
+	if selector == null:
+		return
+	if mode.is_empty():
+		mode = String(Settings.get_value(MODE_KEY))
+	var sizes := DisplaySettings.resolutions_for(mode)
+	var values: Array[String] = []
+	var labels: Array[String] = []
+	for size in sizes:
+		values.append("%dx%d" % [size.x, size.y])
+		labels.append("%d × %d" % [size.x, size.y])
+	var was_syncing := _syncing
+	_syncing = true
+	selector.set_options(values, labels)
+	var current := DisplaySettings.fit(trying if trying != Vector2i.ZERO else Settings.get_value(RESOLUTION_KEY), mode)
+	selector.set_value_no_signal("%dx%d" % [current.x, current.y])
+	var fullscreen := DisplaySettings.is_fullscreen_mode(mode)
+	selector.set_disabled(fullscreen)
+	var screen := DisplaySettings.screen_size()
+	selector.set_detail("En pantalla completa se usa la del monitor (%d × %d)." % [screen.x, screen.y] if fullscreen else RESOLUTION_DETAIL)
+	_syncing = was_syncing
+
+
+static func _labels(values: Array[String]) -> Array[String]:
+	var labels: Array[String] = []
+	for value in values:
+		labels.append(SettingsSchema.label_of(value))
+	return labels

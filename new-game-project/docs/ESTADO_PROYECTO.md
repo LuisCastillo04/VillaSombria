@@ -36,6 +36,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | Rediseño del HUD de exploración | Hecho | Pruebas con la escena de juego real (datos, barra, visibilidad, proporciones) y capturas en los cinco escenarios a 1280×720, 1366×768, 1600×900, 1920×1080, 1024×768 y 2560×1080; ver [HUD.md](HUD.md) |
 | Rediseño del expediente | Hecho | Pruebas con la escena de juego real (datos de las cinco secciones, estados vacíos, teclado y ratón, restauración, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1024×768; ver [EXPEDIENTE.md](EXPEDIENTE.md) |
 | Rediseño del tablero de deducción | Hecho | Pruebas con la escena de juego real (sospechosos y valoraciones, hipótesis y borradores, corcho, hilos, comparación con sus cuatro resultados, teclado y ratón, proporciones, guardar y cargar) y capturas a 1280×720, 1366×768, 1600×900, 1920×1080 y 1440×1080; ver [TABLERO.md](TABLERO.md) |
+| Configuración avanzada | Hecha | Pruebas de preferencias, pantalla, calidad, conversaciones, confirmaciones, accesibilidad y menú con la escena de juego real; ventana real con los cuatro modos, la resolución, VSync y la confirmación que restaura; reinicio en dos procesos; arranque del juego real con cada modo guardado; mediciones de GPU por nivel y capturas a 1280×720 y 1920×1080 en tamaño normal, «Muy grande» y contraste aumentado; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | Rediseño de las conversaciones | Hecho | Pruebas con la escena de juego real y entradas de teclado y ratón (placa y luz de quien habla, escritura, páginas, voces de una escena, respuestas y sus consecuencias, rótulos, foco, HUD y avisos, escenas encadenadas, guardar y cargar, proporciones) y capturas a 1280×720, 1366×768, 1600×900 y 1920×1080 comparadas con las referencias; ver [DIALOGOS.md](DIALOGOS.md) |
 
 Diferencias con el encargo:
@@ -47,15 +48,15 @@ Diferencias con el encargo:
 
 ## Pruebas
 
-`tools/verificar.ps1` importa el proyecto, arranca la escena principal, ejecuta las pruebas y
-guarda una partida en un proceso de Godot para cargarla en otro nuevo. Con `-ConVentana` además
-comprueba las imágenes de las ranuras y cierra la ventana real con la X y con Alt + F4.
+`tools/verificar.ps1` importa el proyecto, arranca la escena principal, ejecuta las pruebas,
+guarda una partida en un proceso de Godot para cargarla en otro nuevo y hace lo mismo con las
+preferencias. Con `-ConVentana` además comprueba las imágenes de las ranuras, los modos de pantalla
+y la resolución con la ventana real, y cierra la ventana con la X y con Alt + F4.
 
-Último resultado, tras el rediseño de las conversaciones: 301 pruebas correctas, 0 fallos, y el
-reinicio en dos procesos, correcto. El paso «Importación» sale fallido por el `Code.exe` del editor
-(ver Problemas conocidos). La última comprobación con `-ConVentana` (imágenes de las ranuras y cierre
-real con la X y con Alt + F4) es la del rediseño del tablero; las conversaciones no tocan ni las
-imágenes, que se hacen sin interfaz, ni el cierre.
+Último resultado, tras la configuración avanzada, con `-ConVentana`: 360 pruebas correctas, 0 fallos;
+reinicio de la partida y de las preferencias en dos procesos, imágenes de las ranuras, modos de
+pantalla y cierre con la X y con Alt + F4, correctos. El paso «Importación» sale fallido por el
+`Code.exe` del editor (ver Problemas conocidos).
 
 | Archivo | Cubre |
 | --- | --- |
@@ -84,8 +85,17 @@ imágenes, que se hacen sin interfaz, ni el cierre.
 | `test_map` | Calibración del mapa, dibujo frente a colisiones reales, puertas y calle Mayor, posiciones exactas en exteriores y por edificio en interiores, objetivos, lugares visitados, datos dañados |
 | `test_map_screen` | El mapa en el juego: posición al empezar, al caminar, al entrar y salir, al cargar; tamaños de pantalla, pausa, teclado, ratón y selección |
 | `test_hud` | HUD de exploración: lugar, fecha y objetivo reales, barra según el InputMap y el estado, retirada en transiciones, conversaciones y pausa, proporciones de pantalla, ratón y foco, capas, avisos e indicador de guardado |
+| `test_settings` | Preferencias: valores por defecto, categorías, validación, una clave por escritura sin perder el resto del archivo, valores dañados, migración del formato anterior, recarga y que no van en las partidas |
+| `test_display` | Resoluciones según el monitor, ajuste de lo que no cabe, pantalla completa y modo de ventana como una sola preferencia, confirmación con cuenta atrás (mantener, restaurar, Escape, en pausa, una a la vez) y foco |
+| `test_graphics_quality` | Niveles de iluminación y efectos en la plaza real: Alto es el original, ninguna luz se apaga, escenarios nuevos, una sola lluvia, el reloj no cambia |
+| `test_dialogue_settings` | Velocidad del texto, protección del texto instantáneo y avance automático (espera, nunca elige, cambios a mitad, tecla, cierre) |
+| `test_confirmations` | Dejar pasar una hora con y sin confirmaciones, tecla reasignada, límite del día y confirmaciones críticas siempre activas |
+| `test_accessibility` | Tamaño de letra sin nada fuera de la pantalla, contraste aumentado reversible, subtítulos y movimiento reducido |
+| `test_settings_menu` | Configuración sin «Próximamente», cada control con su preferencia, confirmación de la pantalla, teclado, mando, ratón y menú principal |
 | `test_journal` | Expediente: apertura y cierre con las teclas reales, datos reales de las cinco secciones, estados vacíos, nada sin descubrir, teclado y ratón, restauración sin reconstruir, proporciones de pantalla y partida cargada |
 | `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
+| `persistencia/ajustes` | Cambiar preferencias de todas las categorías y leerlas y aplicarlas en otro proceso |
+| `visual/pantalla` | Con ventana: los cuatro modos, la resolución ajustada al monitor, la posición, VSync y la confirmación que restaura |
 | `persistencia/cierre` | Con ventana: cerrar con la X o Alt + F4 guarda en la ranura activa |
 | `visual/vista_previa` | Con ventana: la imagen de cada ranura es la escena guardada, sin la pausa |
 
@@ -106,8 +116,12 @@ arranca desde él sin errores en modo sin ventana.
 - **Los menús con un mando real y el ratón a mano.** Las pruebas envían las mismas acciones
   (`ui_up`, `ui_down`, `ui_left`, `ui_right`, `ui_cancel`) y movimientos de ratón por código, y
   los fundidos y el resaltado animado se revisaron con capturas fijas.
-- **Pantalla completa desde Configuración** no se ha conmutado en las pruebas: sin ventana el
-  ajuste no se aplica. El interruptor llama al mismo `Settings.set_fullscreen` de antes.
+- **La configuración con un mando real.** Los selectores, interruptores y la confirmación se prueban
+  con las acciones `ui_*` que envía un mando, no con uno físico. Jugar con mando (fuera de los menús)
+  sigue sin estar asignado: el sistema de controles personalizables no existe en el repositorio.
+- **Los modos de pantalla en otros equipos.** Los cuatro modos se comprobaron con la ventana real en el
+  monitor principal de este portátil (1920 × 1080 al 150 %), no moviendo la ventana a otro monitor ni
+  con otras tarjetas gráficas.
 - **El guardado y la carga no se han probado jugando a mano.** Las pruebas manejan los menús como
   lo haría el jugador, el reinicio se probó en dos procesos y el cierre con ventana real, pero
   falta jugar guardando, saliendo y cargando con ratón, teclado y mando, y ver en movimiento las

@@ -52,8 +52,10 @@ func _init() -> void:
 	heading.add_child(BoardStyle.make_icon("lupa", 38.0, BoardStyle.INK))
 	var title := BoardStyle.make_label("Comparar elementos", BoardStyle.heading_font(), BoardStyle.PANEL_TITLE_SIZE, BoardStyle.BURGUNDY_INK)
 	title.name = "Title"
+	# Con la letra grande de Accesibilidad no cabe en una línea: se parte en dos antes que recortarse.
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.max_lines_visible = 2
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	title.clip_text = true
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.add_child(title)
 	box.add_child(heading)
