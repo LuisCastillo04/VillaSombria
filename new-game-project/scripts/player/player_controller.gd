@@ -26,6 +26,8 @@ var camera_yaw := deg_to_rad(45.0)
 
 @onready var model: CharacterModel = $Model
 @onready var detector: InteractionDetector = $InteractionDetector
+## Red de seguridad: si una colisión fallase, devuelve al detective al último suelo válido.
+@onready var guard: FallGuard = $FallGuard
 
 
 func _ready() -> void:
@@ -36,6 +38,7 @@ func teleport(where: Vector3, facing_yaw: float = 0.0) -> void:
 	global_position = where
 	velocity = Vector3.ZERO
 	model.rotation.y = facing_yaw
+	guard.reset(where)
 
 
 func look_towards(point: Vector3) -> void:

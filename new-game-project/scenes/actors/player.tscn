@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/player/player_controller.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/actors/character_model.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/player/interaction_detector.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/actors/fall_guard.gd" id="4"]
 
 [sub_resource type="CapsuleShape3D" id="body_shape"]
 radius = 0.3
@@ -33,3 +34,6 @@ script = ExtResource("3")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionDetector"]
 shape = SubResource("reach_shape")
+
+[node name="FallGuard" type="Node" parent="."]
+script = ExtResource("4")
