@@ -94,6 +94,45 @@ func test_npcs_face_their_post() -> void:
 	await _unload(plaza)
 
 
+func test_stops_are_on_the_navigation_mesh() -> void:
+	for location_id: String in LOCATIONS:
+		var location := await _load(location_id)
+		var ready := false
+		for frame in 120:
+			if location.navigation.is_map_ready():
+				ready = true
+				break
+			await get_tree().physics_frame
+		check(ready, "%s: la navegación debe estar lista" % location_id)
+		for npc_id: String in GameData.schedules:
+			for slot: Dictionary in GameData.schedules[npc_id]:
+				if slot["location"] != location_id:
+					continue
+				for marker_id: String in _stop_ids(slot):
+					check(location.navigation.is_on_floor_mesh(location.get_marker(marker_id)), "%s/%s fuera de la malla de navegación" % [location_id, marker_id])
+		await _unload(location)
+
+
+func test_schedule_behaviours_are_valid() -> void:
+	for npc_id: String in GameData.schedules:
+		var ambient: Dictionary = GameData.characters[npc_id].get("ambient", {})
+		check(not ambient.is_empty(), "%s necesita su bloque «ambient»" % npc_id)
+		check(NpcProfile.ROLES.has(ambient.get("role", "")), "%s: papel desconocido «%s»" % [npc_id, ambient.get("role", "")])
+		for slot: Dictionary in GameData.schedules[npc_id]:
+			if slot.has("behavior"):
+				check(NpcProfile.is_mode(slot["behavior"]), "%s: comportamiento desconocido «%s»" % [npc_id, slot["behavior"]])
+			if slot.has("patrol"):
+				check((slot["patrol"] as Array).size() >= 2, "%s: una ronda necesita dos puntos" % npc_id)
+				check((slot["patrol"] as Array).has(slot["marker"]), "%s: la ronda pasa por su puesto" % npc_id)
+	# No todos hacen lo mismo: hay quien se queda, quien pasea y quien hace la ronda.
+	var modes := {}
+	for npc_id: String in GameData.schedules:
+		for slot: Dictionary in GameData.schedules[npc_id]:
+			if slot["location"] != "none":
+				modes[NpcProfile.build(GameData.characters[npc_id]["ambient"], slot).mode] = true
+	check_equal(modes.size(), 3, "se usan los tres modos de comportamiento")
+
+
 func _stop_ids(slot: Dictionary) -> Array[String]:
 	var ids: Array[String] = [slot["marker"]]
 	for key: String in ["patrol", "visits"]:

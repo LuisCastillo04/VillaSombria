@@ -32,6 +32,8 @@ var _motion := 0.0
 var _phase := 0.0
 var _clock := 0.0
 var _talking := false
+var _head_turn := 0.0
+var _head_tilt := 0.0
 
 
 ## Reconstruye el modelo a partir de una descripción parcial de aspecto.
@@ -60,6 +62,18 @@ func set_talking(value: bool) -> void:
 	_talking = value
 
 
+## Gira la cabeza respecto al cuerpo (radianes, positivo hacia la izquierda del personaje). El
+## giro es suave: sirve para mirar alrededor o hacia alguien sin mover los pies.
+func set_head_turn(yaw: float) -> void:
+	_head_turn = clampf(yaw, -0.9, 0.9)
+
+
+## Inclinación de la cabeza en reposo (radianes, negativo mira al suelo): da carácter al
+## personaje, como la viuda abatida.
+func set_head_tilt(pitch: float) -> void:
+	_head_tilt = clampf(pitch, -0.4, 0.3)
+
+
 func _process(delta: float) -> void:
 	if _torso == null:
 		return
@@ -78,9 +92,10 @@ func _process(delta: float) -> void:
 	_right_arm.position.y = SHOULDER_HEIGHT + lift
 	_head.position.y = NECK_HEIGHT + lift
 	if _talking:
-		_head.rotation.x = sin(_clock * 7.0) * 0.06
+		_head.rotation.x = _head_tilt * 0.5 + sin(_clock * 7.0) * 0.06
 	else:
-		_head.rotation.x = lerpf(_head.rotation.x, 0.0, minf(delta * 6.0, 1.0))
+		_head.rotation.x = lerpf(_head.rotation.x, _head_tilt, minf(delta * 6.0, 1.0))
+	_head.rotation.y = lerp_angle(_head.rotation.y, _head_turn, minf(delta * 3.0, 1.0))
 
 
 func _make_part(part_name: String, offset: Vector3, builder: Callable) -> Node3D:

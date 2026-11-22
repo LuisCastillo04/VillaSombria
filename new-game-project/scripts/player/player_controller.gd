@@ -2,6 +2,9 @@ class_name PlayerController
 extends CharacterBody3D
 ## Detective controlado por el jugador. El movimiento es relativo a la cámara.
 
+## Grupo por el que los NPC encuentran al detective para mirarlo.
+const GROUP := "jugador"
+
 const LOOK := {
 	"skin": "c9a27e",
 	"coat": "8a7a5c",
@@ -31,6 +34,7 @@ var camera_yaw := deg_to_rad(45.0)
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	model.build(LOOK)
 
 

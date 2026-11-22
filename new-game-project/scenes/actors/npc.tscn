@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/actors/npc.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/actors/character_model.gd" id="2"]
 [ext_resource type="Script" path="res://scripts/actors/npc_interaction.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/actors/fall_guard.gd" id="4"]
 
 [sub_resource type="CapsuleShape3D" id="body_shape"]
 radius = 0.3
@@ -30,3 +31,18 @@ script = ExtResource("3")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Interaction"]
 shape = SubResource("talk_shape")
+
+[node name="Navigation" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.4
+target_desired_distance = 0.25
+avoidance_enabled = true
+height = 1.8
+radius = 0.4
+neighbor_distance = 4.0
+max_neighbors = 6
+time_horizon_agents = 1.2
+time_horizon_obstacles = 0.6
+max_speed = 1.6
+
+[node name="FallGuard" type="Node" parent="."]
+script = ExtResource("4")

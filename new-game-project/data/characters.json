@@ -16,7 +16,8 @@
     "portrait": "res://assets/siluetas/elena.svg",
     "personality": "Fría, elegante y cansada. Mide cada palabra.",
     "bio": "Veinticinco años casada con Julián. Discreta en público, harta en privado.",
-    "model": {"coat": "3a2230", "dress": true, "hair": "2a1c18", "hair_style": "bun", "accent": "c9a24d", "extras": ["pearls"], "height": 0.96}
+    "model": {"coat": "3a2230", "dress": true, "hair": "2a1c18", "hair_style": "bun", "accent": "c9a24d", "extras": ["pearls"], "height": 0.96},
+    "ambient": {"role": "importante", "speed": 1.0, "glance": [4.0, 8.0], "head_tilt": -0.14}
   },
   "marcos": {
     "name": "Marcos Valdés",
@@ -26,7 +27,8 @@
     "portrait": "res://assets/siluetas/marcos.svg",
     "personality": "Impulsivo, encantador y endeudado. Miente mal.",
     "bio": "Heredero de un banco que su padre no pensaba cederle. Debe dinero en la trastienda del café.",
-    "model": {"coat": "39424f", "pants": "2b3039", "hair": "3a2a1c", "hair_style": "slick", "accent": "7a2a2a", "extras": ["tie", "cigarette"]}
+    "model": {"coat": "39424f", "pants": "2b3039", "hair": "3a2a1c", "hair_style": "slick", "accent": "7a2a2a", "extras": ["tie", "cigarette"]},
+    "ambient": {"role": "secundario", "radius": 1.2, "speed": 1.3, "pause": [3.0, 7.0], "glance": [1.5, 3.5], "wander_chance": 0.5}
   },
   "lucia": {
     "name": "Lucía Ferrer",
@@ -36,7 +38,8 @@
     "portrait": "res://assets/siluetas/lucia.svg",
     "personality": "Nerviosa y observadora. Ve mucho más de lo que dice.",
     "bio": "Doncella de la casa desde hace cuatro años. Fue quien encontró el cuerpo.",
-    "model": {"coat": "1f2430", "dress": true, "hair": "4a3020", "hair_style": "braid", "hat": "maid_cap", "extras": ["apron"], "height": 0.93}
+    "model": {"coat": "1f2430", "dress": true, "hair": "4a3020", "hair_style": "braid", "hat": "maid_cap", "extras": ["apron"], "height": 0.93},
+    "ambient": {"role": "secundario", "radius": 1.0, "speed": 1.4, "pause": [3.0, 6.0], "glance": [2.0, 4.0]}
   },
   "anselmo": {
     "name": "Anselmo Roca",
@@ -46,7 +49,8 @@
     "portrait": "res://assets/siluetas/anselmo.svg",
     "personality": "Impecable y distante. Treinta años de obediencia silenciosa.",
     "bio": "Mayordomo de los Valdés desde hace tres décadas. Da cuerda a todos los relojes de la casa.",
-    "model": {"coat": "14161c", "pants": "14161c", "skin": "bfa58c", "hair": "8f8f8f", "hair_style": "bald", "coat_length": "tails", "extras": ["bowtie", "tray"]}
+    "model": {"coat": "14161c", "pants": "14161c", "skin": "bfa58c", "hair": "8f8f8f", "hair_style": "bald", "coat_length": "tails", "extras": ["bowtie", "tray"]},
+    "ambient": {"role": "secundario", "radius": 1.2, "speed": 1.0, "pause": [6.0, 11.0], "glance": [4.0, 8.0], "wander_chance": 0.4}
   },
   "irene": {
     "name": "Irene Vidal",
@@ -56,7 +60,8 @@
     "portrait": "res://assets/siluetas/irene.svg",
     "personality": "Enigmática, irónica y muy segura de sí misma.",
     "bio": "Asistió a la cena como invitada personal de Julián. Nadie más la conocía.",
-    "model": {"coat": "2a2438", "dress": true, "hair": "1a1416", "hair_style": "long", "hat": "wide_brim", "hat_color": "16141c", "accent": "7a2a2a", "height": 0.98}
+    "model": {"coat": "2a2438", "dress": true, "hair": "1a1416", "hair_style": "long", "hat": "wide_brim", "hat_color": "16141c", "accent": "7a2a2a", "height": 0.98},
+    "ambient": {"role": "secundario", "radius": 1.2, "speed": 1.1, "pause": [4.0, 9.0], "wander_chance": 0.45}
   },
   "ortega": {
     "name": "Sargento Bruno Ortega",
@@ -66,7 +71,8 @@
     "portrait": "res://assets/siluetas/ortega.svg",
     "personality": "Honrado, lento y leal. Conoce a todo el mundo en el pueblo.",
     "bio": "Veinte años al frente del cuartelillo de Villa Sombría.",
-    "model": {"coat": "27354d", "pants": "1b2536", "hair": "3a3028", "hair_style": "short", "hat": "kepi", "hat_color": "1f2b40", "accent": "c9a24d", "extras": ["mustache", "badge"], "height": 1.04}
+    "model": {"coat": "27354d", "pants": "1b2536", "hair": "3a3028", "hair_style": "short", "hat": "kepi", "hat_color": "1f2b40", "accent": "c9a24d", "extras": ["mustache", "badge"], "height": 1.04},
+    "ambient": {"role": "vigilancia", "speed": 1.1, "pause": [3.0, 6.0]}
   },
   "rosa": {
     "name": "Rosa Mena",
@@ -76,7 +82,8 @@
     "portrait": "res://assets/siluetas/rosa.svg",
     "personality": "Directa y socarrona. Nada ocurre en el pueblo sin que ella lo sepa.",
     "bio": "Regenta el café y las tres habitaciones de la pensión del piso superior.",
-    "model": {"coat": "5a3a2e", "dress": true, "hair": "2e2018", "hair_style": "curly", "extras": ["apron"], "height": 0.94}
+    "model": {"coat": "5a3a2e", "dress": true, "hair": "2e2018", "hair_style": "curly", "extras": ["apron"], "height": 0.94},
+    "ambient": {"role": "importante", "speed": 1.3, "pause": [4.0, 8.0], "glance": [2.0, 4.0]}
   },
   "eusebio": {
     "name": "Eusebio Pardo",
@@ -86,7 +93,8 @@
     "portrait": "res://assets/siluetas/eusebio.svg",
     "personality": "Puntilloso y parlanchín. Vive por el horario.",
     "bio": "Atiende él solo la taquilla y el telégrafo de la estación.",
-    "model": {"coat": "2f3a33", "pants": "20261f", "hair": "9a9a9a", "hair_style": "short", "hat": "cap", "hat_color": "1f2a24", "accent": "c9a24d", "extras": ["mustache", "glasses"]}
+    "model": {"coat": "2f3a33", "pants": "20261f", "hair": "9a9a9a", "hair_style": "short", "hat": "cap", "hat_color": "1f2a24", "accent": "c9a24d", "extras": ["mustache", "glasses"]},
+    "ambient": {"role": "importante", "glance": [3.0, 6.0]}
   },
   "hilario": {
     "name": "Don Hilario Luna",
@@ -96,6 +104,7 @@
     "portrait": "res://assets/siluetas/hilario.svg",
     "personality": "Erudito, tímido y exacto. Prefiere los legajos a las personas.",
     "bio": "Custodia el archivo municipal desde antes de que existiera el banco.",
-    "model": {"coat": "4a4034", "pants": "2e2822", "hair": "b0aca4", "hair_style": "bald", "accent": "7a2a2a", "extras": ["bowtie", "glasses"], "height": 0.95}
+    "model": {"coat": "4a4034", "pants": "2e2822", "hair": "b0aca4", "hair_style": "bald", "accent": "7a2a2a", "extras": ["bowtie", "glasses"], "height": 0.95},
+    "ambient": {"role": "secundario", "radius": 2.5, "speed": 0.9, "pause": [5.0, 10.0], "glance": [3.0, 7.0], "head_tilt": -0.05}
   }
 }

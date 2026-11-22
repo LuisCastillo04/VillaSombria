@@ -66,6 +66,24 @@ func get_npcs() -> Array:
 	return _npcs.values()
 
 
+## Indica si un NPC puede pararse en `point` sin estorbar: lejos de los huecos de paso, de las
+## pistas y salidas, y de los puestos, posiciones y destinos de los demás NPC.
+func is_spot_clear_for_npc(point: Vector3, npc: Npc = null) -> bool:
+	for doorway in _doorways:
+		if _flat_distance(point, doorway) < NPC_DOORWAY_CLEARANCE:
+			return false
+	for child in get_children():
+		if child is Interactable and _flat_distance(point, (child as Node3D).global_position) < NPC_INTERACTABLE_CLEARANCE:
+			return false
+	for other: Npc in _npcs.values():
+		if other == npc:
+			continue
+		for occupied: Vector3 in [other.home, other.global_position, other.get_target()]:
+			if _flat_distance(point, occupied) < NPC_SPACING:
+				return false
+	return true
+
+
 ## Indica si un recorrido cruza algún hueco de paso (cambia de estancia o sale a la calle).
 func path_crosses_doorway(path: PackedVector3Array) -> bool:
 	for doorway in _doorways:
@@ -96,20 +114,13 @@ func _spawn_npc(npc_id: String, slot: Dictionary) -> void:
 	var npc: Npc = (load(NPC_SCENE) as PackedScene).instantiate()
 	add_child(npc)
 	npc.setup(npc_id)
-	npc.global_position = get_marker(slot["marker"]) + Vector3.UP * 0.05
-	var facing: Variant = get_marker_facing(slot["marker"])
-	if facing != null:
-		npc.model.rotation.y = float(facing)
 	_npcs[npc_id] = npc
-	_assign_slot(npc, slot)
+	npc.place(self, slot)
 
 
+## Nuevo tramo en el mismo escenario: el NPC camina hasta su nuevo puesto.
 func _assign_slot(npc: Npc, slot: Dictionary) -> void:
-	npc.current_slot = slot
-	var points: Array[Vector3] = []
-	for marker_id: String in slot.get("patrol", [slot["marker"]]):
-		points.append(get_marker(marker_id))
-	npc.set_route(points)
+	npc.assign(slot)
 
 
 func _on_time_changed(_day: int, minutes: int) -> void:
@@ -269,3 +280,7 @@ func add_sign(text: String, where: Vector3, height: float, color: Color, yaw: fl
 	label.transform = batch.xform * Transform3D(Basis(Vector3.UP, yaw), where)
 	add_child(label)
 	return label
+
+
+static func _flat_distance(a: Vector3, b: Vector3) -> float:
+	return Vector2(a.x - b.x, a.z - b.z).length()
