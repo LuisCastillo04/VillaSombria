@@ -11,12 +11,16 @@ const FADE_SECONDS := 0.16
 
 ## Oscurece lo que queda detrás. La pausa ya trae su propio velo; el menú principal no.
 @export_range(0.0, 1.0) var backdrop_dim := 0.0
+## Efectos de `AudioManager` al abrir y al cerrar la pantalla (vacío: sin sonido).
+@export var open_sound := "ui_abrir"
+@export var close_sound := "ui_cerrar"
 
 var _tween: Tween
 var _closing := false
 
 
 func open() -> void:
+	AudioManager.play(open_sound)
 	_stop_fade()
 	_closing = false
 	_set_interactive(true)
@@ -30,6 +34,7 @@ func open() -> void:
 func close() -> void:
 	if not is_open():
 		return
+	AudioManager.play(close_sound)
 	_closing = true
 	_set_interactive(false)
 	_stop_fade()

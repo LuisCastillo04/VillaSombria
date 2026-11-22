@@ -46,6 +46,7 @@ var _slide_tween: Tween
 
 
 func _ready() -> void:
+	open_sound = "mapa_abrir"
 	_view.target = target
 	_view.exit_control = _back
 	_view.place_focused.connect(_show_place)

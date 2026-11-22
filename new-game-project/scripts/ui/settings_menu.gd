@@ -20,8 +20,8 @@ extends CategoryMenu
 const VOLUME_ROWS: Array[Dictionary] = [
 	{"bus": "Master", "label": "Volumen general", "icon": "altavoz"},
 	{"bus": "Musica", "label": "Música", "icon": "nota"},
+	{"bus": "Ambiente", "label": "Ambiente", "icon": "lluvia"},
 	{"bus": "Efectos", "label": "Efectos", "icon": "destellos"},
-	{"bus": "Ambiente", "label": "Lluvia y ambiente", "icon": "lluvia"},
 ]
 const MODE_KEY := "graficos/modo_ventana"
 const RESOLUTION_KEY := "graficos/resolucion"
@@ -220,6 +220,8 @@ func _volume_row(bus: String, label_text: String, icon_name: String) -> Control:
 func _on_volume_changed(value: float, bus: String) -> void:
 	Settings.set_volume(bus, value)
 	_show_percentage(bus, value)
+	# Una muestra del canal al moverlo, para oír el nivel (la música y el ambiente ya se oyen).
+	AudioManager.preview_volume(bus)
 
 
 func _show_percentage(bus: String, value: float) -> void:
