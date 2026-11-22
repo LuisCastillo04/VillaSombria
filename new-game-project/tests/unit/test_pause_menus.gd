@@ -131,7 +131,7 @@ func test_settings_open_over_the_pause_and_escape_returns() -> void:
 	_button("Settings").pressed.emit()
 	check(settings.is_open(), "Configuración se abre")
 	check(not _panel().visible, "en lugar de las opciones de la pausa")
-	check_equal(settings.get_category_titles(), PackedStringArray(["Audio", "Gráficos", "Jugabilidad", "Accesibilidad"]), "con sus cuatro categorías")
+	check_equal(settings.get_category_titles(), PackedStringArray(["Audio", "Gráficos", "Jugabilidad", "Filtros", "Accesibilidad"]), "con sus cinco categorías")
 	check(settings.is_ancestor_of(_focus_owner()), "y con el foco dentro")
 	_navigate("ui_cancel")
 	check(not settings.is_open(), "Escape la cierra")

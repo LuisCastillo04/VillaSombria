@@ -16,6 +16,7 @@ const CHANGES := {
 	"jugabilidad/velocidad_texto": "rapido",
 	"jugabilidad/avance_automatico": true,
 	"jugabilidad/confirmaciones": false,
+	"filtros/activo": "sepia",
 	"accesibilidad/tamano_letra": "grande",
 	"accesibilidad/contraste_alto": true,
 	"accesibilidad/subtitulos": false,
@@ -54,6 +55,8 @@ func _save() -> void:
 
 func _check_loaded() -> void:
 	_check(FileAccess.file_exists(FILE), "el archivo de la fase anterior existe")
+	# Un mundo que ya estaba en pantalla toma el filtro al leer el archivo, y uno nuevo al aparecer.
+	var shown_before := _make_post()
 	Settings.use_file(FILE)
 	for key: String in CHANGES:
 		var value: Variant = Settings.get_value(key)
@@ -64,8 +67,19 @@ func _check_loaded() -> void:
 	_check(get_tree().root.positional_shadow_atlas_size < int(ProjectSettings.get_setting(GraphicsQuality.POSITIONAL_SIZE)), "y la calidad de iluminación")
 	_check(is_equal_approx(AudioServer.get_bus_volume_db(AudioServer.get_bus_index("Musica")), linear_to_db(0.35)), "y el volumen")
 	_check(not ConfirmDialog.confirmations_enabled(), "las confirmaciones siguen desactivadas")
+	_check(shown_before.get_visual_filter() == "sepia", "el filtro visual se aplica al mundo que ya estaba")
+	var shown_after := _make_post()
+	_check(shown_after.get_visual_filter() == "sepia", "y al que aparece después")
+	shown_before.queue_free()
+	shown_after.queue_free()
 	DirAccess.remove_absolute(FILE)
 	TestCase.reset_test_settings()
+
+
+func _make_post() -> PostFx:
+	var post: PostFx = (load("res://scenes/world/post_fx.tscn") as PackedScene).instantiate()
+	add_child(post)
+	return post
 
 
 func _check(condition: bool, message: String) -> void:

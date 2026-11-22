@@ -12,7 +12,7 @@ extends RefCounted
 const VERSION := 2
 
 ## Secciones del archivo, una por categoría. `controles` es de las teclas que guarda `Controls`.
-const SECTIONS: Array[String] = ["audio", "graficos", "jugabilidad", "accesibilidad", "controles"]
+const SECTIONS: Array[String] = ["audio", "graficos", "jugabilidad", "filtros", "accesibilidad", "controles"]
 ## Secciones que gestiona otro sistema con `Settings.read_section` y `write_section`: su contenido no
 ## está en `DEFINITIONS` y `Settings` nunca lo borra ni lo reescribe por su cuenta.
 const EXTERNAL_SECTIONS: Array[String] = ["controles"]
@@ -45,6 +45,9 @@ const DEFINITIONS := {
 	# Preguntar antes de las acciones que se pueden confirmar (dejar pasar una hora). Las
 	# confirmaciones de acciones destructivas no dependen de esta preferencia.
 	"jugabilidad/confirmaciones": {"type": TYPE_BOOL, "default": true},
+	# Filtro de color del mundo (Configuración → Filtros). Uno solo a la vez; los identificadores y
+	# lo que hace cada uno están en `VisualFilters`. Sin preferencia guardada, los colores originales.
+	"filtros/activo": {"type": TYPE_STRING, "default": VisualFilters.ORIGINAL, "options": VisualFilters.IDS},
 	"accesibilidad/tamano_letra": {"type": TYPE_STRING, "default": "normal",
 		"options": ["normal", "grande", "muy_grande"]},
 	"accesibilidad/contraste_alto": {"type": TYPE_BOOL, "default": false},

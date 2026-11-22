@@ -1,8 +1,12 @@
 class_name SettingsMenu
 extends CategoryMenu
 ## Configuración por categorías, compartida por la pausa y el menú principal: Audio, Gráficos,
-## Jugabilidad y Accesibilidad. Cada control lee y escribe una preferencia real de `Settings`, que la
-## valida, la aplica y la guarda al momento; si otra pantalla la cambia, el control se pone al día.
+## Jugabilidad, Filtros y Accesibilidad. Cada control lee y escribe una preferencia real de `Settings`,
+## que la valida, la aplica y la guarda al momento; si otra pantalla la cambia, el control se pone al día.
+##
+## Filtros muestra una tarjeta por filtro de `VisualFilters`: elegir una cambia `filtros/activo`, el
+## mundo cambia de color en el acto detrás del menú (que sigue abierto para comparar) y sólo la tarjeta
+## del filtro aplicado dice «ACTIVO».
 ##
 ## Los cambios de pantalla (pantalla completa, modo de ventana y resolución) se prueban y piden
 ## confirmación (`Settings.request_display_change`): si no se confirman, los controles vuelven a
@@ -25,6 +29,7 @@ const RESOLUTION_DETAIL := "Tamaño de la ventana; la interfaz se escala sin def
 ## Nombres cortos de los modos en su selector, para que quepan junto al título; la explicación de
 ## debajo y la pregunta de confirmación usan los completos de `SettingsSchema`.
 const MODE_LABELS := {"ventana": "Ventana", "sin_bordes": "Sin bordes", "pantalla_completa": "Pantalla completa", "exclusiva": "Completa exclusiva"}
+const FILTERS_INTRO := "Activa filtros de pantalla que solo cambian los colores del juego."
 
 var _sliders: Dictionary = {}
 var _percentages: Dictionary = {}
@@ -33,6 +38,8 @@ var _vsync: CheckButton
 ## Interruptores y selectores de cada preferencia, por su clave de `Settings`.
 var _switches: Dictionary = {}
 var _selectors: Dictionary = {}
+## Tarjeta de cada filtro, por su identificador de `VisualFilters`.
+var _filter_cards: Dictionary = {}
 ## Mientras se pone al día con los ajustes, los controles no deben escribir nada.
 var _syncing := false
 
@@ -61,6 +68,9 @@ func refresh() -> void:
 		if key != RESOLUTION_KEY:
 			(_selectors[key] as OptionSelector).set_value_no_signal(String(Settings.get_value(key)))
 	_refresh_resolution()
+	var active := VisualFilters.current()
+	for id: String in _filter_cards:
+		(_filter_cards[id] as FilterCard).set_active(id == active)
 	_syncing = false
 
 
@@ -92,10 +102,16 @@ func get_selector(key: String) -> OptionSelector:
 	return _selectors.get(key)
 
 
+## Tarjeta de un filtro («noir», «sepia», «cold_night» u «original»).
+func get_filter_card(id: String) -> FilterCard:
+	return _filter_cards.get(id)
+
+
 func _build_categories() -> void:
 	_build_audio(add_category("Audio", "altavoz"))
 	_build_graphics(add_category("Gráficos", "monitor"))
 	_build_gameplay(add_category("Jugabilidad", "ajustes"))
+	_build_filters(add_category("Filtros", "ajustes"))
 	_build_accessibility(add_category("Accesibilidad", "persona"))
 	refresh()
 
@@ -132,6 +148,27 @@ func _build_gameplay(page: VBoxContainer) -> void:
 	_add_switch_row(page, "Confirmaciones",
 		"Preguntar antes de acciones como dejar pasar una hora. Borrar o sobrescribir partidas pregunta siempre.",
 		Callable(), "jugabilidad/confirmaciones")
+
+
+## Una tarjeta por filtro, en el orden de `VisualFilters.IDS`. Sólo uno puede estar activo porque
+## todas leen y escriben la misma preferencia.
+func _build_filters(page: VBoxContainer) -> void:
+	page.add_theme_constant_override("separation", 14)
+	var intro := MenuStyle.make_label(FILTERS_INTRO, 21, MenuStyle.TEXT, CaseFileStyle.serif_italic())
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	page.add_child(intro)
+	for id in VisualFilters.IDS:
+		var card := FilterCard.new()
+		card.setup(id, VisualFilters.label_of(id), VisualFilters.description_of(id))
+		card.chosen.connect(_on_filter_chosen)
+		page.add_child(card)
+		_filter_cards[id] = card
+
+
+## Elegir el filtro ya activo no cambia nada: `Settings` no escribe ni avisa si el valor se repite.
+func _on_filter_chosen(id: String) -> void:
+	if not _syncing:
+		Settings.set_value(VisualFilters.SETTING_KEY, id)
 
 
 func _build_accessibility(page: VBoxContainer) -> void:

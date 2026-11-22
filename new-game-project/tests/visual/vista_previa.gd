@@ -1,5 +1,6 @@
 extends TestCase
-## Comprueba con ventana que la imagen de cada ranura es la escena real del guardado.
+## Comprueba con ventana que la imagen de cada ranura es la escena real del guardado, y que conserva
+## sus colores aunque haya un filtro visual activo (el filtro es de la pantalla, no de la partida).
 ## Uso:  godot --path . --resolution 1280x720 res://tests/visual/vista_previa.tscn -- --out=C:/ruta
 ## (--out es opcional: copia allí las imágenes para revisarlas). Sin ventana no hay imagen
 ## que comprobar, así que no forma parte de las pruebas automáticas.
@@ -11,12 +12,14 @@ func _ready() -> void:
 	SaveSystem.autosave_enabled = false
 	SaveSystem.use_storage(STORAGE)
 	TestCase.clear_save_storage()
+	TestCase.reset_test_settings()
 	await _run()
 	for failure in failures:
 		print("FALLO vista previa: ", failure)
 	if failures.is_empty():
 		print("VISTA PREVIA correcta")
 	TestCase.clear_save_storage()
+	TestCase.reset_test_settings()
 	get_tree().quit(1 if not failures.is_empty() else 0)
 
 
@@ -29,7 +32,9 @@ func _run() -> void:
 	await game.go_to("mansion", "desde_plaza")
 	await _settle()
 	await save_and_wait("manual_2")
-	# Con la pausa y la lista de ranuras en pantalla, la imagen debe ser la misma escena.
+	# Con la pausa y la lista de ranuras en pantalla, la imagen debe ser la misma escena; y con el
+	# modo noir activo, también sus colores.
+	Settings.set_value(VisualFilters.SETTING_KEY, "noir")
 	var pause: PauseMenu = game.get_node("PauseMenu")
 	pause.open()
 	(pause.get_node("Root/Center/Panel/Box/Save") as Button).pressed.emit()
@@ -53,6 +58,10 @@ func _run() -> void:
 	print("diferencia plaza/mansión=%.3f  mansión/mansión con pausa=%.3f" % [between_places, with_pause])
 	check(with_pause < 0.04, "la pausa y la lista de ranuras no aparecen en la imagen")
 	check(between_places > with_pause * 3.0, "cada imagen muestra el lugar de su guardado")
+	var color_before := _chroma(images["manual_2"])
+	var color_noir := _chroma(images["manual_3"])
+	print("color de la imagen sin filtro=%.3f  con el modo noir activo=%.3f" % [color_before, color_noir])
+	check(color_noir > 0.02 and color_noir > color_before * 0.7, "con el modo noir activo, la imagen de la ranura conserva sus colores")
 
 	var path := SaveSystem.get_preview_path("manual_1")
 	var bytes := FileAccess.get_file_as_bytes(path)
@@ -82,6 +91,17 @@ func _difference(first: Image, second: Image) -> float:
 		for x in a.get_width():
 			total += absf(a.get_pixel(x, y).get_luminance() - b.get_pixel(x, y).get_luminance())
 	return total / float(a.get_width() * a.get_height())
+
+
+## Color medio de una imagen: diferencia entre su canal más alto y el más bajo (0 en blanco y negro).
+func _chroma(image: Image) -> float:
+	var reduced := _reduced(image)
+	var total := 0.0
+	for y in reduced.get_height():
+		for x in reduced.get_width():
+			var pixel := reduced.get_pixel(x, y)
+			total += maxf(pixel.r, maxf(pixel.g, pixel.b)) - minf(pixel.r, minf(pixel.g, pixel.b))
+	return total / float(reduced.get_width() * reduced.get_height())
 
 
 func _spread(image: Image) -> float:

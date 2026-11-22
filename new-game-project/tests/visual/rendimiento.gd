@@ -5,6 +5,7 @@ extends Node
 ## Uso:  godot --path . --resolution 1920x1080 res://tests/visual/rendimiento.tscn -- --location=plaza
 ## Argumentos: --location=id  --sin=sombras,post,lluvia,glow,msaa,niebla,luces
 ##             --iluminacion=bajo|medio|alto  --efectos=bajo|medio|alto  (calidad de Configuración)
+##             --filtro=noir|sepia|cold_night|original  (filtro visual de Configuración)
 
 const GAME_SCENE := "res://scenes/main/game.tscn"
 const WARMUP_FRAMES := 120
@@ -20,6 +21,8 @@ func _ready() -> void:
 		Settings.set_value("graficos/calidad_iluminacion", args["iluminacion"])
 	if args.has("efectos"):
 		Settings.set_value("graficos/calidad_efectos", args["efectos"])
+	if args.has("filtro"):
+		Settings.set_value(VisualFilters.SETTING_KEY, args["filtro"])
 	Game.play_intro = false
 	var game: Game = (load(GAME_SCENE) as PackedScene).instantiate()
 	add_child(game)
@@ -44,7 +47,7 @@ func _ready() -> void:
 		primitives += RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_TOTAL_PRIMITIVES_IN_FRAME)
 	var average_ms := float(Time.get_ticks_usec() - started) / 1000.0 / float(MEASURED_FRAMES)
 	var label := ",".join(disabled) if not disabled.is_empty() else "todo activo"
-	var quality := "iluminación %s, efectos %s" % [Settings.get_value("graficos/calidad_iluminacion"), Settings.get_value("graficos/calidad_efectos")]
+	var quality := "iluminación %s, efectos %s, filtro %s" % [Settings.get_value("graficos/calidad_iluminacion"), Settings.get_value("graficos/calidad_efectos"), VisualFilters.current()]
 	print("MEDIDA %s [%s; %s]: %.1f ms por fotograma, %.0f FPS" % [args.get("location", "plaza"), label, quality, average_ms, 1000.0 / average_ms])
 	print("DIBUJADO GPU %.2f ms, CPU %.2f ms, %d llamadas, %d primitivas, %.0f MB de vídeo" % [
 		gpu / MEASURED_FRAMES, cpu / MEASURED_FRAMES, draws / MEASURED_FRAMES, primitives / MEASURED_FRAMES,

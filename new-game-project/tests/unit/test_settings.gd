@@ -59,11 +59,12 @@ func test_without_file_every_setting_has_its_default() -> void:
 
 
 func test_categories_are_the_sections_of_the_file() -> void:
-	check_equal(SettingsSchema.SECTIONS, ["audio", "graficos", "jugabilidad", "accesibilidad", "controles"] as Array[String], "cinco categorías")
+	check_equal(SettingsSchema.SECTIONS, ["audio", "graficos", "jugabilidad", "filtros", "accesibilidad", "controles"] as Array[String], "seis categorías")
 	for key in SettingsSchema.keys():
 		check(SettingsSchema.section_of(key) in SettingsSchema.SECTIONS, "%s pertenece a una categoría" % key)
 	check(SettingsSchema.keys_in("graficos").size() == 5, "gráficos: modo, resolución, sincronización, iluminación y efectos")
 	check(SettingsSchema.keys_in("accesibilidad").size() == 4, "accesibilidad: letra, contraste, subtítulos y movimiento")
+	check_equal(SettingsSchema.keys_in("filtros"), ["filtros/activo"] as Array[String], "filtros: sólo el activo, uno a la vez")
 
 
 func test_each_change_is_validated_applied_saved_and_announced() -> void:
