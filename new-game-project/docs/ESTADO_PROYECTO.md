@@ -133,8 +133,10 @@ arranca desde él sin errores en modo sin ventana.
 
 - **Nadie ha jugado una partida completa a mano.** El recorrido automático demuestra que se
   puede terminar, pero no si es divertido, claro o equilibrado.
-- **El audio no se ha escuchado.** Se comprueba que se genera y que el volumen llega a los
-  canales, no cómo suena.
+- **El audio no se ha escuchado.** Se comprueba que se genera, que Godot lo importa, que los bucles
+  cierran sin salto, que la señal mezclada llega a los canales y que reacciona (baja en un diálogo,
+  sube la capa de tensión), pero no cómo suena: la calidad de la música y de los efectos sintetizados
+  hay que juzgarla escuchando. Ver [AUDIO.md](AUDIO.md).
 - **No se ha generado un `.exe`:** faltan las plantillas de exportación de Godot.
 - **La animación y las transiciones** se revisaron con capturas fijas, no en movimiento.
 - **Los menús con un mando real y el ratón a mano.** Las pruebas envían las mismas acciones

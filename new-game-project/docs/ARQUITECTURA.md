@@ -16,15 +16,17 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 
 | Carpeta | Contenido |
 | --- | --- |
-| `data/` | Historia y reglas en JSON |
+| `data/` | Historia y reglas en JSON; `data/audio.json`, el catálogo sonoro |
 | `assets/siluetas/` | Siluetas SVG de las conversaciones |
 | `assets/shaders/` | Empedrado, brillo, contraluz, postproceso y pergamino |
+| `assets/audio/` | Música (`musica/`), ambientes y detalles de cada lugar (`ambiente/`) y efectos (`efectos/`), generados con `tools/generar_audio.py`; ver [AUDIO.md](AUDIO.md) |
 | `assets/ui/` | Grabado de la mansión, silueta del pueblo, iconos SVG de los menús, del expediente y de los lugares del HUD, perilla de volumen e interruptor; `assets/ui/expediente/`, los grabados sepia del expediente; `assets/ui/tablero/`, el rincón del corcho y las marcas del selector del tablero |
 | `scenes/main/` | Menú principal y escena de juego |
 | `scenes/actors/` | Detective y NPC |
 | `scenes/world/locations/` | Los cinco escenarios y el campo de pruebas |
 | `scenes/ui/` | Interfaz |
 | `scripts/autoload/` | Sistemas globales |
+| `scripts/audio/` | Piezas del sonido adaptativo: catálogo, música, ambiente, efectos, bucles y tensión de la historia |
 | `scripts/core/` | Escena de juego, condiciones y efectos |
 | `scripts/save/` | Formato de las partidas, escritura segura e imagen de cada ranura |
 | `scripts/settings/` | Esquema de las preferencias del jugador y lo que las aplica, filtros visuales incluidos; ver [CONFIGURACION.md](CONFIGURACION.md) y [FILTROS.md](FILTROS.md) |
@@ -36,8 +38,8 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente; `scripts/ui/board/`, las piezas del tablero de deducción; `scripts/ui/dialogue/`, las piezas de las conversaciones |
 | `tests/unit/` | Pruebas automatizadas |
 | `tests/persistencia/` | Guardar y cargar en otro proceso; cierre real de la ventana |
-| `tests/visual/` | Herramientas de captura y de rendimiento |
-| `tools/` | Verificación y generación de siluetas y de los grabados del expediente |
+| `tests/visual/` | Herramientas de captura, de rendimiento y de escucha (`escucha.tscn` graba el audio real de un recorrido) |
+| `tools/` | Verificación y generación de siluetas, de los grabados del expediente y del audio (`generar_audio.py` y `sintesis/`) |
 
 ## Autoloads
 
@@ -56,7 +58,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `ConfirmDialog` | Ventana de confirmación común, con cuenta atrás opcional; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | `Settings` | Preferencias del jugador por categorías (audio, gráficos, jugabilidad, filtros, accesibilidad, controles) en `user://ajustes.cfg`, validadas con `SettingsSchema`; ver [CONFIGURACION.md](CONFIGURACION.md) |
 | `Controls` | Teclas del jugador aplicadas al InputMap y guardadas en `ajustes.cfg`, conflictos, restaurar, dispositivo en uso, mandos conectados y navegación de los menús con el mando; ver [CONTROLES.md](CONTROLES.md) |
-| `AudioManager` | Sonido sintetizado al arrancar |
+| `AudioManager` | Sonido adaptativo: música con capa de tensión, ambientes y emisores de cada lugar, detalles, campanadas, pasos y efectos, según el lugar, la historia y las pantallas; lo que suena lo describe `data/audio.json`. Ver [AUDIO.md](AUDIO.md) |
 | `TownMap` | Mapa del pueblo: lugares, calibración, posición del detective en el mapa y lugares visitados; ver [MAPA.md](MAPA.md) |
 
 ## Escenas
@@ -283,6 +285,16 @@ no guarda nada. Hoy ni Configuración ni Controles tienen nada previsto: todas s
 Las teclas 1 a 9 de las respuestas (fila superior y teclado numérico) y el clic de las
 conversaciones se leen en `DialogueControls`, fuera del InputMap; por eso figuran como teclas fijas
 en `CATEGORIES`. Avanzar y confirmar sí usan `interact` y `ui_accept`.
+
+## Sonido
+
+`AudioManager` coordina tres piezas: `AudioMusic` (la pista del momento con su capa de tensión
+sincronizada), `AudioAmbience` (capas, emisores 3D, detalles y campanadas de cada lugar) y
+`AudioEffects` (efectos puntuales). Escucha `EventBus`, `DialogueManager`, `SaveSystem` y los
+bloqueos del jugador, así que el resto del juego casi no tiene que avisarle; lo que suena en cada
+caso está en `data/audio.json`. La tensión no se guarda: `AudioMood` la deduce del día, el lugar, las
+marcas y la hora. El detective lleva el oído (`AudioListener3D`) y sus pasos suenan según el suelo que
+declaran los kits. Detalle, estados, canales y ampliaciones en [AUDIO.md](AUDIO.md).
 
 ## Decisiones técnicas
 

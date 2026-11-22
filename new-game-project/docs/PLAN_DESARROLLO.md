@@ -36,7 +36,7 @@ La vertical slice se completó al terminar la fase 5.
 
 ### Prioridad media
 
-1. Sustituir o ajustar el audio procedural después de escucharlo.
+1. Escuchar el sonido adaptativo y ajustarlo: niveles en `data/audio.json`, piezas y efectos en `tools/sintesis/` (ver [AUDIO.md](AUDIO.md)).
 2. NPC que caminen hasta la puerta al cambiar de escenario.
 3. Bodega y piso superior de la mansión como espacios recorribles.
 4. Filtros en el tablero para cuando haya muchas tarjetas.

@@ -23,6 +23,9 @@ participación en diseño, programación, narrativa y dirección.
 - Calendario de tres días con rutinas de personajes. Nada se pierde por llegar tarde.
 - Mapa del pueblo que sigue la posición real del detective, con los lugares y los objetivos del día.
 - Acusación final con motivo, oportunidad y medios. Equivocarse no termina la partida.
+- Sonido adaptativo original: un leitmotiv noir, la música y el ambiente de cada lugar, una capa de
+  tensión que crece con la investigación, silencios intencionados, fragmentos al descubrir pistas y
+  pasos que suenan según el suelo. Ver [Sonido](new-game-project/docs/AUDIO.md).
 - Cinco ranuras de partida con imagen real de cada guardado. El autoguardado sigue la ranura en
   la que guardaste o que cargaste, y cerrar la ventana o pulsar Alt + F4 guarda antes de salir.
 
@@ -32,7 +35,7 @@ participación en diseño, programación, narrativa y dirección.
 - Windows 10/11 con una GPU compatible con Direct3D 12 o Vulkan.
 
 Por ahora el juego no necesita recursos externos: la geometría, los materiales, las siluetas y
-el sonido se generan con primitivas, shaders, SVG y síntesis incluidos en el repositorio. Está
+el sonido se generan con primitivas, shaders, SVG y el sintetizador del repositorio (`tools/generar_audio.py`). Está
 previsto incorporar retratos generados con IA y, si hay créditos, voces sintéticas; ver
 [Recursos](new-game-project/docs/RECURSOS.md).
 
