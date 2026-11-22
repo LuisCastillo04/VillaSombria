@@ -36,6 +36,8 @@ var _marker_facing: Dictionary = {}
 var _doorways: Array[Vector3] = []
 var _body: StaticBody3D
 var _npcs: Dictionary = {}
+## NPC presentes que intervienen en la escena narrativa en curso.
+var _scene_cast: Array[Npc] = []
 
 
 func _ready() -> void:
@@ -49,6 +51,11 @@ func _ready() -> void:
 	add_child(navigation)
 	navigation.bake(_body, play_area)
 	EventBus.time_changed.connect(_on_time_changed)
+	# Las rutinas pueden depender de la historia (un tramo con «if»): una marca nueva puede
+	# cambiar quién está aquí.
+	EventBus.flag_set.connect(_on_flag_set)
+	DialogueManager.scene_started.connect(_on_scene_started)
+	DialogueManager.line_shown.connect(_on_line_shown)
 	DialogueManager.closed.connect(_on_dialogue_closed)
 	refresh_npcs()
 
@@ -92,7 +99,7 @@ func path_crosses_doorway(path: PackedVector3Array) -> bool:
 	return false
 
 
-## Sincroniza los NPC presentes con sus rutinas para la hora actual.
+## Sincroniza los NPC presentes con sus rutinas para la hora y el punto de la historia actuales.
 ## Quien ya no debe estar aquí sale andando por la puerta (`Npc.leave`); quien sigue, pero con
 ## otro tramo, camina hasta su nuevo puesto. Nunca hay dos copias del mismo personaje: el que se
 ## va sigue en la lista hasta cruzar la salida, y si su rutina lo vuelve a traer, se queda.
@@ -148,6 +155,11 @@ func get_exit_route(exit: LocationExit) -> Dictionary:
 	return {"point": point, "outward": outward}
 
 
+## NPC del escenario que intervienen en persona en la escena narrativa en curso.
+func get_scene_cast() -> Array[Npc]:
+	return _scene_cast
+
+
 func _spawn_npc(npc_id: String, slot: Dictionary) -> void:
 	var npc: Npc = (load(NPC_SCENE) as PackedScene).instantiate()
 	add_child(npc)
@@ -187,7 +199,38 @@ func _on_time_changed(_day: int, minutes: int) -> void:
 	refresh_npcs()
 
 
+func _on_flag_set(_flag: String) -> void:
+	if is_inside_tree():
+		refresh_npcs()
+
+
+## Empieza una escena narrativa: los personajes que intervienen en ella y están aquí se detienen
+## y se vuelven hacia el detective. Así, en la llamada del café, Rosa y el sargento están en la
+## sala y miran al inspector mientras le hablan.
+func _on_scene_started(scene_id: String) -> void:
+	_scene_cast.clear()
+	if not is_inside_tree():
+		return
+	var player := get_tree().get_first_node_in_group(PlayerController.GROUP) as Node3D
+	for npc_id: String in DialogueManager.get_scene_cast(scene_id):
+		var npc := get_npc(npc_id)
+		if npc != null and not npc.is_leaving():
+			npc.join_scene(player)
+			_scene_cast.append(npc)
+
+
+## En una escena, sólo gesticula quien tiene la palabra.
+func _on_line_shown(speaker_id: String, _text: String) -> void:
+	for npc in _scene_cast:
+		if is_instance_valid(npc):
+			npc.set_speaking(npc.npc_id == speaker_id)
+
+
 func _on_dialogue_closed(_npc_id: String) -> void:
+	for npc in _scene_cast:
+		if is_instance_valid(npc):
+			npc.end_scene()
+	_scene_cast.clear()
 	refresh_npcs()
 
 

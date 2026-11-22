@@ -8,7 +8,7 @@ extends CharacterBody3D
 ## IDLE: en reposo, con pausas, miradas y giros. WANDER: paseo corto o visita a un punto.
 ## PATROL: hacia el siguiente punto de su ronda. RETURN: de vuelta a su puesto.
 ## INTERACT: el detective lo enfoca para hablarle; se detiene y lo mira.
-## DIALOGUE: conversación activa.
+## DIALOGUE: conversación activa, o escena narrativa en la que interviene en persona.
 ## LEAVE: su rutina lo lleva a otro lugar; camina hasta la salida y la cruza.
 enum State { IDLE, WANDER, PATROL, RETURN, INTERACT, DIALOGUE, LEAVE }
 
@@ -72,6 +72,8 @@ var _resume_pending := false
 var _attend_left := 0.0
 var _attend_cooldown := 0.0
 var _partner: Node3D
+## Interviene en la escena narrativa en curso.
+var _in_scene := false
 var _leaving := false
 var _exit_point := Vector3.ZERO
 var _exit_outward := Vector3.ZERO
@@ -114,6 +116,7 @@ func setup(id: String) -> void:
 ## Coloca al NPC en el puesto de un tramo de su rutina al aparecer, mirando hacia donde toca.
 func place(where: LocationBase, slot: Dictionary) -> void:
 	_cancel_leave()
+	_in_scene = false
 	_configure(where, slot)
 	global_position = home + Vector3.UP * 0.05
 	_last_position = global_position
@@ -166,6 +169,41 @@ func is_leaving() -> bool:
 	return _leaving
 
 
+## Interviene en persona en una escena narrativa (la llamada del café): se detiene donde está y
+## se vuelve hacia el detective sin brusquedad. Sólo gesticula en sus líneas (`set_speaking`).
+func join_scene(with: Node3D) -> void:
+	if state != State.DIALOGUE and state != State.INTERACT:
+		_resume_state = state
+	_partner = with
+	_in_scene = true
+	_stop()
+	_set_state(State.DIALOGUE)
+	model.set_talking(false)
+	model.set_head_turn(0.0)
+	if with != null:
+		_turn_towards(with.global_position)
+
+
+## Habla o escucha en la escena en curso.
+func set_speaking(value: bool) -> void:
+	if _in_scene:
+		model.set_talking(value)
+
+
+## Termina la escena en la que intervenía: como tras una conversación, hace una pausa mirando al
+## detective y después retoma lo suyo (o va a donde su rutina diga).
+func end_scene() -> void:
+	if not _in_scene:
+		return
+	_in_scene = false
+	if state == State.DIALOGUE:
+		_finish_talk()
+
+
+func is_in_scene() -> bool:
+	return _in_scene
+
+
 ## Encara un punto del mundo al instante, sin desplazarse.
 func face_towards(point: Vector3) -> void:
 	var direction := point - global_position
@@ -173,6 +211,13 @@ func face_towards(point: Vector3) -> void:
 	if direction.length_squared() > 0.001:
 		model.rotation.y = atan2(-direction.x, -direction.z)
 		_desired_yaw = model.rotation.y
+
+
+## Se vuelve hacia un punto girando a su ritmo, sin desplazarse.
+func _turn_towards(point: Vector3) -> void:
+	var direction := point - global_position
+	if Vector2(direction.x, direction.z).length_squared() > 0.001:
+		_desired_yaw = atan2(-direction.x, -direction.z)
 
 
 ## El detective enfoca (o deja de enfocar) a este NPC para hablarle. Al enfocarlo se detiene y lo

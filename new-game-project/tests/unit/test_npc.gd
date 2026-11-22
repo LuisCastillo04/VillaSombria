@@ -115,6 +115,7 @@ func test_wandering_stays_near_home_on_free_ground() -> void:
 ## El fallo original: Lucía iba hasta el sitio de Irene y los NPC se atravesaban entre sí.
 func test_npcs_never_overlap_while_moving() -> void:
 	location.queue_free()
+	_answer_the_call()
 	GameClock.minutes = GameClock.parse_time("09:00")
 	location = _instantiate("mansion")
 	await _wait_navigation(location)
@@ -148,6 +149,7 @@ func test_npcs_never_overlap_while_moving() -> void:
 ## el NPC se detiene y vuelve a decidir; nunca salta al destino atravesando el obstáculo.
 func test_blocked_path_is_recalculated_without_teleporting() -> void:
 	location.queue_free()
+	_answer_the_call()
 	GameClock.minutes = GameClock.parse_time("09:00")
 	location = _instantiate("mansion")
 	await _wait_navigation(location)
@@ -221,6 +223,7 @@ func test_npc_needed_by_the_story_skips_visits() -> void:
 ## Las decisiones de movimiento se toman en las pausas: nada de pedir rutas en cada fotograma.
 func test_navigation_is_not_queried_every_frame() -> void:
 	location.queue_free()
+	_answer_the_call()
 	GameClock.minutes = GameClock.parse_time("09:00")
 	location = _instantiate("mansion")
 	await _wait_navigation(location)
@@ -322,6 +325,7 @@ func test_cafe_npcs_move_only_on_free_floor() -> void:
 ## (Ortega y Lucía) cruzan puertas, porque su recorrido lo pide.
 func test_mansion_wanderers_stay_in_their_room() -> void:
 	location.queue_free()
+	_answer_the_call()
 	GameClock.minutes = GameClock.parse_time("09:00")
 	location = _instantiate("mansion")
 	await _wait_navigation(location)
@@ -340,6 +344,12 @@ func test_mansion_wanderers_stay_in_their_room() -> void:
 			check(_room_of(npc.global_position) == rooms[npc_id], "%s sale de su estancia (%s)" % [npc_id, str(npc.global_position.snapped(Vector3.ONE * 0.01))])
 			if _room_of(npc.global_position) != rooms[npc_id]:
 				return
+
+
+## La mansión sólo se visita después de la llamada del café: hasta entonces la verja está cerrada
+## y el sargento espera al inspector en el café.
+func _answer_the_call() -> void:
+	GameState.set_flag("llamada_atendida")
 
 
 ## Estancia de la mansión por su posición: la planta es una cuadrícula de 3 × 2.

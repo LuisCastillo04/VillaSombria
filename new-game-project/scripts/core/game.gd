@@ -43,6 +43,7 @@ func _ready() -> void:
 	EventBus.rest_requested.connect(_on_rest_requested)
 	EventBus.story_action.connect(_on_story_action)
 	EventBus.player_locks_changed.connect(_on_player_locks_changed)
+	DialogueManager.line_shown.connect(_on_line_shown)
 	Controls.gamepad_disconnected.connect(_on_gamepad_disconnected)
 	SaveSystem.register_section("player", _capture_player, _restore_player)
 	SaveSystem.register_preview_source(_preview_source)
@@ -249,6 +250,17 @@ func _on_story_action(action: String) -> void:
 ## La red de seguridad ha devuelto al detective a suelo firme: la cámara lo sigue sin barrido.
 func _on_player_recovered(_from: Vector3, _to: Vector3) -> void:
 	camera.snap()
+
+
+## En una escena con personajes presentes (la llamada del café), el detective se vuelve hacia
+## quien le habla.
+func _on_line_shown(speaker_id: String, _text: String) -> void:
+	if current_location == null:
+		return
+	for npc: Npc in current_location.get_scene_cast():
+		if is_instance_valid(npc) and npc.npc_id == speaker_id:
+			player.look_towards(npc.global_position)
+			return
 
 
 func _on_rest_requested() -> void:

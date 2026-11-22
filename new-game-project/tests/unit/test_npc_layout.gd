@@ -30,21 +30,28 @@ func _unload(location: LocationBase) -> void:
 	await get_tree().process_frame
 
 
+## Antes y después de la llamada del café: hasta entonces Rosa y el sargento esperan al inspector
+## junto a la entrada del café, y después cada uno vuelve a su rutina.
 func test_npcs_never_share_a_spot() -> void:
 	for location_id: String in LOCATIONS:
 		var location := await _load(location_id)
-		for day in range(1, 4):
-			for minutes in range(GameClock.DAY_START, GameClock.DAY_LIMIT, STEP_MINUTES):
-				var present := NpcSchedule.get_npcs_at(location_id, day, minutes)
-				for npc_id in present:
-					var slot := NpcSchedule.get_slot(npc_id, day, minutes)
-					for other_id in present:
-						if other_id == npc_id:
-							continue
-						var other_home := location.get_marker(NpcSchedule.get_slot(other_id, day, minutes)["marker"])
-						for point: Vector3 in _stops(location, slot):
-							var gap := _flat_distance(point, other_home)
-							check(gap >= LocationBase.NPC_SPACING, "día %d %02d:%02d, %s: %s se para a %.1f m del puesto de %s" % [day, minutes / 60, minutes % 60, location_id, npc_id, gap, other_id])
+		for call_answered: bool in [false, true]:
+			GameState.reset()
+			if call_answered:
+				GameState.set_flag("llamada_atendida")
+			var moment := "después de la llamada" if call_answered else "antes de la llamada"
+			for day in range(1, 4):
+				for minutes in range(GameClock.DAY_START, GameClock.DAY_LIMIT, STEP_MINUTES):
+					var present := NpcSchedule.get_npcs_at(location_id, day, minutes)
+					for npc_id in present:
+						var slot := NpcSchedule.get_slot(npc_id, day, minutes)
+						for other_id in present:
+							if other_id == npc_id:
+								continue
+							var other_home := location.get_marker(NpcSchedule.get_slot(other_id, day, minutes)["marker"])
+							for point: Vector3 in _stops(location, slot):
+								var gap := _flat_distance(point, other_home)
+								check(gap >= LocationBase.NPC_SPACING, "%s, día %d %02d:%02d, %s: %s se para a %.1f m del puesto de %s" % [moment, day, minutes / 60, minutes % 60, location_id, npc_id, gap, other_id])
 		await _unload(location)
 
 
@@ -75,6 +82,8 @@ func test_every_stop_is_free_and_away_from_doors_and_clues() -> void:
 
 ## Cada uno aparece mirando hacia donde tiene sentido, no todos hacia la pared del fondo.
 func test_npcs_face_their_post() -> void:
+	# Rosa en su puesto de siempre, ya atendida la llamada del primer día.
+	GameState.set_flag("llamada_atendida")
 	var cafe := await _load("cafe")
 	var rosa := cafe.get_npc("rosa")
 	check(rosa != null, "Rosa atiende la barra")

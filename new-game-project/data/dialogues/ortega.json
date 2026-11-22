@@ -3,7 +3,7 @@
     {
       "if": {"not_flags": ["ortega_conocido"]},
       "lines": [
-        {"s": "ortega", "t": "Inspector Ibarra. Soy el sargento Ortega. Gracias por venir tan deprisa."},
+        {"s": "ortega", "t": "Gracias por venir tan deprisa, inspector."},
         {"s": "ortega", "t": "Nunca habíamos tenido algo así en Villa Sombría. Don Julián era... era el pueblo entero."}
       ],
       "effects": {"flags": ["ortega_conocido"]}

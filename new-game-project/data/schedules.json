@@ -1,5 +1,6 @@
 {
   "ortega": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "puerta_sargento", "activity": "Espera al inspector en el Café La Luna", "behavior": "stay", "if": {"not_flags": ["llamada_atendida"]}},
     {"day": 1, "from": "08:00", "to": "24:00", "location": "mansion", "marker": "vestibulo", "activity": "Custodia la mansión", "patrol": ["vestibulo", "vestibulo_norte"]},
     {"day": 2, "from": "08:00", "to": "14:00", "location": "plaza", "marker": "banco_fuente", "activity": "Hace la ronda por la plaza", "patrol": ["banco_fuente", "fuente_este", "fuente_sur", "fuente_oeste"]},
     {"day": 2, "from": "14:00", "to": "24:00", "location": "mansion", "marker": "vestibulo", "activity": "Custodia la mansión", "patrol": ["vestibulo", "vestibulo_norte"]},
@@ -42,6 +43,7 @@
     {"day": 3, "from": "14:00", "to": "24:00", "location": "cafe", "marker": "mesa_ventana", "activity": "En el Café La Luna", "visits": ["barra_cliente"], "visit_chance": 0.25}
   ],
   "rosa": [
+    {"day": 1, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "sala_rosa", "activity": "Hace compañía al sargento, que espera al inspector", "behavior": "stay", "if": {"not_flags": ["llamada_atendida"]}},
     {"day": 1, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "barra", "activity": "Detrás de la barra", "patrol": ["barra", "barra_izquierda", "barra", "barra_derecha"]},
     {"day": 2, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "barra", "activity": "Detrás de la barra", "patrol": ["barra", "barra_izquierda", "barra", "barra_derecha"]},
     {"day": 3, "from": "08:00", "to": "24:00", "location": "cafe", "marker": "barra", "activity": "Detrás de la barra", "patrol": ["barra", "barra_izquierda", "barra", "barra_derecha"]}

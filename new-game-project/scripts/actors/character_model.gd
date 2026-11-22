@@ -62,6 +62,10 @@ func set_talking(value: bool) -> void:
 	_talking = value
 
 
+func is_talking() -> bool:
+	return _talking
+
+
 ## Gira la cabeza respecto al cuerpo (radianes, positivo hacia la izquierda del personaje). El
 ## giro es suave: sirve para mirar alrededor o hacia alguien sin mover los pies.
 func set_head_turn(yaw: float) -> void:
