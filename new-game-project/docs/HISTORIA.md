@@ -92,9 +92,10 @@ Cada deducción se obtiene relacionando dos elementos en el tablero.
 
 ## Estructura
 
-**Día 1, domingo.** Llegada en tren. En el café suena el teléfono: Ortega comunica el
-crimen. Se examina la mansión y se interroga a los cinco sospechosos. El archivo está
-cerrado por ser domingo. Se duerme en la pensión.
+**Día 1, domingo.** Llegada en tren. En el café espera el sargento Ortega, que lleva toda la
+mañana buscando al inspector: le comunica el crimen en persona y se adelanta a la mansión. Se
+examina la mansión y se interroga a los cinco sospechosos. El archivo está cerrado por ser
+domingo. Se duerme en la pensión.
 
 **Día 2, lunes.** El correo trae el informe forense a mediodía. En la estación aparece el
 telegrama devuelto, que destapa la hora falsa. En el archivo, Hilario entrega la carpeta de
