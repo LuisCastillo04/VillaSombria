@@ -7,6 +7,9 @@ expreso.
 
 ## Resumen
 
+**Estado (2026-11-23): las ocho sesiones están hechas.** Resultado de cada una en
+[README.md](README.md#estado-final-sesión-8-2026-11-23).
+
 El 2026-11-23 el propietario reordenó las sesiones 3 en adelante (encargos de las sesiones 2–5 y
 6–8). Este es el orden vigente; el plan original de la sesión 1 se conserva más abajo, en
 «Plan original», porque sus listas de piezas siguen siendo útiles.

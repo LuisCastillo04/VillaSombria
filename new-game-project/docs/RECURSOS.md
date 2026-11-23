@@ -51,8 +51,9 @@ No forman parte del contenido del juego.
 
 ### Modelos 3D hechos en Blender (en curso)
 
-- **Estado:** el buzón de la plaza es el primer modelo (2026-11-23). La lista de modelos
-  migrados está en [blender/README.md](blender/README.md) y en `ModelCatalog.MODELS`.
+- **Estado:** 68 modelos en el juego desde el 2026-11-23 (atrezo, mobiliario, fachadas, piezas
+  de los escenarios y los diez personajes). Lista en
+  [blender/INVENTARIO_MODELOS.md](blender/INVENTARIO_MODELOS.md) y en `ModelRegistry.MODELS`.
 - **Origen:** modelos propios, hechos en Blender 5.3 a partir de las piezas procedurales de hoy.
 - **Integración:** GLB en `assets/modelos/<categoría>/`, fusionados en el lote de cada escenario;
   el código procedural se conserva como alternativa.

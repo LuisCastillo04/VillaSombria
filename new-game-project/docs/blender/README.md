@@ -23,6 +23,7 @@ auditoría y planificación. Desde la sesión 2 (2026-11-23) hay modelos de Blen
 | 11 | [11-sesion-5-interiores.md](11-sesion-5-interiores.md) | Sesión 5: auditoría de los interiores, piezas propias, optimización de las estanterías y pruebas |
 | 12 | [12-sesion-6-exteriores.md](12-sesion-6-exteriores.md) | Sesión 6: exteriores (atrezo, fachadas, piezas de la plaza y la estación) |
 | 13 | [13-sesion-7-personajes.md](13-sesion-7-personajes.md) | Sesión 7: personajes (pivotes, orientación, prototipo, validación de animaciones) |
+| 14 | [14-sesion-8-integracion.md](14-sesion-8-integracion.md) | Sesión 8: arquitectura definitiva, inventario, rendimiento, pruebas, recuperación, problemas conocidos y recomendaciones |
 | — | [INVENTARIO_MODELOS.md](INVENTARIO_MODELOS.md) | Inventario generado de los modelos migrados (`python blender/scripts/inventario.py`) |
 | — | [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md) | Registro vivo: sesión, rama, último commit, pruebas, decisiones y próxima acción |
 
@@ -62,15 +63,25 @@ auditoría y planificación. Desde la sesión 2 (2026-11-23) hay modelos de Blen
 | Qué no se migra | Suelos, paredes, barreras, muretes, setos, alfombras, marcador, rótulos |
 | Prototipo | `PropsKit.mailbox` (el buzón de la plaza) |
 
-## Punto de partida de la sesión 2
+## Estado final (sesión 8, 2026-11-23)
 
-- **Rama:** `feature/blender-auditoria`, creada desde `main` en `85b9f82` (PR #16, sonido
-  adaptativo), que contenía todo el código del juego. La única rama con commits fuera de `main`
-  era `docs/sustentacion-academica` (sólo documentos de la sustentación): no se incluyó.
-- **Commit:** el último de `feature/blender-auditoria`, el que añade este índice
-  (`docs(blender): registrar la línea base y el punto de partida de la sesión 2`).
-- **Rama nueva:** `feature/blender-prototipo-buzon`, desde ese commit.
-- **Pendiente sin confirmar en la carpeta de trabajo:** `new-game-project/project.godot` y
-  `new-game-project/scenes/main/main_menu.tscn`, modificados por el editor de Godot abierto (quita
-  `MCPRuntime` y el complemento, reordena autoloads y añade UIDs). No forman parte de la migración.
-- **Primer paso:** [08-sesion-2.md](08-sesion-2.md), paso 1.
+- **68 modelos de Blender en el juego** (251 usos): atrezo, mobiliario, detalles de fachada, piezas
+  propias de los cinco escenarios y los diez personajes. Todos con su `.blend`, su GLB y su código
+  procedural de respaldo. Lista completa en [INVENTARIO_MODELOS.md](INVENTARIO_MODELOS.md).
+- **Sin cambios de comportamiento:** mismas colisiones, navegación, pistas, salidas, rutinas,
+  animaciones y guardado (pruebas de equivalencia por pieza y por escenario).
+- **Rendimiento:** mismas llamadas de dibujado; archivo -26 % y mansión -16 % de primitivas por
+  fotograma (estanterías sin caras ocultas). Medidas en [14-sesion-8-integracion.md](14-sesion-8-integracion.md#4-rendimiento-83).
+- **Cómo seguir:** crear o retocar un modelo, [09-sistema-de-modelos.md](09-sistema-de-modelos.md);
+  resumen y recomendaciones, [14-sesion-8-integracion.md](14-sesion-8-integracion.md).
+
+| Sesión | Rama | Resultado |
+| --- | --- | --- |
+| 1 | `feature/blender-auditoria` | Auditoría y plan |
+| 2 | `feature/blender-prototipo-buzon` | Prototipo: el buzón; R4 y R5 resueltos |
+| 3 | `feature/blender-arquitectura` | Arquitectura reutilizable, validación y `migrar.py` |
+| 4 | `feature/blender-objetos` | Mobiliario y objetos compartidos (20 modelos) |
+| 5 | `feature/blender-interiores` | Piezas de los interiores y estanterías optimizadas (34) |
+| 6 | `feature/blender-exteriores` | Atrezo exterior, fachadas, plaza y estación (58) |
+| 7 | `feature/blender-personajes` | Detective y nueve NPC (68) |
+| 8 | `feature/blender-integracion` | Revisión, rendimiento, recuperación y documentación final |

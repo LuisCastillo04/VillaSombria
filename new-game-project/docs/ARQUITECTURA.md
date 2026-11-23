@@ -304,9 +304,11 @@ el kit pide el modelo por su id y, si no se puede usar (falta el GLB, no se lee 
 como nodo: sus triángulos se fusionan en el lote del escenario (`MeshBatcher.add_surfaces`), con
 los mismos tres materiales y la misma variación de tono por cara, así que un escenario sigue
 siendo tres mallas. Colisiones, luces, rótulos e interacciones siguen en el kit: migrar una pieza
-no cambia la navegación, el guardado ni el mapa. Fuentes `.blend` y scripts en `blender/`, fuera
-del proyecto (Godot no necesita Blender). Procedimiento y estado en
-[blender/README.md](blender/README.md).
+no cambia la navegación, el guardado ni el mapa. Los personajes hacen lo mismo pivote a pivote:
+`CharacterModel.build(look, id)` toma la malla de cada uno de sus seis pivotes de
+`personaje_<id>.glb` y conserva su animación procedural. La tabla de modelos está en
+`ModelRegistry`. Fuentes `.blend` y scripts en `blender/`, fuera del proyecto (Godot no necesita
+Blender). Procedimiento y estado en [blender/README.md](blender/README.md).
 
 ## Decisiones técnicas
 

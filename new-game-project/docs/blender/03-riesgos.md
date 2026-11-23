@@ -39,3 +39,29 @@ en el plan, en la fase donde aparecen.
 5. **Verificación completa** (`tools/verificar.ps1`) en una copia limpia de la rama antes de dar
    por terminada cada sesión.
 6. **Sin luces, cámaras ni colisiones dentro de los GLB.** Sólo mallas.
+
+## Estado de los riesgos al terminar la sesión 8
+
+| Id | Estado | Cómo se cubre |
+| --- | --- | --- |
+| R1 | Controlado | Las colisiones se quedan en el kit; huella de escenarios y prueba por escenario con y sin modelos (mismas colisiones) |
+| R2 | Controlado | Ningún GLB trae colisiones (`validar_modelos`); `test_plaza_keeps_its_batches` exige una sola colisión estática |
+| R3 | Controlado | `validar_modelos` compara la caja de cada objeto con la procedural (±5 cm); la colección `Referencia` enseña las colisiones en Blender |
+| R4 | Resuelto (sesión 2) | GLB con color en sRGB; importación sin compresión |
+| R5 | Resuelto (sesión 2) | Tono por centro del polígono; número de polígono en el GLB (sesión 4) |
+| R6 | Controlado | Pruebas de orientación (buzón) y de equivalencia (cara frontal) de cada pieza y de cada pivote |
+| R7 | Controlado | Los modelos se fusionan en el lote: mismas llamadas de dibujado en los cinco escenarios |
+| R8 | Controlado | `.blend` fuera del proyecto; el proyecto importa sin Blender |
+| R9 | Controlado | `*.glb`/`*.blend` binarios; `*.blend1` ignorados; finales LF en `blender/` |
+| R10 | Controlado | `CharacterModel` mantiene su interfaz; `test_personajes` compara pivotes y animación |
+| R11 | Resuelto de otra forma | Un GLB por personaje con sus colores (no por papel): el aspecto es exacto |
+| R12 | Controlado | Ningún mueble con pistas ha cambiado de forma ni de sitio (pruebas de equivalencia) |
+| R13 | Sin cambios | No se han migrado paredes, setos ni muretes |
+| R14 | Controlado | `exportar_glb.py` fija las opciones y guarda versiones y `sha256` en el registro |
+| R15 | No aplica | La referencia es JSON con polígonos |
+| R16 | Medido | Caché de 3,1 MB con los 68 modelos; primera construcción +26 a +75 ms, después igual o menos que el código |
+| R17 | Controlado | `project.godot` y `main_menu.tscn` sin cambios en las ocho sesiones |
+| R18 | Controlado | Trabajo en un `worktree` aparte; comprobación de otras sesiones al empezar |
+| R19 | Abierto | `test_integration` sigue siendo intermitente con el equipo cargado (no ha fallado en estas sesiones) |
+| R20 | Controlado | `docs/RECURSOS.md` registra los modelos (propios, hechos con Blender a partir del código del juego) |
+

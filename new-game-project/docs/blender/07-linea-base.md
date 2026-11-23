@@ -96,3 +96,4 @@ archivo 3,8 (la mansión y el archivo incluyen NPC que se mueven). Revisadas a o
 | Cierre de la sesión 5 (`f07f3f7`) | **544 correctas, 0 con fallos**, sin `ERROR:` | 34 modelos; archivo 73.692 primitivas por fotograma (antes 99.872), mansión 118.270 (antes 140.968); mismas llamadas de dibujado |
 | Cierre de la sesión 6 (`7437acb`) | **544 correctas, 0 con fallos**, sin `ERROR:` | 58 modelos; plaza 236 / 99.972 y estación 230 / 29.676 (llamadas / primitivas), iguales con y sin modelos |
 | Cierre de la sesión 7 (`e7526e2`) | **547 correctas, 0 con fallos**, sin `ERROR:` | 68 modelos (10 personajes); conversación con Rosa: 235 llamadas de dibujado con y sin modelos |
+| Cierre de la sesión 8 (`93ae682` + documentación) | **548 correctas, 0 con fallos**, sin `ERROR:` | Llamadas / primitivas con modelos: plaza 236 / 99.972, café 235 / 34.910, mansión 327 / 118.270, archivo 226 / 73.692, estación 230 / 29.676 |
