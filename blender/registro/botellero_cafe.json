@@ -1,0 +1,48 @@
+{
+	"id": "botellero_cafe",
+	"blend": "blender/fuentes/escenario/botellero_cafe.blend",
+	"glb": "new-game-project/assets/modelos/escenario/botellero_cafe.glb",
+	"fecha": "2026-11-23T02:11:55",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 1452,
+	"objetos": {
+		"BotelleroCafe": {
+			"triangulos": 1452,
+			"caja_godot": {
+				"min": [
+					-3.5,
+					1.4,
+					-0.025
+				],
+				"max": [
+					3.5,
+					3.2,
+					0.28
+				]
+			}
+		}
+	},
+	"sha256": "b2a5a55e477117a65d2babcffcbfb2c04c5f5866c999a355929dd795340bddfa",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

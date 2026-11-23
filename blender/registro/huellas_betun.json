@@ -1,0 +1,48 @@
+{
+	"id": "huellas_betun",
+	"blend": "blender/fuentes/escenario/huellas_betun.blend",
+	"glb": "new-game-project/assets/modelos/escenario/huellas_betun.glb",
+	"fecha": "2026-11-23T02:12:10",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 60,
+	"objetos": {
+		"HuellasBetun": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.22,
+					0.039,
+					-2.62
+				],
+				"max": [
+					0.07,
+					0.051,
+					0.14
+				]
+			}
+		}
+	},
+	"sha256": "fe1893b7ab487d1e212c7642b0d2fd7a2d6cca1d8c6a8ba3b9636b7d7d55c446",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

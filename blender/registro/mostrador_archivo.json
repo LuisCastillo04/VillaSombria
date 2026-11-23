@@ -1,0 +1,48 @@
+{
+	"id": "mostrador_archivo",
+	"blend": "blender/fuentes/escenario/mostrador_archivo.blend",
+	"glb": "new-game-project/assets/modelos/escenario/mostrador_archivo.glb",
+	"fecha": "2026-11-23T02:12:16",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 24,
+	"objetos": {
+		"MostradorArchivo": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-3.1,
+					0.0,
+					-0.43
+				],
+				"max": [
+					3.1,
+					1.16,
+					0.43
+				]
+			}
+		}
+	},
+	"sha256": "cb74df8b4d82f537e75f5612bcb48eb2728682a54c6803cfbe234e2fc7cdc547",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}
