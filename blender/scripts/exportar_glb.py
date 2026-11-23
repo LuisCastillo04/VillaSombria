@@ -193,6 +193,11 @@ def main():
         "uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
         "opciones": OPCIONES,
     }
+    # Si el GLB no ha cambiado, se conserva el registro anterior (con su fecha): volver a exportar
+    # todo no deja cambios en Git.
+    anterior = vs.leer_json(vs.ruta_registro(id_modelo)) if os.path.exists(vs.ruta_registro(id_modelo)) else {}
+    if anterior.get("sha256") == huella:
+        registro["fecha"] = anterior.get("fecha", registro["fecha"])
     vs.escribir_json(vs.ruta_registro(id_modelo), registro)
     print("VillaSombria: %s -> %s (%d triángulos, sha256 %s)" % (id_modelo, destino, triangulos, huella[:12]))
 
