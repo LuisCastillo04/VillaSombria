@@ -430,7 +430,7 @@ func _draw_plaza() -> void:
 
 ## Muretes, setos, coche, quiosco y bultos: piezas bajas que van antes que los edificios.
 func _draw_ground_details() -> void:
-	_draw_box(Rect2(-14.0, 12.95, 35.0, 0.5), 0.0, 0.6, STONE)
+	_draw_box(Rect2(-13.82, 12.95, 34.82, 0.5), 0.0, 0.6, STONE)
 	_draw_box(Rect2(14.95, -7.0, 0.5, 20.0), 0.0, 0.6, STONE)
 	_draw_box(Rect2(15.0, -6.95, 15.0, 0.7), 0.0, 0.8, FOLIAGE_DARK)
 	_draw_ground_shadow(Rect2(7.45, -9.85, 4.1, 1.7), 1.2, 0.18)
@@ -468,7 +468,8 @@ func _draw_square_props() -> void:
 
 
 func _draw_mansion_gate() -> void:
-	for wall in [Rect2(-14.25, -13.7, 0.5, 8.0), Rect2(-14.25, -0.3, 0.5, 8.0)]:
+	# El tramo del sur termina en la esquina del banco (ver `GATE_WALLS` en plaza.gd).
+	for wall in [Rect2(-14.25, -13.7, 0.5, 8.0), Rect2(-14.25, -0.3, 0.5, 4.3)]:
 		_draw_box(wall, 0.0, 2.2, STONE_DARK)
 	for pillar_z: float in [-5.4, -0.6]:
 		var pillar := Rect2(-14.45, pillar_z - 0.45, 0.9, 0.9)

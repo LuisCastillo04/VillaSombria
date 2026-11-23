@@ -27,6 +27,11 @@ const PLANTER_FLOWERS: Array[Vector2] = [
 	Vector2(36.0, 0.74), Vector2(108.0, 0.72), Vector2(180.0, 0.74), Vector2(252.0, 0.72), Vector2(324.0, 0.74),
 ]
 
+## Valla de obras (`work_barrier`): largo del tablero, inclinación de las patas y amarillo de aviso.
+const BARRIER_LENGTH := 1.3
+const BARRIER_LEG_ANGLE := 0.28
+const BARRIER_YELLOW := Color("d9a521")
+
 
 static func street_lamp(location: LocationBase, where: Vector3, shadows: bool = false) -> void:
 	var procedural := func(_tint: Color) -> void: _street_lamp_mesh(location.batch, where)
@@ -143,6 +148,52 @@ static func _octagon_ring(batch: MeshBatcher, center: Vector3, outer: float, inn
 	for index in 8:
 		var next := (index + 1) % 8
 		batch.face(PackedVector3Array([outside[index], outside[next], inside[next], inside[index]]), color, Vector3.UP)
+
+
+## Valla de obras: tablero con franjas negras y amarillas sobre dos caballetes de madera. `where`
+## es el centro de su base; el tablero va por el eje X local.
+static func work_barrier(location: LocationBase, where: Vector3, yaw_degrees: float = 0.0) -> void:
+	var previous := location.batch.xform
+	location.batch.xform = previous * Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_degrees)), where)
+	var procedural := func(_tint: Color) -> void: _work_barrier_mesh(location.batch)
+	ModelCatalog.draw(location, "valla_obras", Transform3D.IDENTITY, procedural)
+	location.collider(Vector3(0.0, 0.5, 0.0), Vector3(BARRIER_LENGTH + 0.1, 1.0, 0.6))
+	location.batch.xform = previous
+
+
+static func _work_barrier_mesh(batch: MeshBatcher) -> void:
+	var half := BARRIER_LENGTH * 0.5
+	var board_y := 0.82
+	var board := Vector2(BARRIER_LENGTH, 0.2)
+	batch.box(Vector3(0.0, board_y, 0.0), Vector3(board.x, board.y, 0.04), Palette.INK)
+	# Franjas amarillas inclinadas, recortadas al tablero, por delante y por detrás (1 mm de aire).
+	var rect := PackedVector2Array([
+		Vector2(-half, board_y - board.y * 0.5), Vector2(half, board_y - board.y * 0.5),
+		Vector2(half, board_y + board.y * 0.5), Vector2(-half, board_y + board.y * 0.5),
+	])
+	var stripe := 0.12
+	var x := -half - board.y
+	while x < half:
+		var band := PackedVector2Array([
+			Vector2(x, board_y - board.y * 0.5), Vector2(x + stripe, board_y - board.y * 0.5),
+			Vector2(x + stripe + board.y, board_y + board.y * 0.5), Vector2(x + board.y, board_y + board.y * 0.5),
+		])
+		for piece: PackedVector2Array in Geometry2D.intersect_polygons(band, rect):
+			for z: float in [0.021, -0.021]:
+				var points := PackedVector3Array()
+				for point in piece:
+					points.append(Vector3(point.x, point.y, z))
+				batch.face(points, BARRIER_YELLOW, Vector3.BACK if z > 0.0 else Vector3.FORWARD)
+		x += stripe * 2.0
+	# Caballetes: dos patas abiertas en cada extremo, unidas por un travesaño bajo.
+	var saved := batch.xform
+	for leg_x: float in [-half + 0.12, half - 0.12]:
+		for side: float in [-1.0, 1.0]:
+			batch.xform = saved * Transform3D(Basis(Vector3.RIGHT, -side * BARRIER_LEG_ANGLE), Vector3(leg_x, 0.0, side * 0.24))
+			batch.box(Vector3(0.0, 0.42, 0.0), Vector3(0.05, 0.86, 0.04), Palette.WOOD_LIGHT)
+		batch.xform = saved
+		batch.box(Vector3(leg_x, 0.3, 0.0), Vector3(0.04, 0.05, 0.32), Palette.WOOD)
+	batch.xform = saved
 
 
 static func hedge(location: LocationBase, center: Vector3, size: Vector3) -> void:

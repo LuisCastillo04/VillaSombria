@@ -9,6 +9,18 @@ const SIDEWALK_TINT := Color("e3ddd2")
 const VERGE_TINT := Color("3f4640")
 ## Centro de la jardinera octogonal del árbol de la plaza (PropsKit.planter).
 const PLANTER := Vector3(-2.0, 0.0, 0.3)
+## Banco Valdés: origen de su fachada (mira hacia +X), hoja de la puerta (ancho y alto), aviso y
+## valla de obras, en el sistema local de la fachada (X a lo largo, +Z hacia la calle).
+const BANK_ORIGIN := Vector3(-14.0, 0.0, 9.0)
+const BANK_DOOR := Vector2(1.7, 2.3)
+const BANK_NOTICE := Vector3(0.0, 3.55, 0.0)
+const BANK_NOTICE_SIZE := Vector2(1.9, 0.75)
+const BANK_BARRIER := Vector3(0.35, 0.0, 1.45)
+const BANK_BARRIER_YAW := 8.0
+## Tapia de la mansión, a cada lado de la verja: tramos en X local de su sistema (origen en
+## (-14; -3), girado 90°: X local = 3 - Z). El tramo de la izquierda termina en la esquina del
+## banco (Z = 4): antes medía 8 m, llegaba a Z = 7,7 y tapaba media fachada y una ventana.
+const GATE_WALLS: Array[Vector2] = [Vector2(-7.0, -2.7), Vector2(2.7, 10.7)]
 
 
 func build() -> void:
@@ -131,10 +143,13 @@ func _archive_portico_mesh() -> void:
 
 
 ## Tapia, pilares con sus faroles y verja de la mansión. Colisiones y luces: `_build_mansion_gate`.
+## La albardilla vuela 10 cm por cada extremo, salvo el que toca el banco, que queda enrasado.
 func _mansion_gate_mesh() -> void:
-	for x: float in [-6.7, 6.7]:
-		batch.box(Vector3(x, 1.1, 0.0), Vector3(8.0, 2.2, 0.5), Palette.STONE_DARK)
-		batch.box(Vector3(x, 2.26, 0.0), Vector3(8.2, 0.12, 0.66), Palette.STONE)
+	for span: Vector2 in GATE_WALLS:
+		batch.box(Vector3((span.x + span.y) * 0.5, 1.1, 0.0), Vector3(span.y - span.x, 2.2, 0.5), Palette.STONE_DARK)
+		var cap_from := span.x if span == GATE_WALLS[0] else span.x - 0.1
+		var cap_to := span.y + 0.1
+		batch.box(Vector3((cap_from + cap_to) * 0.5, 2.26, 0.0), Vector3(cap_to - cap_from, 0.12, 0.66), Palette.STONE)
 	for x: float in [-2.4, 2.4]:
 		batch.box(Vector3(x, 1.7, 0.0), Vector3(0.9, 3.4, 0.9), Palette.STONE)
 		batch.box(Vector3(x, 3.48, 0.0), Vector3(1.1, 0.16, 1.1), Palette.STONE_LIGHT)
@@ -183,8 +198,8 @@ func _build_mansion_gate() -> void:
 	batch.xform = saved
 	# Tapia, pilares y verja de hierro.
 	ModelCatalog.draw(self, "verja_mansion", Transform3D.IDENTITY, func(_tint: Color) -> void: _mansion_gate_mesh())
-	for x: float in [-6.7, 6.7]:
-		collider(Vector3(x, 1.1, 0.0), Vector3(8.0, 2.2, 0.5))
+	for span: Vector2 in GATE_WALLS:
+		collider(Vector3((span.x + span.y) * 0.5, 1.1, 0.0), Vector3(span.y - span.x, 2.2, 0.5))
 	for x: float in [-2.4, 2.4]:
 		collider(Vector3(x, 1.7, 0.0), Vector3(0.9, 3.4, 0.9))
 		add_point_light(Vector3(x, 2.6, 1.1), Color("ffb765"), 2.2, 6.0)
@@ -196,10 +211,18 @@ func _build_mansion_gate() -> void:
 	BuildingKit.end(self)
 
 
+## Banco Valdés, cerrado por obras: puerta doble de madera entre dos columnas de ventanas
+## iluminadas, aviso sobre la puerta y una valla delante. La puerta es sólo fachada: no hay salida
+## ni interacción, y su marco, su escalón y la valla tienen colisión.
 func _build_bank() -> void:
-	BuildingKit.begin(self, Vector3(-14.0, 0.0, 9.0), 90.0)
+	BuildingKit.begin(self, BANK_ORIGIN, 90.0)
 	BuildingKit.body(self, 10.0, 6.0, 6.0, Palette.PLASTER, Palette.ROOF, 1.8)
-	BuildingKit.window_grid(self, 9.0, [2.3, 4.5], 3, Vector2(1.1, 1.5), [false, true, false, false, false, true])
+	for x: float in [-3.0, 3.0]:
+		for y: float in [2.3, 4.5]:
+			BuildingKit.window(self, x, y, 1.1, 1.5, true)
+	BuildingKit.double_door(self, 0.0, BANK_DOOR.x, BANK_DOOR.y)
+	BuildingKit.notice(self, BANK_NOTICE, BANK_NOTICE_SIZE, "CERRADO POR\nMANTENIMIENTO")
+	PropsKit.work_barrier(self, BANK_BARRIER, BANK_BARRIER_YAW)
 	ModelCatalog.draw(self, "rotulo_banco", Transform3D(Basis.IDENTITY, Vector3(0.0, 5.45, 0.1)), func(_tint: Color) -> void:
 		batch.box(Vector3(0.0, 5.45, 0.1), Vector3(5.0, 0.55, 0.06), Palette.STONE_DARK)
 	)
@@ -246,7 +269,9 @@ func _build_street_furniture() -> void:
 
 
 func _build_edges() -> void:
-	PropsKit.low_wall(self, Vector3(3.5, 0.3, 13.2), Vector3(35.0, 0.6, 0.5))
+	# El murete sur arranca 7 cm por delante del zócalo del banco: así su albardilla (que vuela 7 cm)
+	# termina justo donde empieza el zócalo y las dos caras superiores (a 0,7 m) no se pisan.
+	PropsKit.low_wall(self, Vector3(3.59, 0.3, 13.2), Vector3(34.82, 0.6, 0.5))
 	PropsKit.low_wall(self, Vector3(15.2, 0.3, 3.0), Vector3(0.5, 0.6, 20.0))
 	PropsKit.hedge(self, Vector3(22.5, 0.4, -6.6), Vector3(15.0, 0.8, 0.7))
 	# Límites invisibles del área jugable.
@@ -278,4 +303,5 @@ func _register_points() -> void:
 	face_marker("terraza", Vector3(-4.6, 0.0, -14.0))
 	add_marker("calle_oeste", Vector3(-10.0, 0.0, -9.0))
 	add_marker("calle_este", Vector3(13.0, 0.0, -9.4))
-	add_marker("puerta_banco", Vector3(-11.8, 0.0, 9.0))
+	# Delante del banco, más allá de la valla de obras.
+	add_marker("puerta_banco", Vector3(-11.6, 0.0, 9.0))
