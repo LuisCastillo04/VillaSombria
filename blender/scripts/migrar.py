@@ -10,8 +10,9 @@ Pasos:
   1. Godot captura las referencias desde los escenarios (tools/modelos/exportar_referencias.tscn).
   2. Blender crea el .blend de cada modelo que aún no lo tenga (importar_referencia.py) y exporta
      todos a GLB (exportar_glb.py). Un .blend existente nunca se sobrescribe sin --forzar.
-  3. Godot importa los GLB; los .import nuevos se ajustan (sin LOD, mallas de sombra ni
-     tangentes: el juego sólo lee los triángulos) y se vuelven a importar.
+  3. Godot importa los GLB; los .import nuevos se ajustan (sin LOD, mallas de sombra, tangentes
+     ni compresión: el juego sólo lee los triángulos y necesita sus posiciones exactas) y se
+     vuelven a importar.
   4. Godot valida los modelos (tools/modelos/validar_modelos.tscn).
 Las rutas de los programas se pueden cambiar con GODOT_BIN y BLENDER_BIN.
 """
@@ -30,6 +31,10 @@ AJUSTES_IMPORTACION = {
     "meshes/ensure_tangents": "false",
     "meshes/generate_lods": "false",
     "meshes/create_shadow_meshes": "false",
+    # Sin compresión: comprimidas, las posiciones se guardan con 16 bits dentro de la caja del
+    # modelo (0,1 mm en una pieza de 7 m) y el centro de algún polígono cambia de celda en la
+    # rejilla de la variación de tono.
+    "meshes/force_disable_compression": "true",
 }
 
 

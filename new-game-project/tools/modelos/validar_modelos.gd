@@ -10,7 +10,12 @@ const BLENDER_DIR := "../blender"
 const VALID_MATERIALS := ["vs_opaco", "vs_brillo", "vs_suelo", "vs_tinte"]
 ## Tolerancia de la caja del modelo frente a la de la pieza procedural (05-estandares.md).
 const BOX_TOLERANCE := 0.05
-const IMPORT_SETTINGS := ["meshes/generate_lods=false", "meshes/create_shadow_meshes=false", "meshes/ensure_tangents=false"]
+const IMPORT_SETTINGS := [
+	"meshes/generate_lods=false",
+	"meshes/create_shadow_meshes=false",
+	"meshes/ensure_tangents=false",
+	"meshes/force_disable_compression=true",
+]
 
 var _errors := 0
 var _warnings := 0

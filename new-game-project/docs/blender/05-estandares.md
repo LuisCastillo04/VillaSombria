@@ -150,9 +150,11 @@ en la versión instalada, el script se detiene en lugar de exportar con otra con
 ## Importación en Godot
 
 - El `.glb` y su `.glb.import` se confirman juntos.
-- Importación sin LOD, sin mallas de sombra y sin tangentes (`meshes/generate_lods`,
-  `meshes/create_shadow_meshes` y `meshes/ensure_tangents` a `false`): el juego lee los
-  triángulos y los fusiona en el lote. `blender/scripts/migrar.py` ajusta los `.import` nuevos y
+- Importación sin LOD, sin mallas de sombra, sin tangentes y sin compresión
+  (`meshes/generate_lods`, `meshes/create_shadow_meshes` y `meshes/ensure_tangents` a `false`,
+  `meshes/force_disable_compression` a `true`): el juego lee los triángulos y los fusiona en el
+  lote. Comprimidas, las posiciones tienen 16 bits dentro de la caja del modelo (0,1 mm en una
+  pieza de 7 m) y el tono de algún polígono cambiaría. `blender/scripts/migrar.py` ajusta los `.import` nuevos y
   `validar_modelos` avisa si falta.
 - No se edita la escena importada ni se le añaden scripts. Si alguna vez hace falta, escena
   heredada aparte.
