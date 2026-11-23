@@ -86,3 +86,10 @@ Blender en esta sesión.
 El cambio de R5 altera el reparto de tonos de todos los escenarios (no su amplitud). Diferencia
 media de las capturas antes/después de R5 en interiores, sin lluvia: café 0,9; mansión 3,9;
 archivo 3,8 (la mansión y el archivo incluyen NPC que se mueven). Revisadas a ojo: mismo aspecto.
+
+## Sesiones 3 y 4 (2026-11-23)
+
+| Momento | Batería | Otras medidas |
+| --- | --- | --- |
+| Cierre de la sesión 3 (`3c5cf14`) | 542 correctas, 0 con fallos | Pipeline determinista: rehacer el `.blend` del buzón desde cero da el mismo GLB (mismo `sha256`) |
+| Cierre de la sesión 4 (`66fee96` + documentación) | **543 correctas, 0 con fallos**, sin `ERROR:` | 20 modelos, 86 usos; llamadas de dibujado iguales con y sin modelos (café 235, mansión 328, archivo 226) |

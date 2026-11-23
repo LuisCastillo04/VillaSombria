@@ -53,11 +53,11 @@ prisma por libro).
 | Función | Uso | Tri. (capas) | Caja (m) | Colisión | Luz / rótulo | Narrativa / notas | Exp. directa | Blender | Riesgo | Prio. |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `mailbox` | Plaza ×1 | 68 (opaco) | 0,60 × 1,24 × 0,60 | 0,5 × 1,2 × 0,5 | — | Ninguna; no aparece en datos, mapa ni diálogos | Alta | Sí | **Mínimo** | **Migrado (sesión 2)**: `assets/modelos/atrezo/buzon.glb` |
-| `barrel` | Plaza, estación, café ×1 | 84 | 0,76 × 0,90 × 0,76 | 0,65 × 0,9 × 0,65 | — | — | Alta | Sí | Bajo | 3 |
-| `crate(size, yaw)` | Plaza ×2, estación ×2, café ×1 (0,7 y 0,9) | 24 + 12 | 0,93 × 0,90 × 0,93 (0,9) | `solid` del tamaño | — | Escala uniforme | Alta | Sí | Bajo | 3 |
+| `barrel` | Plaza, estación, café ×1 | 84 | 0,76 × 0,90 × 0,76 | 0,65 × 0,9 × 0,65 | — | — | Alta | Sí | Bajo | **Migrado (sesión 4)**: `barril` |
+| `crate(size, yaw)` | Plaza ×2, estación ×2, café ×1 (0,7 y 0,9) | 24 + 12 | 0,93 × 0,90 × 0,93 (0,9) | `solid` del tamaño | — | Escala uniforme | Alta | Sí | Bajo | **Migrado (sesión 4)**: `caja` |
 | `bench(yaw)` | Plaza ×3, estación ×2 | 108 | 1,80 × 0,91 × 0,46 | 1,9 × 0,9 × 0,5 | — | Puesto «banco_anden» cerca | Alta | Sí | Bajo | 3 |
 | `street_lamp(shadows)` | Plaza ×6 (4 con sombra), estación ×4 (1) | 72 + 20 brillo | 0,52 × 3,98 × 0,45 | 0,3 × 3,0 × 0,3 | `OmniLight3D` 5,0 / 9,5 m | La luz se queda en el kit | Alta | Sí | Bajo | 3 |
-| `cafe_table` | Plaza ×2, café ×5 | 136 | 1,64 × 0,76 × 0,98 | 3 cajas (mesa y dos asientos) | — | Puestos «mesa_*» del café cerca | Alta | Sí | Bajo | 3 |
+| `cafe_table` | Plaza ×2, café ×5 | 136 | 1,64 × 0,76 × 0,98 | 3 cajas (mesa y dos asientos) | — | Puestos «mesa_*» del café cerca | Alta | Sí | Bajo | **Migrado (sesión 4)**: `mesa_cafe` |
 | `signpost(labels)` | Plaza ×1 (3 rótulos), estación ×1 (1) | 56 | 1,90 × 2,70 × 0,15 | 0,2 × 2,4 × 0,2 | `Label3D` por flecha | Tableros por número de rótulos | Media | Sí | Bajo | 3 |
 | `newsstand(yaw)` | Plaza ×1 | 192 | 3,00 × 2,27 × 2,00 | `solid` 2,6 × 2,1 × 1,5 | «PRENSA» | **Pista `periodico_aniversario` al lado** | Alta | Sí | Medio | 3 |
 | `car(yaw)` | Plaza ×1 | 180 + 72 brillo | 1,97 × 1,37 × 4,26 | 1,9 × 1,4 × 4,2 | — | Faros en capa de brillo | Alta | Sí (remodelar) | Bajo | 3 |
@@ -69,22 +69,22 @@ prisma por libro).
 
 | Función | Uso | Tri. (capas) | Caja (m) | Colisión | Luz | Narrativa / notas | Exp. directa | Blender | Riesgo | Prio. |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `chair(yaw, color)` | Café ×3, mansión ×2, archivo ×3 | 72 | 0,50 × 1,11 × 0,50 | 0,5 × 1,0 × 0,5 | — | Color por parámetro (3 colores) | Alta | Sí | Bajo | 4 |
-| `armchair(yaw, color)` | Mansión ×2 | 48 | 1,02 × 1,02 × 0,92 | 1,0 × 1,1 × 0,95 | — | Puesto «salon_este» cerca | Alta | Sí | Bajo | 4 |
-| `plant` | Café ×1, mansión ×3 | 60 | 0,84 × 1,26 × 0,73 | 0,5 × 0,8 × 0,5 | — | — | Alta | Sí | Bajo | 4 |
-| `floor_lamp(energy)` | Café ×1, mansión ×2, archivo ×1 | 36 + 24 brillo | 0,61 × 1,92 × 0,62 | 0,28 × 1,2 × 0,28 | `OmniLight3D` | La luz se queda en el kit | Alta | Sí | Bajo | 4 |
-| `ceiling_lamp(energy, range, shadows)` | Café ×6, mansión ×5, archivo ×3 | 12 + 28 brillo | 0,68 × 0,90 × 0,68 | — | `OmniLight3D` (sombra en 5) | Sin colisión | Alta | Sí | Bajo | 4 |
-| `filing_cabinet(yaw)` | Archivo ×4 | 108 | 0,90 × 1,84 × 0,64 | `solid` 0,9 × 1,8 × 0,6 | — | Puesto «ficheros» de Hilario | Alta | Sí | Bajo | 4 |
-| `grandfather_clock(yaw)` | Mansión ×1 (vestíbulo) | 84 | 0,70 × 2,40 × 0,48 | `solid` 0,6 × 2,2 × 0,4 | — | **Temático** (el caso gira en torno a relojes) | Alta | Sí | Bajo | 4 |
-| `back_window(size, yaw)` | Café ×1, mansión ×2, archivo ×1 | 36 + 12 brillo | 1,70 × 2,30 × 0,12 (1,5 × 2,1) | — | — | Cuatro medidas | Media | Variantes | Bajo | 4 |
-| `painting(size, color, yaw)` | Mansión ×1, archivo ×1 | 24 | 1,84 × 1,14 × 0,07 | — | — | Lienzo de color por parámetro | Media | Variantes | Bajo | 4 |
-| `bed(yaw, blanket, size)` | Café ×1 (1,6 × 2,2), mansión ×2 (2,0 × 2,3; 1,2 × 2,0) | 60 | 1,50 × 1,20 × 2,15 (1,5 × 2,1) | 0,8 m de alto | — | **Cama del café: `RestPoint` y aparición «cama»** | Media | Variantes | Medio | 4 |
-| `dresser(width, mirror, yaw)` | Café ×1, mansión ×3 (1,4; 1,6; 1,8; 2,0 con espejo) | 48 / 72 | 1,46 × 0,88 × 0,54 (1,4) | `solid` ancho × 0,84 × 0,5 | — | **Office: pista `foto_clara`; cuarto de Lucía: recolocada el 2026-11-22** | Media | Variantes | Medio | 4 |
-| `bookshelf(width, height, yaw)` | Mansión ×3, archivo ×8 (4 medidas) | 1.356 (3,2 m) | 3,28 × 2,68 × 0,45 | ancho × alto × 0,45 | — | Una caja por libro: buena candidata a reducir triángulos | Media | Variantes | Bajo | 4 |
-| `sofa(yaw, color, length)` | Mansión ×1 | 48 | 2,60 × 1,01 × 0,97 | 2,6 × 1,1 × 0,98 | — | Puesto «salon_sofa» cerca | Alta | Sí | Bajo | 4 |
-| `desk(size)` | Mansión ×1 (despacho) | 60 | 2,60 × 0,84 × 1,20 | `solid` del tamaño | — | **Pista `copa_lavada` encima (y = 0,6)** | Alta | Sí | Medio | 4 |
-| `table(size, color)` | Café ×1, mansión ×4, archivo ×1 (6 medidas) | 60 | según `size` | `size` | — | **Mesas de `carta_amor`, `lista_invitados`, `libro_bodega`** | Baja | Variantes | Medio | 4 |
-| `fireplace(width)` | Mansión ×1 | 36 + 12 brillo | 2,80 × 2,10 × 0,80 | `solid` 2,4 × 2,0 × 0,6 | `OmniLight3D` | Puesto «salon_chimenea» | Alta | Sí | Bajo | 4 |
+| `chair(yaw, color)` | Café ×3, mansión ×2, archivo ×3 | 72 | 0,50 × 1,11 × 0,50 | 0,5 × 1,0 × 0,5 | — | Color por parámetro (3 colores) | Alta | Sí | Bajo | **Migrado (sesión 4)**: `silla` |
+| `armchair(yaw, color)` | Mansión ×2 | 48 | 1,02 × 1,02 × 0,92 | 1,0 × 1,1 × 0,95 | — | Puesto «salon_este» cerca | Alta | Sí | Bajo | **Migrado (sesión 4)**: `sillon` |
+| `plant` | Café ×1, mansión ×3 | 60 | 0,84 × 1,26 × 0,73 | 0,5 × 0,8 × 0,5 | — | — | Alta | Sí | Bajo | **Migrado (sesión 4)**: `planta` |
+| `floor_lamp(energy)` | Café ×1, mansión ×2, archivo ×1 | 36 + 24 brillo | 0,61 × 1,92 × 0,62 | 0,28 × 1,2 × 0,28 | `OmniLight3D` | La luz se queda en el kit | Alta | Sí | Bajo | **Migrado (sesión 4)**: `lampara_pie` |
+| `ceiling_lamp(energy, range, shadows)` | Café ×6, mansión ×5, archivo ×3 | 12 + 28 brillo | 0,68 × 0,90 × 0,68 | — | `OmniLight3D` (sombra en 5) | Sin colisión | Alta | Sí | Bajo | **Migrado (sesión 4)**: `lampara_techo` |
+| `filing_cabinet(yaw)` | Archivo ×4 | 108 | 0,90 × 1,84 × 0,64 | `solid` 0,9 × 1,8 × 0,6 | — | Puesto «ficheros» de Hilario | Alta | Sí | Bajo | **Migrado (sesión 4)**: `archivador` |
+| `grandfather_clock(yaw)` | Mansión ×1 (vestíbulo) | 84 | 0,70 × 2,40 × 0,48 | `solid` 0,6 × 2,2 × 0,4 | — | **Temático** (el caso gira en torno a relojes) | Alta | Sí | Bajo | **Migrado (sesión 4)**: `reloj_pie` |
+| `back_window(size, yaw)` | Café ×1, mansión ×2, archivo ×1 | 36 + 12 brillo | 1,70 × 2,30 × 0,12 (1,5 × 2,1) | — | — | Cuatro medidas | Media | Variantes | Bajo | **Migrado (sesión 4)**: `ventana_interior` |
+| `painting(size, color, yaw)` | Mansión ×1, archivo ×1 | 24 | 1,84 × 1,14 × 0,07 | — | — | Lienzo de color por parámetro | Media | Variantes | Bajo | **Migrado (sesión 4)**: `cuadro` |
+| `bed(yaw, blanket, size)` | Café ×1 (1,6 × 2,2), mansión ×2 (2,0 × 2,3; 1,2 × 2,0) | 60 | 1,50 × 1,20 × 2,15 (1,5 × 2,1) | 0,8 m de alto | — | **Cama del café: `RestPoint` y aparición «cama»** | Media | Variantes | Medio | **Migrado (sesión 4)**: `cama` |
+| `dresser(width, mirror, yaw)` | Café ×1, mansión ×3 (1,4; 1,6; 1,8; 2,0 con espejo) | 48 / 72 | 1,46 × 0,88 × 0,54 (1,4) | `solid` ancho × 0,84 × 0,5 | — | **Office: pista `foto_clara`; cuarto de Lucía: recolocada el 2026-11-22** | Media | Variantes | Medio | **Migrado (sesión 4)**: `comoda` |
+| `bookshelf(width, height, yaw)` | Mansión ×3, archivo ×8 (4 medidas) | 1.356 (3,2 m) | 3,28 × 2,68 × 0,45 | ancho × alto × 0,45 | — | Una caja por libro: buena candidata a reducir triángulos | Media | Variantes | Bajo | **Migrado (sesión 4)**: `estanteria` |
+| `sofa(yaw, color, length)` | Mansión ×1 | 48 | 2,60 × 1,01 × 0,97 | 2,6 × 1,1 × 0,98 | — | Puesto «salon_sofa» cerca | Alta | Sí | Bajo | **Migrado (sesión 4)**: `sofa` |
+| `desk(size)` | Mansión ×1 (despacho) | 60 | 2,60 × 0,84 × 1,20 | `solid` del tamaño | — | **Pista `copa_lavada` encima (y = 0,6)** | Alta | Sí | Medio | **Migrado (sesión 4)**: `escritorio` |
+| `table(size, color)` | Café ×1, mansión ×4, archivo ×1 (6 medidas) | 60 | según `size` | `size` | — | **Mesas de `carta_amor`, `lista_invitados`, `libro_bodega`** | Baja | Variantes | Medio | **Migrado (sesión 4)**: `mesa` |
+| `fireplace(width)` | Mansión ×1 | 36 + 12 brillo | 2,80 × 2,10 × 0,80 | `solid` 2,4 × 2,0 × 0,6 | `OmniLight3D` | Puesto «salon_chimenea» | Alta | Sí | Bajo | **Migrado (sesión 4)**: `chimenea` |
 | `rug(center, size, color)` | Café ×1, mansión ×4, archivo ×1 | 36 | según `size` | — | — | `register_surface("alfombra")` para los pasos | Baja | No | Medio | — |
 | `plank_floor`, `tile_floor` | Todos los interiores | — | por escenario | — | — | `register_surface` (madera, baldosa) | Baja | No | Alto | — |
 | `wall(from, to, height, gaps)` | Todos los interiores (19 llamadas: café 6, mansión 9, archivo 4) | — | por escenario | 3 m de alto por tramo | — | `add_doorway` por hueco; corte de casa de muñecas | Baja | No | **Alto** | — |
