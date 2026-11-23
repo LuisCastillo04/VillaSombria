@@ -7,19 +7,19 @@ El detalle de cada decisión está en los documentos numerados de esta carpeta.
 
 | Dato | Valor |
 | --- | --- |
-| Sesión | 8 terminada (verificación completa final en curso) |
-| Rama | `feature/blender-integracion` |
-| Último commit válido | `93ae682` + documentación final |
-| Fase | Las ocho sesiones hechas; 548 pruebas; 68 modelos |
-| Próxima acción | Registrar el resultado de `verificar.ps1 -ConVentana` en copia limpia, quitar los worktrees y dejar activa `feature/blender-integracion` en la carpeta principal |
+| Sesión | Migración terminada: sesiones 1 a 8 |
+| Rama | `feature/blender-integracion` (activa en la carpeta principal) |
+| Último commit válido | `b09b37c` + este registro |
+| Fase | Verificación final correcta en copia limpia |
+| Próxima acción | Ninguna pendiente del encargo. Siguiente trabajo posible: retoques artísticos en Blender (ver 14-sesion-8-integracion.md) y una partida completa a mano |
 
 Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exteriores) → 7 (personajes) →
 8 (integración), cada una en su rama creada desde la anterior. Ver [06-plan-migracion.md](06-plan-migracion.md).
 
 ## Dónde se trabaja
 
-- **Copia de trabajo de la migración:** un `git worktree` aparte (en el scratchpad de la sesión de
-  Claude Code), no la carpeta principal. Motivo: el editor de Godot está abierto sobre la carpeta
+- **Copia de trabajo de la migración (sesiones 2–8):** un `git worktree` aparte (en el scratchpad
+  de la sesión de Claude Code, ya retirado), no la carpeta principal. Motivo: el editor de Godot está abierto sobre la carpeta
   principal y reescribe `project.godot` y `scenes/main/main_menu.tscn` (ruido sin confirmar desde
   la sesión 1, R17). Esos dos archivos no se tocan ni se confirman.
 - **Base de la sesión 2:** `3090bad` (último commit de `feature/blender-auditoria`). Contiene
@@ -46,7 +46,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | 5 | `feature/blender-interiores` | Terminada y verificada (`verificar.ps1 -ConVentana` correcto) | `6ef704f` |
 | 6 | `feature/blender-exteriores` | Terminada y validada | `7437acb` (+ documentación) |
 | 7 | `feature/blender-personajes` | Terminada y validada | `e7526e2` (+ documentación) |
-| 8 | `feature/blender-integracion` | Terminada (batería 548) | `93ae682` (+ documentación) |
+| 8 | `feature/blender-integracion` | Terminada y verificada (`verificar.ps1 -ConVentana` correcto) | `b09b37c` |
 
 ## Decisiones técnicas
 
@@ -83,6 +83,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | Cierre de la sesión 6 (carpeta de trabajo) | 544 correctas, 0 con fallos, sin `ERROR:` |
 | Cierre de la sesión 7 (carpeta de trabajo) | 547 correctas, 0 con fallos, sin `ERROR:` |
 | Cierre de la sesión 8 (carpeta de trabajo) | 548 correctas, 0 con fallos, sin `ERROR:` |
+| `verificar.ps1 -ConVentana` en copia limpia de `b09b37c` (cierre de las sesiones 6–8) | **RESUMEN: todo correcto** (548 pruebas, 7 reinicios, imágenes de ranuras, modos de pantalla, cierre con X y Alt + F4) |
 
 Ruido entre dos capturas idénticas de la plaza (lluvia y grano): media 4,4 por píxel, máximo 185.
 Las comparaciones exactas se hacen con la geometría (pruebas), no con píxeles.
