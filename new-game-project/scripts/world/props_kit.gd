@@ -140,8 +140,8 @@ static func newsstand(location: LocationBase, where: Vector3, yaw_degrees: float
 ## Buzón de correos. Se dibuja con su modelo de Blender (`buzon`) y, si falta, con el código de
 ## `_mailbox_mesh`; la colisión es la misma en los dos casos.
 static func mailbox(location: LocationBase, where: Vector3) -> void:
-	if not ModelCatalog.place(location, "buzon", Transform3D(Basis.IDENTITY, where)):
-		_mailbox_mesh(location.batch, where)
+	var procedural := func(_tint: Color) -> void: _mailbox_mesh(location.batch, where)
+	ModelCatalog.draw(location, "buzon", Transform3D(Basis.IDENTITY, where), procedural)
 	location.collider(where + Vector3.UP * 0.6, Vector3(0.5, 1.2, 0.5))
 
 

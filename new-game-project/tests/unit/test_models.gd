@@ -7,7 +7,9 @@ const QUAD := [Vector3(0.0, 0.0, 0.0), Vector3(1.0, 0.0, 0.0), Vector3(1.0, 0.0,
 
 func after_each() -> void:
 	ModelCatalog.enabled = true
-	ModelCatalog.paths = ModelCatalog.MODELS.duplicate()
+	ModelCatalog.paths = {}
+	ModelCatalog.excluded = {}
+	ModelCatalog.capturing = false
 	ModelCatalog.clear()
 
 
@@ -169,7 +171,12 @@ static func _built_location(location_id: String, use_models: bool) -> Dictionary
 	location._body = StaticBody3D.new()
 	var was_enabled := ModelCatalog.enabled
 	ModelCatalog.enabled = use_models
+	# Los modelos retocados u optimizados no son copia exacta: tienen su propia prueba.
+	for id: String in ModelCatalog.MODELS:
+		if not (ModelCatalog.MODELS[id]["fiel"] is bool and ModelCatalog.MODELS[id]["fiel"]):
+			ModelCatalog.excluded[id] = true
 	location.build()
+	ModelCatalog.excluded = {}
 	ModelCatalog.enabled = was_enabled
 	var colliders: Array[String] = []
 	for child in location._body.get_children():
@@ -189,6 +196,115 @@ static func _has_ancestor_of(node: Node, stop: Node) -> bool:
 			return true
 		current = current.get_parent()
 	return false
+
+
+## Cada modelo registrado tiene su GLB, todas las variantes que piden los escenarios y su
+## referencia con usos (es decir, un código procedural de respaldo).
+func test_registered_models_are_complete() -> void:
+	for id: String in ModelCatalog.MODELS:
+		var info: Dictionary = ModelCatalog.MODELS[id]
+		for key: String in ["categoria", "objeto", "fiel"]:
+			check(info.has(key), "%s: falta «%s» en MODELS" % [id, key])
+		check(ResourceLoader.exists(ModelCatalog.path_for(id)), "%s: falta %s" % [id, ModelCatalog.path_for(id)])
+		var reference := _reference(id)
+		check(not reference.is_empty(), "%s: falta su referencia en blender/referencias" % id)
+		var objects := ModelCatalog.get_objects(id)
+		var variants: Dictionary = reference.get("variantes", {})
+		for variant: String in variants:
+			var entry: Dictionary = variants[variant]
+			check(objects.has(entry["objeto"]), "%s: el GLB no trae el objeto %s" % [id, entry["objeto"]])
+			check(not (entry.get("usos", []) as Array).is_empty(), "%s/%s: sin usos ni código de respaldo" % [id, variant])
+
+
+func test_variants_and_tint() -> void:
+	var root := Node3D.new()
+	for object_name: String in ["Caja_70", "Caja_90"]:
+		var holder := MeshInstance3D.new()
+		holder.name = object_name
+		holder.position = Vector3(5.0, 0.0, 0.0)
+		holder.mesh = _mesh_with_material("vs_tinte", Color(0.5, 0.5, 0.5))
+		root.add_child(holder)
+	var objects := ModelCatalog.objects_from_node(root)
+	root.free()
+	check_equal(objects.keys().size(), 2, "Un objeto por variante")
+	var surfaces: Array = objects.get("Caja_90", [])
+	check(not surfaces.is_empty() and surfaces[0]["tinted"], "El material vs_tinte marca la superficie como teñida")
+	var batch := MeshBatcher.new()
+	batch.color_jitter = 0.0
+	batch.add_surfaces(surfaces, Transform3D.IDENTITY, Color(0.8, 0.4, 0.2))
+	var arrays := batch.build_mesh().surface_get_arrays(0)
+	var first: Vector3 = (arrays[Mesh.ARRAY_VERTEX] as PackedVector3Array)[0]
+	check(absf(first.x) < 0.001, "La posición del objeto en el .blend no se aplica: su origen es la referencia (%s)" % first)
+	var color: Color = (arrays[Mesh.ARRAY_COLOR] as PackedColorArray)[0]
+	check(_color_distance(color, Color(0.4, 0.2, 0.1)) <= 1.0 / 255.0, "Color = factor × tinte (%s)" % color)
+
+
+func test_invalid_model_falls_back() -> void:
+	ModelCatalog.paths["buzon"] = "res://icon.svg"
+	ModelCatalog.clear()
+	var batch := MeshBatcher.new()
+	check(not ModelCatalog.place_in(batch, "buzon", Transform3D.IDENTITY), "Un archivo que no es un modelo no se usa")
+	var location := LocationBase.new()
+	location._body = StaticBody3D.new()
+	PropsKit.mailbox(location, Vector3.ZERO)
+	check(not location.batch.is_empty(), "Con un modelo inválido la pieza se dibuja con su código")
+	location._body.free()
+	location.free()
+
+
+## La captura distingue las caras teñidas y rechaza piezas que registran colisiones dentro de draw.
+func test_capture_checks_procedural_parts() -> void:
+	ModelCatalog.captures.clear()
+	ModelCatalog.capturing = true
+	var location := LocationBase.new()
+	location._body = StaticBody3D.new()
+	ModelCatalog.draw(location, "prueba", Transform3D(Basis.IDENTITY, Vector3(3.0, 0.0, 0.0)), func(tint: Color) -> void:
+		location.batch.box(Vector3(3.0, 0.5, 0.0), Vector3.ONE, tint.darkened(0.3))
+		location.batch.box(Vector3(3.0, 1.5, 0.0), Vector3.ONE, Palette.IRON)
+	, "", Palette.WINE)
+	ModelCatalog.draw(location, "mala", Transform3D.IDENTITY, func(_tint: Color) -> void:
+		location.collider(Vector3.ZERO, Vector3.ONE)
+	)
+	ModelCatalog.capturing = false
+	check_equal(ModelCatalog.captures.size(), 2, "Una captura por pieza")
+	var good: Dictionary = ModelCatalog.captures[0]
+	check((good["errores"] as Array).is_empty(), "Pieza correcta sin errores: %s" % str(good["errores"]))
+	var tinted := 0
+	for face: Dictionary in good["faces"]:
+		if face["tinted"]:
+			tinted += 1
+			check(_color_distance(face["color"], Color(0.7, 0.7, 0.7)) < 0.001, "El factor de una cara teñida es su color con tinte blanco")
+		var center := Vector3.ZERO
+		for point: Vector3 in face["points"]:
+			center += point
+		check(absf(center.x / float((face["points"] as PackedVector3Array).size())) < 0.51, "Caras en el espacio del modelo")
+	check_equal(tinted, 6, "Las seis caras de la caja teñida")
+	check(not (ModelCatalog.captures[1]["errores"] as Array).is_empty(), "Registrar una colisión dentro de draw es un error")
+	ModelCatalog.captures.clear()
+	location._body.free()
+	location.free()
+
+
+static func _reference(id: String) -> Dictionary:
+	var path := ProjectSettings.globalize_path("res://").path_join("../blender/referencias/%s.json" % id).simplify_path()
+	if not FileAccess.file_exists(path):
+		return {}
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	return data if data is Dictionary else {}
+
+
+static func _mesh_with_material(material_name: String, color: Color) -> ArrayMesh:
+	var mesh := ArrayMesh.new()
+	var arrays := []
+	arrays.resize(Mesh.ARRAY_MAX)
+	arrays[Mesh.ARRAY_VERTEX] = PackedVector3Array([Vector3(0, 0, 0), Vector3(0, 0, 1), Vector3(1, 0, 1)])
+	arrays[Mesh.ARRAY_NORMAL] = PackedVector3Array([Vector3.UP, Vector3.UP, Vector3.UP])
+	arrays[Mesh.ARRAY_COLOR] = PackedColorArray([color, color, color])
+	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
+	var material := StandardMaterial3D.new()
+	material.resource_name = material_name
+	mesh.surface_set_material(0, material)
+	return mesh
 
 
 ## Construye una pieza con su código procedural en un escenario sin árbol.

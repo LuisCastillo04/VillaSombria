@@ -199,8 +199,9 @@ func sphere(
 ## `normals` y `colors` (triángulos sin índices, en el orden de caras frontales de Godot) y
 ## `centers`: el centro del polígono al que pertenece cada vértice. La capa opaca recibe la
 ## misma variación de tono que `face`, calculada con ese centro: un modelo idéntico a una pieza
-## procedural se dibuja idéntico.
-func add_surfaces(surfaces: Array, transform: Transform3D = Transform3D.IDENTITY) -> void:
+## procedural se dibuja idéntico. En las superficies con `tinted` el color es un factor que se
+## multiplica por `tint` (el color que el kit pasa a la pieza).
+func add_surfaces(surfaces: Array, transform: Transform3D = Transform3D.IDENTITY, tint: Color = Color.WHITE) -> void:
 	var full := xform * transform
 	var normal_basis := full.basis.inverse().transposed()
 	var mirrored := full.basis.determinant() < 0.0
@@ -210,6 +211,7 @@ func add_surfaces(surfaces: Array, transform: Transform3D = Transform3D.IDENTITY
 		var normals: PackedVector3Array = surface["normals"]
 		var colors: PackedColorArray = surface["colors"]
 		var centers: PackedVector3Array = surface["centers"]
+		var tinted: bool = surface.get("tinted", false)
 		var buffers := _get_buffers(layer)
 		var count := vertices.size() - vertices.size() % 3
 		for start in range(0, count, 3):
@@ -219,6 +221,8 @@ func add_surfaces(surfaces: Array, transform: Transform3D = Transform3D.IDENTITY
 				buffers.vertices.append(full * vertices[index])
 				buffers.normals.append((normal_basis * normals[index]).normalized())
 				var color := colors[index]
+				if tinted:
+					color = Color(color.r * tint.r, color.g * tint.g, color.b * tint.b, color.a)
 				if layer == Layer.OPAQUE:
 					color = shaded(color, full * centers[index])
 				buffers.colors.append(color)
