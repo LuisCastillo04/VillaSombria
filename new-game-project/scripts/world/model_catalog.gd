@@ -16,9 +16,11 @@ const MODELS := {
 }
 ## Argumento (después de `--`) que dibuja todo con el código procedural, para comparar.
 const PROCEDURAL_ARG := "--modelos=procedural"
-## glTF define los colores de vértice en espacio lineal y el lote los usa en sRGB
-## (`vertex_color_is_srgb`): se convierten al leer (riesgo R4, medido en la sesión 2).
-const LINEAR_VERTEX_COLORS := true
+## Riesgo R4 (medido en la sesión 2): Godot guarda el color de vértice con 8 bits por canal. Si
+## el GLB lo trajera en lineal, como define glTF, los oscuros de la paleta perderían hasta 4/255
+## al pasarlos a sRGB. Por eso `blender/scripts/exportar_glb.py` escribe los colores ya en sRGB,
+## como los usa el lote (`vertex_color_is_srgb`), y aquí no se convierten.
+const LINEAR_VERTEX_COLORS := false
 ## Tolerancia para reconocer vértices iguales al agrupar triángulos en polígonos (0,1 mm).
 const WELD_STEP := 10000.0
 

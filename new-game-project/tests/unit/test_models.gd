@@ -87,6 +87,106 @@ func test_mirrored_placement_keeps_faces_outward() -> void:
 	check(winding.dot(normal) < 0.0, "El espejo invierte el recorrido para que la cara siga mirando afuera")
 
 
+## El GLB del buzón reproduce la pieza procedural: mismos triángulos, colores y orientación.
+func test_mailbox_model_matches_procedural() -> void:
+	var where := Transform3D(Basis.IDENTITY, Vector3(-2.2, 0.0, -12.1))
+	var procedural := _procedural_batch(func(location: LocationBase) -> void: PropsKit.mailbox(location, where.origin))
+	var model := MeshBatcher.new()
+	check(ModelCatalog.place_in(model, "buzon", where), "El buzón tiene modelo")
+	_check_same_triangles(model, procedural, "buzon")
+
+
+func test_mailbox_model_orientation() -> void:
+	var surfaces := ModelCatalog.get_surfaces("buzon")
+	check(not surfaces.is_empty(), "El buzón tiene modelo")
+	if surfaces.is_empty():
+		return
+	var slot := Vector3.ZERO
+	var count := 0
+	var colors: PackedColorArray = surfaces[0]["colors"]
+	var vertices: PackedVector3Array = surfaces[0]["vertices"]
+	for index in colors.size():
+		if _color_distance(colors[index], Palette.IRON) < 0.01:
+			slot += vertices[index]
+			count += 1
+	check(count > 0, "La ranura (hierro) está en el modelo")
+	if count > 0:
+		slot /= float(count)
+		check(slot.z > 0.2 and absf(slot.x) < 0.05, "La ranura mira hacia +Z, como la procedural (%s)" % slot)
+
+
+## Construye una pieza con su código procedural en un escenario sin árbol.
+static func _procedural_batch(build: Callable) -> MeshBatcher:
+	var location := LocationBase.new()
+	location._body = StaticBody3D.new()
+	var was_enabled := ModelCatalog.enabled
+	ModelCatalog.enabled = false
+	build.call(location)
+	ModelCatalog.enabled = was_enabled
+	var batch := location.batch
+	location._body.free()
+	location.free()
+	return batch
+
+
+## Compara dos lotes polígono a polígono, sin importar el orden ni cómo se partió cada polígono
+## en triángulos (Blender elige otras diagonales en los octógonos): mismos vértices (1 mm), misma
+## área, mismo color (1/255, el redondeo de 8 bits) y cara frontal hacia fuera.
+func _check_same_triangles(actual: MeshBatcher, expected: MeshBatcher, label: String) -> void:
+	for layer: MeshBatcher.Layer in [MeshBatcher.Layer.OPAQUE, MeshBatcher.Layer.GLOW, MeshBatcher.Layer.GROUND]:
+		var a := _polygons(actual, layer)
+		var b := _polygons(expected, layer)
+		check_equal(a.size(), b.size(), "%s: polígonos de la capa %d" % [label, layer])
+		var worst := 0.0
+		var missing := 0
+		for key: String in b:
+			if not a.has(key):
+				missing += 1
+				continue
+			worst = maxf(worst, _color_distance(a[key]["color"], b[key]["color"]))
+			check(absf(a[key]["area"] - b[key]["area"]) < 0.0001, "%s: área distinta en %s" % [label, key])
+			check(a[key]["front"] and b[key]["front"], "%s: cara frontal hacia fuera en %s" % [label, key])
+		check_equal(missing, 0, "%s: polígonos de la capa %d que no coinciden" % [label, layer])
+		check(worst <= 1.0 / 255.0 + 0.0001, "%s: diferencia de color %.4f en la capa %d" % [label, worst, layer])
+
+
+static func _polygons(batch: MeshBatcher, layer: MeshBatcher.Layer) -> Dictionary:
+	var found := {}
+	var mesh := batch.build_mesh(layer)
+	if mesh == null:
+		return found
+	var arrays := mesh.surface_get_arrays(0)
+	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
+	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
+	var centers := ModelCatalog.polygon_centers(vertices, normals, colors)
+	var groups := {}
+	for start in range(0, vertices.size(), 3):
+		var group := _point_key(centers[start])
+		if not groups.has(group):
+			groups[group] = {"corners": {}, "area": 0.0, "color": colors[start], "front": true}
+		var entry: Dictionary = groups[group]
+		var winding := (vertices[start + 1] - vertices[start]).cross(vertices[start + 2] - vertices[start])
+		entry["area"] = float(entry["area"]) + winding.length() * 0.5
+		entry["front"] = entry["front"] and winding.dot(normals[start]) < 0.0
+		for corner in 3:
+			(entry["corners"] as Dictionary)[_point_key(vertices[start + corner])] = true
+	for group: String in groups:
+		var entry: Dictionary = groups[group]
+		var corners: Array = (entry["corners"] as Dictionary).keys()
+		corners.sort()
+		found["|".join(corners)] = entry
+	return found
+
+
+static func _point_key(point: Vector3) -> String:
+	return "%d,%d,%d" % [roundi(point.x * 1000.0), roundi(point.y * 1000.0), roundi(point.z * 1000.0)]
+
+
+static func _color_distance(a: Color, b: Color) -> float:
+	return maxf(absf(a.r - b.r), maxf(absf(a.g - b.g), absf(a.b - b.b)))
+
+
 ## Monta un nodo con la malla de unas caras grabadas, como haría un GLB importado.
 static func _node_from_recorded(recorded: Array[Dictionary]) -> Node3D:
 	var replay := MeshBatcher.new()
