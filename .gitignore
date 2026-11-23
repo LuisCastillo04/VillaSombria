@@ -1,0 +1,4 @@
+# Copias de seguridad y bloqueos de Blender
+*.blend1
+*.blend@
+blender/**/__pycache__/
