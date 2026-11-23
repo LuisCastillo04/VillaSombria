@@ -112,17 +112,17 @@ prisma por libro).
 | Plaza | Mansión de fondo, tapia, pilares, verja | tapia, pilares, verja (3,9 × 3,0 m) | «MANSIÓN VALDÉS»; salida cerrada hasta `llamada_atendida` | Sí | Medio | 6 |
 | Plaza | Fuente | dos cajas giradas 45° | Ronda del sargento alrededor (4 marcadores) | Sí | Bajo | 6 |
 | Plaza | Muros invisibles del perímetro | 4 cajas | — | No | Alto | — |
-| Café | Barra, taburetes, botellero, espejo | barra `solid` + 5 taburetes | Puestos «barra*» detrás; 78 cilindros de botellas | Sí | Medio | 6 |
-| Café | Teléfono sobre la barra | — | Referencia narrativa (desde él llamó el sargento); hoy decorativo | Sí | Bajo | 6 |
-| Café | Mesita de la pensión, papeles de la trastienda | caja | — | Sí | Bajo | 6 |
+| Café | Barra, taburetes, botellero, espejo | barra `solid` + 5 taburetes | Puestos «barra*» detrás; 78 cilindros de botellas | Sí | Medio | **Migrado (sesión 5)**: `barra_cafe, taburete, botellero_cafe` |
+| Café | Teléfono sobre la barra | — | Referencia narrativa (desde él llamó el sargento); hoy decorativo | Sí | Bajo | **Migrado (sesión 5)**: `telefono` |
+| Café | Mesita de la pensión, papeles de la trastienda | caja | — | Sí | Bajo | **Migrado (sesión 5)**: `mesilla, papeles` |
 | Estación | Vías, traviesas, raíles, bordillo | bordillo (90 m) | El bordillo impide bajar a las vías | Sí (sin la colisión) | Medio | 6 |
 | Estación | Tren (locomotora y vagón) | — | Llegada del detective; ventanas en brillo | Sí (a mano) | Bajo | 6 |
 | Estación | Marquesina, reloj de andén | 3 postes + reloj | — | Sí | Bajo | 6 |
-| Mansión | Reloj caído y cristales del despacho | — | **Pista `reloj_despacho`** | Sí, sin moverlo | Medio | 6 |
-| Mansión | Huellas de betún | — | **Pista `huellas_betun`** | Sí, sin moverlas | Medio | 6 |
-| Mansión | Objetos sobre muebles (copa, tintero, papel, libro, foto) | — | **Pistas `copa_lavada`, `carta_amor`, `lista_invitados`, `libro_bodega`, `foto_clara`** | Sí, sin moverlos | Medio | 6 |
-| Mansión | Tablero de llaves del office | — | **Pista `llave_reloj`** | Sí, sin moverlo | Medio | 6 |
-| Archivo | Mostrador y papeles | mostrador `solid` | Puesto «mostrador» de Hilario | Sí | Bajo | 6 |
+| Mansión | Reloj caído y cristales del despacho | — | **Pista `reloj_despacho`** | Sí, sin moverlo | Medio | **Migrado (sesión 5)**: `reloj_caido` |
+| Mansión | Huellas de betún | — | **Pista `huellas_betun`** | Sí, sin moverlas | Medio | **Migrado (sesión 5)**: `huellas_betun` |
+| Mansión | Objetos sobre muebles (copa, tintero, papel, libro, foto) | — | **Pistas `copa_lavada`, `carta_amor`, `lista_invitados`, `libro_bodega`, `foto_clara`** | Sí, sin moverlos | Medio | **Migrado (sesión 5)**: `copa, tintero, papeles, libro, foto` |
+| Mansión | Tablero de llaves del office | — | **Pista `llave_reloj`** | Sí, sin moverlo | Medio | **Migrado (sesión 5)**: `tablero_llaves` |
+| Archivo | Mostrador y papeles | mostrador `solid` | Puesto «mostrador» de Hilario | Sí | Bajo | **Migrado (sesión 5)**: `mostrador_archivo, papeles, libro` |
 | Campo de pruebas | Losa y bloques | `solid` | Sólo para pruebas | No | — | — |
 
 ## Personajes (`CharacterModel`)

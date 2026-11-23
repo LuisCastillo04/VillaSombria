@@ -7,11 +7,11 @@ El detalle de cada decisión está en los documentos numerados de esta carpeta.
 
 | Dato | Valor |
 | --- | --- |
-| Sesión | 4 terminada; siguiente: 5 — interiores |
-| Rama | `feature/blender-objetos` (cerrada) → `feature/blender-interiores` |
-| Último commit válido | `66fee96` + documentación de la sesión 4 |
-| Fase | Sesión 4 validada: 543 pruebas, 20 modelos |
-| Próxima acción | Sesión 5: piezas propias del café, la mansión y el archivo (borrador escenarios_s5.py), estanterías optimizadas (optimizar_ocultas.py), pruebas de interiores |
+| Sesión | 5 terminada (verificación completa en curso); siguiente: 6 — exteriores |
+| Rama | `feature/blender-interiores` → `feature/blender-exteriores` |
+| Último commit válido | `f07f3f7` + documentación de la sesión 5 |
+| Fase | Sesión 5 validada con la batería (544); `verificar.ps1 -ConVentana` en copia limpia |
+| Próxima acción | Sesión 6: atrezo exterior (exteriores_s6.py), BuildingKit y piezas de la plaza y la estación (escenarios_s6.py) |
 
 Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exteriores) → 7 (personajes) →
 8 (integración), cada una en su rama creada desde la anterior. Ver [06-plan-migracion.md](06-plan-migracion.md).
@@ -43,7 +43,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | 2 | `feature/blender-prototipo-buzon` | Terminada y verificada | `1faa819` (+ registro) |
 | 3 | `feature/blender-arquitectura` | Terminada y validada | `3c5cf14` (+ registro) |
 | 4 | `feature/blender-objetos` | Terminada y validada | `66fee96` (+ documentación) |
-| 5 | `feature/blender-interiores` | Pendiente | — |
+| 5 | `feature/blender-interiores` | Terminada (batería 544) | `f07f3f7` (+ documentación) |
 | 6 | `feature/blender-exteriores` | Pendiente | — |
 | 7 | `feature/blender-personajes` | Pendiente | — |
 | 8 | `feature/blender-integracion` | Pendiente | — |
@@ -62,6 +62,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 5. **Importación de GLB** sin LOD, mallas de sombra ni tangentes.
 6. **Sesión 3:** `ModelCatalog.draw(location, id, colocación, procedural, variante, tinte)`; registro en `ModelRegistry`; variantes = objetos de un mismo GLB (origen = pivote; posición en el .blend ignorada); tinte con `vs_tinte` (factor × color del kit); referencias capturadas desde los escenarios reales; `validar_modelos` y `migrar.py`. Detalle en 09-sistema-de-modelos.md
 7. **Sesión 4:** refactorizaciones verificadas con `huella_escenarios.tscn` (huella idéntica antes y después). El GLB lleva el número de polígono en un mapa UV (tono exacto por polígono). Prueba por superficie cubierta (`test_each_model_matches_its_procedural_piece`). El importador no une vértices si se perderían caras coincidentes
+8. **Sesión 5:** importación sin compresión de vértices (precisión del tono en piezas grandes). Estanterías «optimizadas»: sin caras hacia abajo ni traseras tapadas por el fondo (archivo -26 % de primitivas). Papeles y libros compartidos por los tres interiores
 
 ## Pruebas
 
@@ -74,6 +75,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | Paso de pruebas repetido en copia limpia de `1faa819` | **538 correctas, 0 con fallos, sin líneas `ERROR:`** (código 0) |
 | Cierre de la sesión 3 (`3c5cf14`, carpeta de trabajo) | 542 correctas, 0 con fallos, sin `ERROR:` |
 | Cierre de la sesión 4 (carpeta de trabajo) | 543 correctas, 0 con fallos, sin `ERROR:` |
+| Cierre de la sesión 5 (carpeta de trabajo) | 544 correctas, 0 con fallos, sin `ERROR:` |
 
 Ruido entre dos capturas idénticas de la plaza (lluvia y grano): media 4,4 por píxel, máximo 185.
 Las comparaciones exactas se hacen con la geometría (pruebas), no con píxeles.
