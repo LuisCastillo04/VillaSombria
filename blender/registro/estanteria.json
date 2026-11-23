@@ -2,7 +2,7 @@
 	"id": "estanteria",
 	"blend": "blender/fuentes/mobiliario/estanteria.blend",
 	"glb": "new-game-project/assets/modelos/mobiliario/estanteria.glb",
-	"fecha": "2026-11-23T16:00:50",
+	"fecha": "2026-11-23T16:16:52",
 	"blender": "5.3.0",
 	"exportador_gltf": "5.3.43",
 	"triangulos": 3856,
@@ -68,7 +68,7 @@
 			}
 		}
 	},
-	"sha256": "6d42659482efdca673c84da9b10868e4e0b945fa6b0d494b0f7d816b941bfe3b",
+	"sha256": "3107d4cff5e255566386603ce541dea17c01956cbecb9247b39c8b1f9e64a106",
 	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
 	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
 	"opciones": {

@@ -229,7 +229,8 @@ static func bookshelf(location: LocationBase, where: Vector3, width: float, heig
 ## Las baldas están a 0,5 m y miden 5 cm: entre una y otra caben 45 cm. Los libros miden de 26 a
 ## 41 cm y, en la última balda, nunca sobresalen del mueble. Antes llegaban a 55 cm: atravesaban la
 ## balda de encima y su cara frontal compartía plano con la de los libros de arriba, que parpadeaban
-## (z-fighting). Baldas y fondo van entre los laterales, sin pisar su canto ni su remate.
+## (z-fighting). Baldas y fondo van entre los laterales, sin pisar su canto ni su remate, y las
+## baldas arrancan en la cara del fondo: no se meten en él.
 static func _bookshelf_mesh(batch: MeshBatcher, width: float, height: float) -> void:
 	var inner := width - BOOKSHELF_SIDE
 	batch.box(Vector3(0.0, height * 0.5, -0.05), Vector3(inner, height, 0.1), Palette.WOOD_DARK)
@@ -239,7 +240,7 @@ static func _bookshelf_mesh(batch: MeshBatcher, width: float, height: float) -> 
 	var colors := [Palette.WINE, Palette.STEEL, Color("3d4a33"), Palette.PAPER.darkened(0.3), Color("5a4630"), Palette.SLATE]
 	for shelf in shelves:
 		var y := 0.1 + float(shelf) * BOOKSHELF_SPACING
-		batch.box(Vector3(0.0, y, 0.15), Vector3(inner, BOOKSHELF_BOARD, 0.4), Palette.WOOD)
+		batch.box(Vector3(0.0, y, 0.175), Vector3(inner, BOOKSHELF_BOARD, 0.35), Palette.WOOD)
 		var x := -width * 0.5 + 0.1
 		var index := shelf * 3
 		var room := minf(BOOKSHELF_SPACING - BOOKSHELF_BOARD, height - y - BOOKSHELF_BOARD * 0.5) - BOOKSHELF_HEADROOM
