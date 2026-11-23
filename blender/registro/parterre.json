@@ -2,7 +2,7 @@
 	"id": "parterre",
 	"blend": "blender/fuentes/atrezo/parterre.blend",
 	"glb": "new-game-project/assets/modelos/atrezo/parterre.glb",
-	"fecha": "2026-11-23T16:08:35",
+	"fecha": "2026-11-23T16:15:09",
 	"blender": "5.3.0",
 	"exportador_gltf": "5.3.43",
 	"triangulos": 4072,
@@ -22,16 +22,16 @@
 				]
 			}
 		},
-		"Parterre_1350": {
+		"Parterre_1320": {
 			"triangulos": 806,
 			"caja_godot": {
 				"min": [
-					-6.75,
+					-6.6,
 					0.0,
 					-0.35
 				],
 				"max": [
-					6.75,
+					6.6,
 					0.73,
 					0.35
 				]
@@ -128,7 +128,7 @@
 			}
 		}
 	},
-	"sha256": "9929963beef4c34f7b45f7bdce256105571888e72916e5e9ad7c7bb334cfe180",
+	"sha256": "21fe749f34a12e704257b2e0cda34777b8ca6cd68c91d95c587676b73ec17617",
 	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
 	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
 	"opciones": {

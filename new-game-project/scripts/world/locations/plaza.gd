@@ -20,7 +20,7 @@ const PIT_TREES: Array[Dictionary] = [
 ## este de la plaza. Ninguno está en la calle, en la plaza ni delante de una puerta.
 const SHRUB_BEDS: Array[Dictionary] = [
 	{"center": Vector3(23.5, 0.0, -13.55), "length": 8.0, "yaw": 0.0},
-	{"center": Vector3(22.55, 0.0, -5.8), "length": 13.5, "yaw": 0.0},
+	{"center": Vector3(22.4, 0.0, -5.8), "length": 13.2, "yaw": 0.0},
 	{"center": Vector3(15.95, 0.0, 3.0), "length": 15.0, "yaw": 90.0},
 ]
 ## Banco Valdés: origen de su fachada (mira hacia +X), hoja de la puerta (ancho y alto), aviso y
