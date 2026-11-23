@@ -21,6 +21,9 @@ const LAYER_NAMES := {
 ## Distancia máxima (m) entre una colisión registrada tras la pieza y la caja de la pieza para
 ## mostrarla como suya en la colección Referencia de Blender.
 const COLLIDER_MARGIN := 0.3
+## Aspecto de cada personaje (`characters.json`, clave «model»); el detective usa
+## `PlayerController.LOOK`.
+const CHARACTERS_FILE := "res://data/characters.json"
 
 
 func _ready() -> void:
@@ -60,6 +63,10 @@ static func collect() -> Dictionary:
 		_assign_colliders(location, first, colliders_by_capture)
 		location._body.free()
 		location.free()
+	for character: Array in characters():
+		var model := CharacterModel.new()
+		model.build(character[1], character[0])
+		model.free()
 	ModelCatalog.capturing = false
 	var references := {}
 	for index in ModelCatalog.captures.size():
@@ -106,6 +113,18 @@ static func collect() -> Dictionary:
 					(reference["errores"] as Array).append(problem)
 	ModelCatalog.captures.clear()
 	return references
+
+
+## [id, aspecto] de cada personaje con modelo posible: el detective y los de `characters.json`.
+static func characters() -> Array:
+	var found: Array = [["detective", PlayerController.LOOK]]
+	var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(CHARACTERS_FILE))
+	if data is Dictionary:
+		for id: String in data:
+			var entry: Variant = data[id]
+			if entry is Dictionary and (entry as Dictionary).has("model") and id != "detective":
+				found.append([id, entry["model"]])
+	return found
 
 
 static func write(reference: Dictionary) -> String:
