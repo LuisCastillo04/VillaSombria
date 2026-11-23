@@ -9,6 +9,11 @@ extends RefCounted
 const BACK_WALL := 3.7
 const PARTITION := 1.05
 const COLLISION_HEIGHT := 3.0
+## Estantería: separación entre baldas, grosor de balda y de lateral, y hueco mínimo sobre los libros.
+const BOOKSHELF_SPACING := 0.5
+const BOOKSHELF_BOARD := 0.05
+const BOOKSHELF_SIDE := 0.08
+const BOOKSHELF_HEADROOM := 0.03
 
 
 ## Suelo de tablones. `along_x` orienta las tablas.
@@ -185,11 +190,13 @@ static func armchair(location: LocationBase, where: Vector3, yaw_degrees: float,
 	location.batch.xform = previous
 
 
+## El respaldo es 2 cm más estrecho que el asiento y los brazos, 2 cm más largos: ninguna cara
+## comparte plano con otra de distinto tono (antes los costados y el frente parpadeaban).
 static func _armchair_mesh(batch: MeshBatcher, color: Color) -> void:
 	batch.box(Vector3(0.0, 0.26, 0.0), Vector3(0.95, 0.42, 0.9), color)
-	batch.box(Vector3(0.0, 0.62, -0.36), Vector3(0.95, 0.9, 0.22), color.darkened(0.1))
+	batch.box(Vector3(0.0, 0.62, -0.36), Vector3(0.93, 0.9, 0.22), color.darkened(0.1))
 	for x: float in [-0.42, 0.42]:
-		batch.box(Vector3(x, 0.56, 0.0), Vector3(0.18, 0.36, 0.9), color.darkened(0.14))
+		batch.box(Vector3(x, 0.56, 0.0), Vector3(0.18, 0.36, 0.92), color.darkened(0.14))
 
 
 static func sofa(location: LocationBase, where: Vector3, yaw_degrees: float, color: Color, length: float = 2.4) -> void:
@@ -204,8 +211,9 @@ static func sofa(location: LocationBase, where: Vector3, yaw_degrees: float, col
 static func _sofa_mesh(batch: MeshBatcher, color: Color, length: float) -> void:
 	batch.box(Vector3(0.0, 0.26, 0.0), Vector3(length, 0.42, 0.95), color)
 	batch.box(Vector3(0.0, 0.66, -0.38), Vector3(length, 0.8, 0.22), color.darkened(0.1))
+	# Brazos 2 cm más largos que el asiento: con la misma medida, sus frentes se pisaban.
 	for x: float in [-length * 0.5, length * 0.5]:
-		batch.box(Vector3(x, 0.56, 0.0), Vector3(0.2, 0.42, 0.95), color.darkened(0.14))
+		batch.box(Vector3(x, 0.56, 0.0), Vector3(0.2, 0.42, 0.97), color.darkened(0.14))
 
 
 ## Estantería de libros pegada a una pared que mira hacia +Z local.
@@ -218,20 +226,26 @@ static func bookshelf(location: LocationBase, where: Vector3, width: float, heig
 	location.batch.xform = previous
 
 
+## Las baldas están a 0,5 m y miden 5 cm: entre una y otra caben 45 cm. Los libros miden de 26 a
+## 41 cm y, en la última balda, nunca sobresalen del mueble. Antes llegaban a 55 cm: atravesaban la
+## balda de encima y su cara frontal compartía plano con la de los libros de arriba, que parpadeaban
+## (z-fighting). Baldas y fondo van entre los laterales, sin pisar su canto ni su remate.
 static func _bookshelf_mesh(batch: MeshBatcher, width: float, height: float) -> void:
-	batch.box(Vector3(0.0, height * 0.5, -0.05), Vector3(width, height, 0.1), Palette.WOOD_DARK)
+	var inner := width - BOOKSHELF_SIDE
+	batch.box(Vector3(0.0, height * 0.5, -0.05), Vector3(inner, height, 0.1), Palette.WOOD_DARK)
 	for x: float in [-width * 0.5, width * 0.5]:
-		batch.box(Vector3(x, height * 0.5, 0.15), Vector3(0.08, height, 0.4), Palette.WOOD)
-	var shelves := int(height / 0.5)
+		batch.box(Vector3(x, height * 0.5, 0.15), Vector3(BOOKSHELF_SIDE, height, 0.4), Palette.WOOD)
+	var shelves := int(height / BOOKSHELF_SPACING)
 	var colors := [Palette.WINE, Palette.STEEL, Color("3d4a33"), Palette.PAPER.darkened(0.3), Color("5a4630"), Palette.SLATE]
 	for shelf in shelves:
-		var y := 0.1 + float(shelf) * 0.5
-		batch.box(Vector3(0.0, y, 0.15), Vector3(width, 0.05, 0.4), Palette.WOOD)
+		var y := 0.1 + float(shelf) * BOOKSHELF_SPACING
+		batch.box(Vector3(0.0, y, 0.15), Vector3(inner, BOOKSHELF_BOARD, 0.4), Palette.WOOD)
 		var x := -width * 0.5 + 0.1
 		var index := shelf * 3
+		var room := minf(BOOKSHELF_SPACING - BOOKSHELF_BOARD, height - y - BOOKSHELF_BOARD * 0.5) - BOOKSHELF_HEADROOM
 		while x < width * 0.5 - 0.16:
 			var book := 0.08 + 0.05 * float(index % 3)
-			var tall := 0.28 + 0.09 * float(index % 4)
+			var tall := minf(0.26 + 0.05 * float(index % 4), room)
 			batch.box(Vector3(x + book * 0.5, y + tall * 0.5 + 0.025, 0.17), Vector3(book, tall, 0.26), colors[index % colors.size()])
 			x += book + 0.012
 			index += 1
