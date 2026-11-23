@@ -2,7 +2,7 @@
 	"id": "estanteria",
 	"categoria": "mobiliario",
 	"objeto": "Estanteria",
-	"fiel": true,
+	"fiel": "optimizado",
 	"ejes": "Godot: Y arriba, frente hacia +Z (personajes: -Z), metros",
 	"godot": "4.7.2-stable (steam)",
 	"variantes": {
