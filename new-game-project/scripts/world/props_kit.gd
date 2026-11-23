@@ -1,6 +1,10 @@
 class_name PropsKit
 extends RefCounted
-## Atrezo de exteriores reutilizable por todos los escenarios.
+## Atrezo de exteriores reutilizable por todos los escenarios. Las piezas migradas a Blender
+## dibujan su parte visual con `ModelCatalog.draw` y conservan aquí su colisión y su luz.
+
+## Ángulos (radianes) de los dos taburetes alrededor de la mesa de terraza.
+const CAFE_SEAT_ANGLES: Array[float] = [0.5, 3.6]
 
 
 static func street_lamp(location: LocationBase, where: Vector3, shadows: bool = false) -> void:
@@ -68,31 +72,49 @@ static func low_wall(location: LocationBase, center: Vector3, size: Vector3) -> 
 	)
 
 
+## Caja de madera. El lado es la variante del modelo.
 static func crate(location: LocationBase, where: Vector3, size: float = 0.8, yaw_degrees: float = 0.0) -> void:
 	var yaw := deg_to_rad(yaw_degrees)
-	location.solid(where + Vector3.UP * size * 0.5, Vector3.ONE * size, Palette.WOOD_LIGHT, yaw)
-	location.batch.box(where + Vector3.UP * size * 0.5, Vector3(size + 0.03, 0.09, size + 0.03), Palette.WOOD, yaw)
+	var procedural := func(_tint: Color) -> void: _crate_mesh(location.batch, where, size, yaw)
+	ModelCatalog.draw(location, "caja", Transform3D(Basis(Vector3.UP, yaw), where), procedural, ModelCatalog.size_key(size))
+	location.collider(where + Vector3.UP * size * 0.5, Vector3.ONE * size, yaw)
+
+
+static func _crate_mesh(batch: MeshBatcher, where: Vector3, size: float, yaw: float) -> void:
+	batch.box(where + Vector3.UP * size * 0.5, Vector3.ONE * size, Palette.WOOD_LIGHT, yaw)
+	batch.box(where + Vector3.UP * size * 0.5, Vector3(size + 0.03, 0.09, size + 0.03), Palette.WOOD, yaw)
 
 
 static func barrel(location: LocationBase, where: Vector3) -> void:
-	var batch := location.batch
-	batch.cylinder(where, 0.3, 0.37, 0.45, Palette.WOOD, 8)
-	batch.cylinder(where + Vector3.UP * 0.45, 0.37, 0.3, 0.45, Palette.WOOD, 8)
-	batch.cylinder(where + Vector3.UP * 0.42, 0.38, 0.38, 0.06, Palette.IRON, 8)
+	var procedural := func(_tint: Color) -> void: _barrel_mesh(location.batch, where)
+	ModelCatalog.draw(location, "barril", Transform3D(Basis.IDENTITY, where), procedural)
 	location.collider(where + Vector3.UP * 0.45, Vector3(0.65, 0.9, 0.65))
 
 
+static func _barrel_mesh(batch: MeshBatcher, where: Vector3) -> void:
+	batch.cylinder(where, 0.3, 0.37, 0.45, Palette.WOOD, 8)
+	batch.cylinder(where + Vector3.UP * 0.45, 0.37, 0.3, 0.45, Palette.WOOD, 8)
+	batch.cylinder(where + Vector3.UP * 0.42, 0.38, 0.38, 0.06, Palette.IRON, 8)
+
+
+## Velador de café con sus dos taburetes.
 static func cafe_table(location: LocationBase, where: Vector3) -> void:
-	var batch := location.batch
+	var procedural := func(_tint: Color) -> void: _cafe_table_mesh(location.batch, where)
+	ModelCatalog.draw(location, "mesa_cafe", Transform3D(Basis.IDENTITY, where), procedural)
+	location.collider(where + Vector3.UP * 0.4, Vector3(0.6, 0.8, 0.6))
+	for angle: float in CAFE_SEAT_ANGLES:
+		var seat := where + Vector3(cos(angle), 0.0, sin(angle)) * 0.72
+		location.collider(seat + Vector3.UP * 0.23, Vector3(0.34, 0.46, 0.34))
+
+
+static func _cafe_table_mesh(batch: MeshBatcher, where: Vector3) -> void:
 	batch.cylinder(where, 0.24, 0.04, 0.08, Palette.IRON, 6)
 	batch.cylinder(where + Vector3.UP * 0.08, 0.035, 0.035, 0.64, Palette.IRON, 5)
 	batch.cylinder(where + Vector3.UP * 0.72, 0.42, 0.42, 0.04, Palette.PAPER.darkened(0.35), 8)
-	location.collider(where + Vector3.UP * 0.4, Vector3(0.6, 0.8, 0.6))
-	for angle: float in [0.5, 3.6]:
+	for angle: float in CAFE_SEAT_ANGLES:
 		var seat := where + Vector3(cos(angle), 0.0, sin(angle)) * 0.72
 		batch.cylinder(seat, 0.03, 0.03, 0.42, Palette.IRON, 5)
 		batch.cylinder(seat + Vector3.UP * 0.42, 0.18, 0.18, 0.04, Palette.WOOD, 6)
-		location.collider(seat + Vector3.UP * 0.23, Vector3(0.34, 0.46, 0.34))
 
 
 ## Sedán de los años cuarenta. `yaw_degrees` orienta el morro.
