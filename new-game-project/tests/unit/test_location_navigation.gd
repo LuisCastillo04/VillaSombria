@@ -60,7 +60,7 @@ func test_every_marker_is_on_the_floor_mesh() -> void:
 func test_furniture_tops_are_not_floor() -> void:
 	var cafe := await _load("cafe")
 	check(not cafe.navigation.is_on_floor_mesh(Vector3(0.0, 1.1, -3.9)), "la barra no es suelo")
-	check(not cafe.navigation.is_on_floor_mesh(Vector3(-12.8, 0.8, -3.6)), "la cama de la pensión no es suelo")
+	check(not cafe.navigation.is_on_floor_mesh(Vector3(-12.8, 0.8, -4.65)), "la cama de la pensión no es suelo")
 	check(cafe.navigation.is_on_floor_mesh(Vector3(0.0, 0.0, 0.0)), "el centro del salón sí")
 
 
