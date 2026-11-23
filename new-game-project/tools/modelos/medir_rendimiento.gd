@@ -31,6 +31,8 @@ func _ready() -> void:
 	lines.append("| --- | --- | --- | --- | --- |")
 	for use_models: bool in [false, true]:
 		lines.append(_measure_characters(use_models, repetitions))
+	lines.append("")
+	lines.append(_measure_cache())
 	var text := "\n".join(lines) + "\n"
 	print(text)
 	if not output.is_empty():
@@ -87,6 +89,20 @@ func _measure_characters(use_models: bool, repetitions: int) -> String:
 		triangles = total
 	ModelCatalog.enabled = true
 	return "| %d personajes | %s | %d | %.1f | %.1f |" % [characters.size(), "modelos" if use_models else "procedural", triangles, times[0], _mean(times.slice(1))]
+
+
+## Memoria que ocupa la caché de `ModelCatalog` con todos los modelos cargados.
+func _measure_cache() -> String:
+	ModelCatalog.enabled = true
+	ModelCatalog.clear()
+	var before := OS.get_static_memory_usage()
+	var objects := 0
+	for id: String in ModelCatalog.MODELS:
+		objects += ModelCatalog.get_objects(id).size()
+	var after := OS.get_static_memory_usage()
+	var cached := float(after - before) / 1048576.0
+	ModelCatalog.clear()
+	return "Caché de modelos con los %d modelos (%d objetos) cargados: %.1f MB de memoria estática (OS.get_static_memory_usage)." % [ModelCatalog.MODELS.size(), objects, cached]
 
 
 static func _mean(values: Array) -> float:
