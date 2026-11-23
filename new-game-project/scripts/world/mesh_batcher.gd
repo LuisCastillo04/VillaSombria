@@ -19,11 +19,11 @@ var xform := Transform3D.IDENTITY
 var color_jitter := 0.035
 
 var _buffers: Dictionary = {}
-var _rng := RandomNumberGenerator.new()
+var _seed := 7
 
 
 func _init(random_seed: int = 7) -> void:
-	_rng.seed = random_seed
+	_seed = random_seed
 
 
 func is_empty() -> bool:
@@ -42,13 +42,7 @@ func face(points: PackedVector3Array, color: Color, outward: Vector3, layer: Lay
 	if normal.dot(world_outward) < 0.0:
 		world_points.reverse()
 		normal = -normal
-	var shade := _rng.randf_range(-color_jitter, color_jitter) if layer == Layer.OPAQUE else 0.0
-	var tinted := Color(
-		clampf(color.r + shade, 0.0, 1.0),
-		clampf(color.g + shade, 0.0, 1.0),
-		clampf(color.b + shade, 0.0, 1.0),
-		color.a
-	)
+	var tinted := shaded(color, _centroid(world_points)) if layer == Layer.OPAQUE else color
 	var buffers := _get_buffers(layer)
 	# Godot considera cara frontal el orden horario, de ahí el recorrido invertido.
 	for index in range(1, world_points.size() - 1):
@@ -239,6 +233,45 @@ func _sphere_point(
 	var angle := TAU * float(side) / float(sides)
 	var unit := Vector3(sin(polar) * cos(angle), cos(polar), sin(polar) * sin(angle))
 	return center + unit * radius * stretch
+
+
+## Color de una cara con su variación de brillo. La variación sale del centro de la cara (en el
+## espacio del escenario) y de la semilla, no del orden en que se añaden las caras: quitar,
+## añadir o sustituir una pieza no cambia el tono de las demás.
+func shaded(color: Color, center: Vector3) -> Color:
+	if color_jitter <= 0.0:
+		return color
+	var unit := float(_hash_point(center)) / 4294967295.0
+	var shade := lerpf(-color_jitter, color_jitter, unit)
+	return Color(
+		clampf(color.r + shade, 0.0, 1.0),
+		clampf(color.g + shade, 0.0, 1.0),
+		clampf(color.b + shade, 0.0, 1.0),
+		color.a
+	)
+
+
+static func _centroid(points: PackedVector3Array) -> Vector3:
+	var sum := Vector3.ZERO
+	for point in points:
+		sum += point
+	return sum / float(points.size())
+
+
+## Resume un punto en un entero de 32 bits. La rejilla es de 1 cm desplazada 0,37 cm: las
+## medidas del juego (múltiplos de medio milímetro) nunca caen en el borde de una celda, así
+## que los errores de coma flotante (un modelo exportado y vuelto a leer) no cambian la celda.
+func _hash_point(point: Vector3) -> int:
+	var hashed := _mix(_seed & 0xFFFFFFFF)
+	for value: float in [point.x, point.y, point.z]:
+		hashed = _mix(hashed ^ (floori(value * 100.0 + 0.37) & 0xFFFFFFFF))
+	return hashed
+
+
+static func _mix(value: int) -> int:
+	value = (((value >> 16) ^ value) * 0x45d9f3b) & 0xFFFFFFFF
+	value = (((value >> 16) ^ value) * 0x45d9f3b) & 0xFFFFFFFF
+	return (value >> 16) ^ value
 
 
 func _get_buffers(layer: Layer) -> Buffers:
