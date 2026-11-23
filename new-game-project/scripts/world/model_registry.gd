@@ -22,7 +22,8 @@ const MODELS := {
 	"sofa": {"categoria": "mobiliario", "objeto": "Sofa", "fiel": true},
 	"mesa": {"categoria": "mobiliario", "objeto": "Mesa", "fiel": true},
 	"escritorio": {"categoria": "mobiliario", "objeto": "Escritorio", "fiel": true},
-	"estanteria": {"categoria": "mobiliario", "objeto": "Estanteria", "fiel": true},
+	# Sin las caras que la cámara no ve (bases y traseras interiores): optimizar_ocultas.py.
+	"estanteria": {"categoria": "mobiliario", "objeto": "Estanteria", "fiel": "optimizado"},
 	"archivador": {"categoria": "mobiliario", "objeto": "Archivador", "fiel": true},
 	"chimenea": {"categoria": "mobiliario", "objeto": "Chimenea", "fiel": true},
 	"lampara_pie": {"categoria": "mobiliario", "objeto": "LamparaPie", "fiel": true},

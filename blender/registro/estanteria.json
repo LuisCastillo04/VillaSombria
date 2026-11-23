@@ -2,13 +2,13 @@
 	"id": "estanteria",
 	"blend": "blender/fuentes/mobiliario/estanteria.blend",
 	"glb": "new-game-project/assets/modelos/mobiliario/estanteria.glb",
-	"fecha": "2026-11-23T01:54:36",
+	"fecha": "2026-11-23T02:17:45",
 	"blender": "5.3.0",
 	"exportador_gltf": "5.3.43",
-	"triangulos": 5748,
+	"triangulos": 3932,
 	"objetos": {
 		"Estanteria_300x200": {
-			"triangulos": 1044,
+			"triangulos": 722,
 			"caja_godot": {
 				"min": [
 					-1.54,
@@ -23,7 +23,7 @@
 			}
 		},
 		"Estanteria_300x250": {
-			"triangulos": 1296,
+			"triangulos": 890,
 			"caja_godot": {
 				"min": [
 					-1.54,
@@ -38,7 +38,7 @@
 			}
 		},
 		"Estanteria_320x260": {
-			"triangulos": 1356,
+			"triangulos": 920,
 			"caja_godot": {
 				"min": [
 					-1.64,
@@ -53,7 +53,7 @@
 			}
 		},
 		"Estanteria_400x300": {
-			"triangulos": 2052,
+			"triangulos": 1400,
 			"caja_godot": {
 				"min": [
 					-2.04,
@@ -68,7 +68,7 @@
 			}
 		}
 	},
-	"sha256": "41c2246891956c8d061a038b6de25d1a345518483b64261f7c13662a191f9ddb",
+	"sha256": "88973ecbfa66d28401ac505155b146ab73085bd7713600ca66e6e82ab5a352c8",
 	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
 	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
 	"opciones": {

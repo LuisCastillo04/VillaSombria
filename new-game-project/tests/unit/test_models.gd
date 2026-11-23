@@ -159,6 +159,76 @@ func test_each_model_matches_its_procedural_piece() -> void:
 	check(checked.size() > 0, "Hay piezas migradas que comprobar")
 
 
+## Los modelos «optimizados» sólo pierden caras que la cámara (inclinación fija de -36°) no ve:
+## todo lo que dibujan está en la pieza procedural con el mismo color, y lo que falta mira hacia
+## abajo o es una trasera interior (no la trasera exterior del mueble).
+func test_optimized_models_only_drop_hidden_faces() -> void:
+	ModelCatalog.captures.clear()
+	ModelCatalog.capturing = true
+	for location_id: String in LOCATIONS:
+		var location: LocationBase = (load("res://scenes/world/locations/%s.tscn" % location_id) as PackedScene).instantiate()
+		location._body = StaticBody3D.new()
+		location.build()
+		location._body.free()
+		location.free()
+	ModelCatalog.capturing = false
+	var checked := 0
+	for capture: Dictionary in ModelCatalog.captures:
+		var id: String = capture["id"]
+		var fidelity: Variant = ModelCatalog.MODELS.get(id, {}).get("fiel", true)
+		if not (fidelity is String and fidelity == "optimizado"):
+			continue
+		var label := "%s/%s en %s" % [id, capture["variant"], capture["where"]]
+		var placement: Transform3D = capture["placement"]
+		var expected := MeshBatcher.new()
+		expected.xform = placement
+		for face: Dictionary in capture["faces"]:
+			expected.face(face["points"], face["color"], Vector3.ZERO, face["layer"])
+		var actual := MeshBatcher.new()
+		check(ModelCatalog.place_in(actual, id, placement, capture["variant"]), "%s: sin modelo" % label)
+		var model_triangles := _triangle_list(actual, MeshBatcher.Layer.OPAQUE)
+		var procedural_triangles := _triangle_list(expected, MeshBatcher.Layer.OPAQUE)
+		var procedural_grid := _grid(procedural_triangles)
+		var model_grid := _grid(model_triangles)
+		var worst := 0.0
+		for triangle in model_triangles:
+			var cover: Variant = _covering(procedural_grid, triangle)
+			check(cover != null, "%s: el modelo dibuja algo que no está en la pieza procedural" % label)
+			if cover != null:
+				worst = maxf(worst, _color_distance((cover as Dictionary)["color"], triangle["color"]))
+		check(worst <= 1.0 / 255.0 + 0.0001, "%s: diferencia de color %.4f" % [label, worst])
+		var inverse := placement.affine_inverse()
+		# La trasera del mueble: las caras que miran atrás más alejadas, y el rectángulo que tapan.
+		var rear := INF
+		for triangle in procedural_triangles:
+			for point: Vector3 in triangle["points"]:
+				rear = minf(rear, (inverse * point).z)
+		var cover := AABB()
+		var first := true
+		for triangle in procedural_triangles:
+			var normal: Vector3 = (inverse.basis * (triangle["normal"] as Vector3)).normalized()
+			if normal.z < -0.99 and absf((inverse * (triangle["center"] as Vector3)).z - rear) < 0.001:
+				for point: Vector3 in triangle["points"]:
+					var local := inverse * point
+					cover = AABB(local, Vector3.ZERO) if first else cover.expand(local)
+					first = false
+		var dropped := 0
+		for triangle in procedural_triangles:
+			if _covering(model_grid, triangle) != null:
+				continue
+			dropped += 1
+			var normal: Vector3 = (inverse.basis * (triangle["normal"] as Vector3)).normalized()
+			var behind := normal.z < -0.99
+			for point: Vector3 in triangle["points"]:
+				var local := inverse * point
+				behind = behind and local.z > rear + 0.001 					and local.x >= cover.position.x - 0.001 and local.x <= cover.end.x + 0.001 					and local.y >= cover.position.y - 0.001 and local.y <= cover.end.y + 0.001
+			check(normal.y < -0.99 or behind, "%s: falta una cara visible (normal %s)" % [label, normal])
+		check(dropped > 0, "%s: un modelo «optimizado» debería tener menos caras" % label)
+		checked += 1
+	ModelCatalog.captures.clear()
+	check(checked > 0, "Hay modelos optimizados que comprobar")
+
+
 ## Cada escenario se ve igual con modelos que sin ellos (salvo el redondeo de color de 8 bits) y
 ## tiene exactamente las mismas colisiones: migrar una pieza sólo cambia de dónde sale su malla.
 func test_locations_match_with_and_without_models() -> void:
