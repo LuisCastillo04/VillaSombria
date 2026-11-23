@@ -1,6 +1,7 @@
 extends TestCase
 ## Modelos de Blender fusionados en el lote (`ModelCatalog`, `MeshBatcher.add_surfaces`).
 
+const LOCATIONS := ["plaza", "cafe", "mansion", "archivo", "estacion"]
 const QUAD := [Vector3(0.0, 0.0, 0.0), Vector3(1.0, 0.0, 0.0), Vector3(1.0, 0.0, 1.0), Vector3(0.0, 0.0, 1.0)]
 
 
@@ -113,6 +114,77 @@ func test_mailbox_model_orientation() -> void:
 	if count > 0:
 		slot /= float(count)
 		check(slot.z > 0.2 and absf(slot.x) < 0.05, "La ranura mira hacia +Z, como la procedural (%s)" % slot)
+
+
+## Cada escenario se ve igual con modelos que sin ellos (salvo el redondeo de color de 8 bits) y
+## tiene exactamente las mismas colisiones: migrar una pieza sólo cambia de dónde sale su malla.
+func test_locations_match_with_and_without_models() -> void:
+	for location_id: String in LOCATIONS:
+		var with_models := _built_location(location_id, true)
+		var procedural := _built_location(location_id, false)
+		_check_same_triangles(with_models["batch"], procedural["batch"], location_id)
+		check_equal(with_models["colliders"], procedural["colliders"], "%s: mismas colisiones con y sin modelos" % location_id)
+
+
+func test_mailbox_falls_back_when_model_is_missing() -> void:
+	var expected := _procedural_batch(func(location: LocationBase) -> void: PropsKit.mailbox(location, Vector3(1.0, 0.0, 2.0)))
+	ModelCatalog.paths["buzon"] = "res://assets/modelos/atrezo/no_existe.glb"
+	ModelCatalog.clear()
+	var location := LocationBase.new()
+	location._body = StaticBody3D.new()
+	PropsKit.mailbox(location, Vector3(1.0, 0.0, 2.0))
+	_check_same_triangles(location.batch, expected, "buzón sin GLB")
+	check_equal(location._body.get_child_count(), 1, "Sin GLB, el buzón conserva su colisión")
+	location._body.free()
+	location.free()
+
+
+## La plaza con el buzón migrado sigue siendo tres mallas y una sola colisión estática.
+func test_plaza_keeps_its_batches() -> void:
+	check(ModelCatalog.has_model("buzon"), "El buzón usa su modelo")
+	var plaza: LocationBase = (load("res://scenes/world/locations/plaza.tscn") as PackedScene).instantiate()
+	add_child(plaza)
+	var meshes := 0
+	var bodies: Array[String] = []
+	for node in plaza.find_children("*", "", true, false):
+		if node is Npc or _has_ancestor_of(node, plaza):
+			continue
+		if node is MeshInstance3D and node.get_parent() == plaza:
+			meshes += 1
+		if node is StaticBody3D:
+			bodies.append(String(node.name))
+	check(meshes <= 3, "La plaza se dibuja con un máximo de 3 mallas, tiene %d" % meshes)
+	check_equal(bodies, ["Colisiones"], "Las únicas colisiones estáticas son las de «Colisiones»")
+	plaza.queue_free()
+
+
+## Construye un escenario sin añadirlo al árbol (sin NPC ni navegación) y devuelve su lote y la
+## lista de colisiones (centro, tamaño y giro).
+static func _built_location(location_id: String, use_models: bool) -> Dictionary:
+	var location: LocationBase = (load("res://scenes/world/locations/%s.tscn" % location_id) as PackedScene).instantiate()
+	location._body = StaticBody3D.new()
+	var was_enabled := ModelCatalog.enabled
+	ModelCatalog.enabled = use_models
+	location.build()
+	ModelCatalog.enabled = was_enabled
+	var colliders: Array[String] = []
+	for child in location._body.get_children():
+		var shape := child as CollisionShape3D
+		colliders.append("%s %s %s" % [shape.transform.origin, (shape.shape as BoxShape3D).size, shape.transform.basis.get_euler()])
+	var batch := location.batch
+	location._body.free()
+	location.free()
+	return {"batch": batch, "colliders": colliders}
+
+
+## Nodos que pertenecen a un NPC o al detective (tienen su propio modelo).
+static func _has_ancestor_of(node: Node, stop: Node) -> bool:
+	var current := node.get_parent()
+	while current != null and current != stop:
+		if current is Npc or current is PlayerController:
+			return true
+		current = current.get_parent()
+	return false
 
 
 ## Construye una pieza con su código procedural en un escenario sin árbol.
