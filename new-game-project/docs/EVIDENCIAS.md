@@ -15,14 +15,16 @@ desvanece solo.
 | --- | --- | --- | --- |
 | Carta (`carta`) | Carta personal | `carta_amor` | Pliego desplegado con pliegues en cruz, mancha de humedad y cerco de taza; lugar arriba a la derecha, «Lucía:» con trazo rojo, cuerpo manuscrito, firma con rúbrica, violetas prensadas y la nota del misal escrita a máquina |
 | Periódico (`periodico`) | Periódico / Crónica | `periodico_aniversario` | Plana de *El Eco de Villa Sombría* doblada en cuatro y mordida: cabecera con viñeta y lema, número, fecha y precio, titular, subtítulo, dos columnas justificadas, foto nocturna de la mansión en trama y «Hallada en: Quiosco de la plaza» |
-| Ficha (`ficha`) | Evidencia / Objeto (o Documento, Fotografía, Carta, Huella según la categoría) | `reloj_despacho` y cualquier otra prueba | Cartulina doblada: tipo en rojo, título, «Hallada en», descripción a máquina y, a la derecha, la ilustración de la prueba o el emblema de su categoría |
+| Ficha (`ficha`) | Evidencia / Objeto (o Documento, Fotografía, Carta, Huella según la categoría) | `reloj_despacho`, las siete pruebas ilustradas y cualquier otra prueba | Cartulina doblada: tipo en rojo, título, «Hallada en», descripción a máquina y, a la derecha, la ilustración de la prueba (ver [Ilustraciones de la ficha](#ilustraciones-de-la-ficha)) o el emblema de su categoría |
 
-La ficha es la plantilla por defecto: las 16 pruebas que no tienen presentación propia se examinan
-en ella con sus datos de siempre, igual que antes con la hoja del expediente.
+La ficha es la plantilla por defecto: las pruebas sin plantilla propia se examinan en ella con sus
+datos de siempre. Siete de ellas traen además su ilustración en `presentation.art`.
 
 Nada es una captura con el texto incrustado. El papel, el fondo y la impresión del periódico son
 shaders; el marco, las placas, los filetes y los trazos de pluma se dibujan en código; las
-ilustraciones son SVG; y todo lo que se lee son etiquetas con los textos de `data/clues.json`.
+ilustraciones son imágenes sueltas (SVG o PNG con fondo transparente) colocadas desde los datos; y
+todo lo que se lee son etiquetas con los textos de `data/clues.json`, también los nombres de la
+lista de invitados.
 
 ## Piezas
 
@@ -32,7 +34,8 @@ ilustraciones son SVG; y todo lo que se lee son etiquetas con los textos de `dat
 | `scripts/ui/evidence/evidence_info.gd` | `EvidenceInfo`: lee la prueba de `GameData`, elige la plantilla, la placa y el icono y crea el documento; no cambia nada |
 | `evidence_style.gd` | `EvidenceStyle`: paleta, letras, medidas, tiempos y el ajuste de textos largos |
 | `evidence_document.gd` | `EvidenceDocument`: base de las plantillas (papel, capa de tinta, etiquetas e imágenes en su tamaño de diseño) |
-| `evidence_letter.gd`, `evidence_newspaper.gd`, `evidence_record_card.gd` | Las tres plantillas |
+| `evidence_letter.gd`, `evidence_newspaper.gd`, `evidence_record_card.gd` | Las tres plantillas; la ficha coloca además la ilustración de `presentation.art` sin tapar los textos y la hace asentarse al abrir |
+| `evidence_guest_list.gd` | `EvidenceGuestList`: el papel de la lista de invitados con los nombres de los datos, las casillas marcadas, el añadido a mano y la pinza |
 | `evidence_paper.gd` | `EvidencePaper`: la hoja con su sombra; cada plantilla elige pliegues, manchas y rasgados |
 | `evidence_tag.gd` | `EvidenceTag`: tira de papel escrita a máquina («Hallada en», la nota del misal) |
 | `evidence_frame.gd`, `evidence_header_plate.gd`, `evidence_close_button.gd`, `evidence_notice.gd` | Marco, placa del encabezado, botón «Cerrar» y aviso «Evidencia obtenida» |
@@ -40,7 +43,8 @@ ilustraciones son SVG; y todo lo que se lee son etiquetas con los textos de `dat
 | `assets/shaders/evidence_paper.gdshader` | Papel: manchas, fibras, motas de óxido, pliegues, mancha de humedad, cerco de taza, borde rasgado y quemado, sombra |
 | `assets/shaders/evidence_backdrop.gdshader` | El escenario desenfocado y oscurecido detrás del documento |
 | `assets/shaders/evidence_newsprint.gdshader` | Trama de imprenta: foto nocturna (cielo, muros oscuros, ventanas encendidas) o viñeta entintada |
-| `assets/ui/evidencias/` | `reloj_sobremesa.svg` y `flores_violetas.svg`, generados con `tools/generar_evidencias.py` |
+| `assets/ui/evidencias/` | `reloj_sobremesa.svg` y `flores_violetas.svg`, generados con `tools/generar_evidencias.py`; las siete ilustraciones PNG, extraídas con `tools/extraer_ilustraciones.py`; `lista_invitados_pinza.svg`, hecha a mano |
+| `tools/extraer_ilustraciones.py`, `referencias/evidencias/` | La herramienta de extracción y las siete capturas de referencia de las que sale el arte |
 | `assets/ui/iconos/periodico.svg` | Icono nuevo de la placa del periódico |
 
 Se reutiliza lo que ya existía: `HudOrnaments`, `DialogueOrnaments`, `KeyCap`, `InputLabels`,
@@ -81,6 +85,86 @@ Decisiones sobre el contenido:
 
 Una prueba de `test_evidence` comprueba que el cuerpo de la carta, el encabezado, la cabecera y el
 titular del periódico aparecen en la descripción que lee el expediente, para que nunca diverjan.
+
+## Ilustraciones de la ficha
+
+Siete pruebas llevan en la ficha una ilustración propia, a la derecha, como en las referencias del
+propietario (`referencias/evidencias/`, fuera del proyecto de Godot):
+
+| Prueba | Ilustración | Archivo |
+| --- | --- | --- |
+| `huellas_betun` | Cuatro pares de huellas de zapato en diagonal, en tinta plana y translúcida | `huellas_betun.png` |
+| `foto_clara` | Fotografía sepia de 1948, inclinada, con el letrero «SANATORIO DE SANTA CLARA», bordes gastados y sombra | `foto_clara.png` |
+| `lista_invitados` | Hojas apiladas con escudo, encabezado y fecha, sujetas con una pinza de latón; los invitados se escriben con los datos (ver abajo) | `lista_invitados.png`, `lista_invitados_pinza.svg` |
+| `billete_tren` | Billete del Ferrocarril Nacional en diagonal: La Capital, Dom. 17, 07:40, N.º 04873 | `billete_tren.png` |
+| `libro_bodega` | Libro de cuero con esquinas doradas, lomo con nervios, cinta roja y etiqueta «Registro» | `libro_bodega.png` |
+| `llave_reloj` | Llave de latón con la etiqueta «Despacho» colgada de un cordel | `llave_reloj.png` |
+| `copa_lavada` | Copa balón vacía y limpia, con gotas de agua junto al pie y su sombra | `copa_lavada.png` |
+
+**Origen.** Son las ilustraciones de las propias referencias, separadas del pergamino con
+`tools/extraer_ilustraciones.py` (`uv run --no-project --with pillow --with numpy --with scipy
+python tools/extraer_ilustraciones.py [id...]`). La herramienta modela el papel que hay debajo de
+cada objeto y despeja su color y su opacidad, de modo que sobre el pergamino del juego se ven como en
+la referencia, con sus sombras, y sin el título, el subrayado ni el texto de la interfaz de la
+captura. No se ha descargado nada: todo sale de las imágenes del propietario.
+
+**Datos.** Bloque `presentation` de la prueba en `clues.json`, con la plantilla `ficha`:
+
+| Campo de `art` | Qué hace |
+| --- | --- |
+| `image` | Ruta de la ilustración (PNG o SVG) |
+| `center` | Centro, `[x, y]`, en el tamaño de diseño de la ficha (1500 × 900) |
+| `width` | Ancho en ese mismo tamaño; el alto sale de la proporción de la imagen |
+| `rotation` | Giro en grados (opcional; las siete ya vienen giradas en la imagen) |
+
+El campo `image` de siempre no cambia: sigue siendo la foto del expediente (el reloj). Las siete
+pruebas no lo usan, así que el expediente las sigue enseñando con el emblema de su categoría.
+
+**Nunca tapa un texto.** Antes de colocarla, la ficha mide lo que ocupan el tipo, el título, «Hallada
+en» y la línea más larga de la descripción, y encoge la ilustración hacia su centro (hasta el 55 %)
+mientras alguna parte opaca suya caiga a menos de 12 unidades de un texto o se salga de los filetes
+de la cartulina. Se miran los píxeles opacos, no el rectángulo: la llave puede acercarse al título
+por donde su imagen es transparente. Con títulos y descripciones más largos se aparta sola.
+
+**Entrada.** Al abrir la hoja, la ilustración aparece 0,08 s después y en 0,42 s pasa del 95 % a su
+tamaño y de 1,5° de giro a derecha, como si se asentara sobre el papel. Con «Reducir movimiento»
+sólo aparece. El resto de la apertura y el cierre (fundido, escala y fondo oscurecido) es el de
+siempre.
+
+### Lista de invitados
+
+Los nombres de la referencia («Don Ricardo Valdés», «Doña Isabel Valdés») no existen en la historia:
+la familia es Julián, la víctima y anfitrión, su esposa Elena y su hijo Marcos. Por eso la lista no
+es una imagen con los nombres escritos: el papel trae el escudo, «Lista de invitados» y «Cena —
+Sábado, 16 de octubre», y `EvidenceGuestList` escribe encima los datos de
+`presentation.guest_list`:
+
+| Campo | Qué es |
+| --- | --- |
+| `guests` | Invitados en orden: `name` y, opcionalmente, `note` (la función entre paréntesis) |
+| `added` | El añadido a mano por Julián, al final: otra letra, tinta azul negra y subrayado rojo |
+| `clip` | La pinza de latón que sujeta las hojas |
+
+La lista es: Doña Elena Valdés, Don Marcos Valdés, Lic. Andrés Cortés (Notario), Dr. Esteban Rivas,
+Don Mauricio Escalante, Don Felipe Aguirre y Don Tomás Olmedo (Banco), y a mano, «Srta. Irene Vidal
+(invitada personal)». Así casa con la descripción («la familia, el notario, el doctor y varios
+socios del banco») y con lo que dice Elena («Julián la añadió a la lista»). El notario, el doctor y
+los socios no tenían nombre en el juego: los de la referencia no contradicen nada y se conservan;
+Olmedo se añadió para que los socios sean «varios». Todas las casillas van marcadas, como en la
+referencia. Caben ocho filas; con más, avisa y escribe las que caben.
+
+La pinza de la referencia estaba cortada por el borde de la captura: `lista_invitados_pinza.svg` es
+una pinza completa dibujada a mano que la tapa.
+
+### Decisiones sobre las referencias
+
+- **Textos de la interfaz.** Todo lo que se lee en la ficha sale de `clues.json`, no de las capturas.
+  Por eso se mantienen «Office del mayordomo» (la referencia de la llave decía «Despacho del
+  mayordomo»), «tablero del office» (decía «tablero del mayordomo») y «socios del banco. Al final»
+  (la referencia tenía una coma).
+- **Billete y libro.** Lo escrito en ellos es parte del dibujo y coincide con los datos: destino La
+  Capital, domingo 17, 07:40; etiqueta «Registro» en la cubierta del libro de bodega.
+- **Copa.** La referencia ya la dibujaba vacía (sólo el brillo ámbar del cristal), como pide la pista.
 
 ## Cómo se maneja
 
@@ -142,6 +226,9 @@ Comprobado con pruebas a 16:9, 4:3, 5:4, 21:9 y con la letra «Muy grande», y c
 | --- | --- |
 | Presentación propia para otra prueba | Su bloque `presentation` en `clues.json` con una plantilla existente (otra carta, otro periódico) |
 | Ilustración de una prueba | Campo `image` con la ruta de un SVG o PNG; la ficha y el expediente la muestran |
+| Ilustración sólo para la ficha, con su sitio y tamaño | `presentation.art` (`image`, `center`, `width`, `rotation`) con plantilla `ficha` |
+| Extraer otra ilustración de una captura | Su entrada en `ITEMS` de `tools/extraer_ilustraciones.py` (recuadro, umbrales, zonas excluidas) y la captura en `referencias/evidencias/` |
+| Cambiar la lista de invitados | `presentation.guest_list` en `clues.json` (hasta ocho filas) |
 | Plantilla nueva (fotografía, telegrama, registro...) | Una subclase de `EvidenceDocument` con `get_design_size`, `get_template_id`, `_build` y, si traza líneas, `_draw_ink`; su entrada en `EvidenceInfo.TEMPLATES` y en `EvidenceInfo.create_document` |
 | Placa de una categoría | `EvidenceInfo.RECORD_HEADERS` o `header` e `icon` en la presentación |
 | Arte definitivo | Sustituir los SVG de `assets/ui/evidencias/` con el mismo nombre, o apuntar `image` y `ornament` a otros archivos |
@@ -161,6 +248,7 @@ genérica:
 | Ficha, título | Century Schoolbook, Bookman Old Style, Georgia |
 | Ficha, texto | Courier New (la máquina de escribir del expediente) |
 | Placas y aviso | Palatino Linotype, Book Antiqua, Georgia (las de todo el juego) |
+| Lista de invitados | Edwardian Script ITC (los invitados) y Vladimir Script (el añadido de Julián), con las mismas alternativas que la carta |
 
 Vladimir Script, Edwardian Script ITC y Century Schoolbook vienen con Microsoft Office, no con
 Windows. En un equipo sin Office, la carta se escribe con Segoe Script y el periódico con Georgia,
@@ -186,10 +274,18 @@ que sí vienen con Windows 10 y 11: se lee igual, pero se parece menos a la refe
 - que el botón muestra la tecla reasignada y que liberar la partida con la hoja abierta no deja el
   bloqueo;
 - que todo cabe a 16:9, 4:3, 5:4, 21:9 y con la letra más grande, y que el documento se ve del mismo
-  tamaño con cualquier tamaño de letra.
+  tamaño con cualquier tamaño de letra;
+- que las siete pruebas ilustradas se abren en la ficha con la imagen de sus datos, dentro de la
+  cartulina, sin el emblema genérico, sin tapar ningún texto (también con títulos y descripciones
+  más largos) y conservando casi todo su tamaño;
+- que la lista de invitados escribe los nombres de los datos en orden, todos marcados, con el
+  añadido que cita la pista y apellidos de personajes de la historia, sin Julián, y con la pinza;
+- que la ilustración se asienta al abrir y, con «Reducir movimiento», sólo aparece.
 
 Las pruebas del aviso y de la tecla mantenida se validaron con mutaciones: hacer que la hoja se
-pudiera cerrar nada más abrirse y que el aviso sonara siempre las hizo fallar.
+pudiera cerrar nada más abrirse y que el aviso sonara siempre las hizo fallar. Las de las
+ilustraciones también: llevar la copa encima de la descripción y cambiar el nombre añadido a la
+lista las hizo fallar.
 
 `test_journal` comprueba además que el expediente enseña la ilustración del reloj como fotografía.
 
@@ -201,6 +297,15 @@ con `--pistas=id` se relee sin él).
 - **Arte provisional.** El reloj y las violetas son grabados generados por código, más sencillos que
   los de las referencias; la foto del periódico es el grabado de la mansión impreso en trama, no una
   fotografía. Para sustituirlos basta con reemplazar los SVG.
+- **Resolución de las siete ilustraciones.** Tienen la de las capturas (entre 400 y 760 píxeles de
+  lado): a 1920 × 1080 se ven casi a un píxel por píxel; a más resolución la ficha crece hasta 1,2
+  veces y se suavizan un poco. Para más nitidez habría que extraerlas de capturas más grandes.
+- **Extracción.** Donde el objeto se confunde con el papel, la herramienta tuvo que ayudarse de
+  límites a mano (el polígono del billete, el ojo de la llave, las zonas de la interfaz que asomaban);
+  el billete perdió el cerco de café de la referencia, que el papel del juego ya dibuja en otro sitio.
+- **Lista de invitados.** El encabezado y la fecha van en la imagen; los nombres, con letras de
+  Office (sin Office, Segoe Script). A 1280 × 720 los nombres se ven pequeños: se leen, pero cuesta.
+  La pinza es un dibujo vectorial propio, más sencillo que el latón de la referencia.
 - **Letras.** Las manuscritas y la del periódico dependen de Office (ver [Letras](#letras)); no se
   han incluido archivos de fuentes para no meter recursos de terceros.
 - **El marco no se ve más fino con la letra grande**: sus filetes se dibujan en el lienzo lógico y

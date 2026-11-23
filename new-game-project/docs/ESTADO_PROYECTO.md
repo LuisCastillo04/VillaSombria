@@ -45,6 +45,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | NPC, colisiones y límites de los escenarios | Hecho | Recorrido de cada escenario con la cápsula del detective (suelo y área), puertas con teclas reales, red de seguridad, navegación en los cinco escenarios, reparto de las rutinas cada media hora de los tres días, NPC en movimiento con la escena de juego real (paseos, rondas, mobiliario, convivencia, atención, conversación, guardar y cargar), mediciones de física y carga frente a `main` y capturas del café, la mansión, la puerta del café y la estación; ver [NPC.md](NPC.md) |
 | Llegada al café con Rosa y el sargento, salidas de los NPC y cómoda del cuarto de Lucía | Hecho | Con la escena de juego real: Rosa y Ortega en la sala al entrar, a la vista por encima de la interfaz y de cara al inspector, turnos de palabra, salida de Ortega por la puerta, Rosa de vuelta a la barra, visitas posteriores, guardar mientras sale; salidas genéricas de los NPC; cómoda contra la pared con el cuarto despejado; capturas de la escena, de la salida fotograma a fotograma y del cuarto; ver [NPC.md](NPC.md) |
 | Interfaces de evidencias | Hecho | Pruebas con la escena de juego real (plantillas y textos de la carta, el periódico y el reloj, las diecinueve pruebas, «Evidencia obtenida» y su duración, cierre anticipado, relectura, guardar y cargar, tecla mantenida, Esc, ratón, bloqueo y HUD, proporciones y tamaños de letra), mutaciones de las pruebas del aviso y de la tecla, y capturas a 1280×720, 1920×1080 y 1024×768 comparadas con las referencias; ver [EVIDENCIAS.md](EVIDENCIAS.md) |
+| Ilustraciones de evidencias | Hecho | Siete pruebas con su ilustración en la ficha (extraída de las referencias), colocada desde `presentation.art` sin tapar textos, y la lista de invitados escrita con los nombres de la historia; pruebas con mutaciones y capturas a 1920×1080, 1280×720 y 1024×768 comparadas con las referencias; ver [EVIDENCIAS.md](EVIDENCIAS.md#ilustraciones-de-la-ficha) |
 | Posición del mobiliario en la plaza, la pensión del café y el cuarto de Lucía | Hecho | Árbol de otoño fuera del quiosco, en una jardinera octogonal nueva (modelo de Blender `jardinera`); cama de la pensión contra la pared con la mesilla a su lado y una silla ante la cómoda; mesilla de Lucía contra la pared, junto al cabecero. Pruebas de colisiones, holguras, navegación y alcance de la cama y de las pistas, y capturas antes y después a 1920×1080; ver [NPC.md](NPC.md#qué-se-corrigió) |
 
 Diferencias con el encargo:
@@ -120,7 +121,7 @@ reinicios en procesos separados, todo correcto.
 | `test_rebind_menu` | Reasignar con pulsaciones reales: la tecla que elige no cuenta, cancelar, modificadoras, Alt + F4, conflictos, Supr y una tecla nueva en la partida |
 | `test_gamepad` | Botones de cada acción, zona muerta, navegación con el stick y la cruceta, A y B, partida, conversación, rótulos, fabricantes, conexión y desconexión |
 | `test_controls_menu` | Herramientas de Controles sin «Próximamente», reasignar y el esquema encima, restaurar con su pregunta |
-| `test_evidence` | Inspección de evidencias: plantilla, placa y textos de la carta, el periódico y el reloj, las diecinueve pruebas, presentaciones frente a las descripciones, «Evidencia obtenida» (sólo al registrar, sin aviso repetido, duración, se va sin cerrar la hoja, cierre anticipado, relectura y carga), tecla mantenida, Esc, ratón, bloqueo, tecla reasignada, proporciones de pantalla y tamaños de letra |
+| `test_evidence` | Inspección de evidencias: plantilla, placa y textos de la carta, el periódico y el reloj, las diecinueve pruebas, presentaciones frente a las descripciones, las siete ilustraciones sin tapar textos, la lista de invitados y su coherencia con los personajes, «Evidencia obtenida» (sólo al registrar, sin aviso repetido, duración, se va sin cerrar la hoja, cierre anticipado, relectura y carga), tecla mantenida, Esc, ratón, bloqueo, tecla reasignada, proporciones de pantalla y tamaños de letra |
 | `test_journal` | Expediente: apertura y cierre con las teclas reales, datos reales de las cinco secciones, estados vacíos, nada sin descubrir, teclado y ratón, restauración sin reconstruir, proporciones de pantalla y partida cargada |
 | `persistencia/reinicio` | Guardar, cerrar el proceso y cargar en otro desde el menú principal |
 | `persistencia/ajustes` | Cambiar preferencias de todas las categorías y leerlas y aplicarlas en otro proceso, filtro visual incluido |
@@ -171,8 +172,8 @@ arranca desde él sin errores en modo sin ventana.
 - **El tablero en movimiento.** Los fundidos, el brillo de la selección, el hilo que se tiende y
   el temblor de una comparación sin relación se comprobaron con pruebas y capturas fijas, no
   viéndolos jugando; tampoco con un mando real.
-- **Las evidencias en movimiento.** La entrada y salida de «Evidencia obtenida» y los fundidos de la
-  hoja se comprobaron con pruebas y capturas fijas, no viéndolos jugando; tampoco con un mando real.
+- **Las evidencias en movimiento.** La entrada y salida de «Evidencia obtenida», los fundidos de la
+  hoja y el asentamiento de las ilustraciones se comprobaron con pruebas y capturas fijas, no viéndolos jugando; tampoco con un mando real.
 - **El expediente en movimiento.** Los fundidos de apertura, cierre, sección y ficha se
   comprobaron con pruebas y capturas fijas, no viéndolos jugando; tampoco con un mando real.
 - **La tasa de fotogramas en primer plano.** Ver el apartado siguiente.

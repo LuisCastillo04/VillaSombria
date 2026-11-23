@@ -6,7 +6,7 @@ recurso nuevo.
 
 ## Estado actual
 
-Todo el contenido actual se genera en el propio repositorio:
+Casi todo el contenido actual se genera en el propio repositorio:
 
 | Recurso | Origen |
 | --- | --- |
@@ -15,6 +15,7 @@ Todo el contenido actual se genera en el propio repositorio:
 | Siluetas de los interrogatorios | SVG generados con `tools/generar_siluetas.py` |
 | Grabados sepia del expediente | SVG generados con `tools/generar_grabados.py` |
 | Ilustraciones de las evidencias (reloj de sobremesa, violetas prensadas) | SVG generados con `tools/generar_evidencias.py`; provisionales, ver [EVIDENCIAS.md](EVIDENCIAS.md) |
+| Ilustraciones de siete evidencias (huellas, fotografía de Clara, lista de invitados, billete, libro de bodega, llave, copa) | Extraídas con `tools/extraer_ilustraciones.py` de las imágenes de referencia que aportó el propietario (`referencias/evidencias/`); su origen y sus condiciones de uso son los de esas imágenes. La pinza de la lista es un SVG hecho a mano. Ver [EVIDENCIAS.md](EVIDENCIAS.md) |
 | Iconos de la interfaz | SVG escritos a mano en el repositorio (`assets/ui/iconos/`) |
 | Materiales y efectos | Shaders propios (`assets/shaders/`) |
 | Música, ambientes y efectos | Composiciones y sonidos originales sintetizados con `tools/generar_audio.py` (`tools/sintesis/`), en `assets/audio/`; ver [AUDIO.md](AUDIO.md) y [AUDIO_INVENTARIO.md](AUDIO_INVENTARIO.md) |
