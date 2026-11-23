@@ -49,6 +49,15 @@ No forman parte del contenido del juego.
   la introducción, la confrontación y el epílogo.
 - **Ubicación sugerida:** `assets/voces/`.
 
+### Modelos 3D hechos en Blender (en planificación)
+
+- **Estado:** auditoría y plan terminados el 2026-11-22; todavía no hay ningún modelo externo.
+  Detalle en [blender/README.md](blender/README.md).
+- **Origen:** modelos propios, hechos en Blender 5.3 a partir de las piezas procedurales de hoy.
+- **Integración:** GLB en `assets/modelos/<categoría>/`, fusionados en el lote de cada escenario;
+  el código procedural se conserva como alternativa.
+- **Fuentes editables:** `.blend` en `VillaSombria/blender/fuentes/`, fuera del proyecto Godot.
+
 ## Condiciones que hay que comprobar
 
 Antes de usar estos recursos en la entrega o en una publicación:
