@@ -1,0 +1,48 @@
+{
+	"id": "rotulo_banco",
+	"blend": "blender/fuentes/escenario/rotulo_banco.blend",
+	"glb": "new-game-project/assets/modelos/escenario/rotulo_banco.glb",
+	"fecha": "2026-11-23T02:31:57",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 12,
+	"objetos": {
+		"RotuloBanco": {
+			"triangulos": 12,
+			"caja_godot": {
+				"min": [
+					-2.5,
+					-0.275,
+					-0.03
+				],
+				"max": [
+					2.5,
+					0.275,
+					0.03
+				]
+			}
+		}
+	},
+	"sha256": "ab4d397fdfd454f961dc8f9b1eb3b66e7e39367d443483524b0517075bf09da0",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

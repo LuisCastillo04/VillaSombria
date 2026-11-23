@@ -61,4 +61,18 @@ const MODELS := {
 	"foto": {"categoria": "escenario", "objeto": "Foto", "fiel": true},
 	"tablero_llaves": {"categoria": "escenario", "objeto": "TableroLlaves", "fiel": true},
 	"mostrador_archivo": {"categoria": "escenario", "objeto": "MostradorArchivo", "fiel": true},
+	# Piezas propias de los exteriores (plaza, estación)
+	"escaparate_cafe": {"categoria": "escenario", "objeto": "EscaparateCafe", "fiel": true},
+	"rotulo_cafe": {"categoria": "escenario", "objeto": "RotuloCafe", "fiel": true},
+	"portico_archivo": {"categoria": "escenario", "objeto": "PorticoArchivo", "fiel": true},
+	"torre_reloj": {"categoria": "escenario", "objeto": "TorreReloj", "fiel": true},
+	"mansion_fondo": {"categoria": "escenario", "objeto": "MansionFondo", "fiel": true},
+	"verja_mansion": {"categoria": "escenario", "objeto": "VerjaMansion", "fiel": true},
+	"rotulo_banco": {"categoria": "escenario", "objeto": "RotuloBanco", "fiel": true},
+	"fuente": {"categoria": "escenario", "objeto": "Fuente", "fiel": true},
+	"locomotora": {"categoria": "escenario", "objeto": "Locomotora", "fiel": true},
+	"vagon": {"categoria": "escenario", "objeto": "Vagon", "fiel": true},
+	"taquilla": {"categoria": "escenario", "objeto": "Taquilla", "fiel": true},
+	"marquesina": {"categoria": "escenario", "objeto": "Marquesina", "fiel": true},
+	"reloj_anden": {"categoria": "escenario", "objeto": "RelojAnden", "fiel": true},
 }
