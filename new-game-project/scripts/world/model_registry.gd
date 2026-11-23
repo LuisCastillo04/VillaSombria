@@ -19,6 +19,7 @@ const MODELS := {
 	"farola": {"categoria": "atrezo", "objeto": "Farola", "fiel": true},
 	"banco": {"categoria": "atrezo", "objeto": "Banco", "fiel": true},
 	"arbol": {"categoria": "atrezo", "objeto": "Arbol", "fiel": true},
+	"jardinera": {"categoria": "atrezo", "objeto": "Jardinera", "fiel": true},
 	"coche": {"categoria": "atrezo", "objeto": "Coche", "fiel": true},
 	"quiosco": {"categoria": "atrezo", "objeto": "Quiosco", "fiel": true},
 	"poste_indicador": {"categoria": "atrezo", "objeto": "PosteIndicador", "fiel": true},

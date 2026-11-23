@@ -51,8 +51,8 @@ No forman parte del contenido del juego.
 
 ### Modelos 3D hechos en Blender (en curso)
 
-- **Estado:** 68 modelos en el juego desde el 2026-11-23 (atrezo, mobiliario, fachadas, piezas
-  de los escenarios y los diez personajes). Lista en
+- **Estado:** 69 modelos en el juego desde el 2026-11-23 (atrezo, mobiliario, fachadas, piezas
+  de los escenarios y los diez personajes; el último, la jardinera del árbol de la plaza). Lista en
   [blender/INVENTARIO_MODELOS.md](blender/INVENTARIO_MODELOS.md) y en `ModelRegistry.MODELS`.
 - **Origen:** modelos propios, hechos en Blender 5.3 a partir de las piezas procedurales de hoy.
 - **Integración:** GLB en `assets/modelos/<categoría>/`, fusionados en el lote de cada escenario;

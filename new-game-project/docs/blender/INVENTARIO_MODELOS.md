@@ -24,6 +24,7 @@ el GLB y su .import.
 | atrezo | caja | 2 | 5 | cafe, estacion, plaza | `props_kit.gd` | 48 | 2 | — | — | exacto | migrado |
 | atrezo | coche | 1 | 1 | plaza | `props_kit.gd` | 252 | 1 | — | sí | exacto | migrado |
 | atrezo | farola | 1 | 13 | estacion, plaza | `props_kit.gd` | 92 | 1 | — | sí | exacto | migrado |
+| atrezo | jardinera | 1 | 1 | plaza | `props_kit.gd` | 538 | 8 | — | — | exacto | migrado |
 | atrezo | mesa_cafe | 1 | 7 | cafe, plaza | `props_kit.gd` | 136 | 3 | — | — | exacto | migrado |
 | atrezo | poste_indicador | 2 | 2 | estacion, plaza | `props_kit.gd` | 88 | 2 | — | — | exacto | migrado |
 | atrezo | quiosco | 1 | 1 | plaza | `props_kit.gd` | 192 | 1 | — | — | exacto | migrado |
@@ -81,4 +82,4 @@ el GLB y su .import.
 | personajes | personaje_ortega | 6 | 6 | personaje | `character_model.gd` | 338 | 0 | — | — | exacto | migrado |
 | personajes | personaje_rosa | 6 | 6 | personaje | `character_model.gd` | 396 | 0 | — | — | exacto | migrado |
 
-**Total:** 68 modelos, 251 usos en el juego, 15767 triángulos en los GLB.
+**Total:** 69 modelos, 252 usos en el juego, 16305 triángulos en los GLB.

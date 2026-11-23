@@ -68,6 +68,8 @@ auditoría y planificación. Desde la sesión 2 (2026-11-23) hay modelos de Blen
 - **68 modelos de Blender en el juego** (251 usos): atrezo, mobiliario, detalles de fachada, piezas
   propias de los cinco escenarios y los diez personajes. Todos con su `.blend`, su GLB y su código
   procedural de respaldo. Lista completa en [INVENTARIO_MODELOS.md](INVENTARIO_MODELOS.md).
+- **Después de la migración:** la jardinera octogonal del árbol de la plaza (`jardinera`, rama
+  `fix/posicionamiento-escenarios`) se hizo con el mismo proceso: 69 modelos y 252 usos.
 - **Sin cambios de comportamiento:** mismas colisiones, navegación, pistas, salidas, rutinas,
   animaciones y guardado (pruebas de equivalencia por pieza y por escenario).
 - **Rendimiento:** mismas llamadas de dibujado; archivo -26 % y mansión -16 % de primitivas por

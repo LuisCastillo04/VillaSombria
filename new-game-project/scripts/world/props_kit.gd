@@ -6,6 +6,27 @@ extends RefCounted
 ## Ángulos (radianes) de los dos taburetes alrededor de la mesa de terraza.
 const CAFE_SEAT_ANGLES: Array[float] = [0.5, 3.6]
 
+## Jardinera octogonal (metros desde el centro de su base). Un lado mira a la cámara.
+const PLANTER_APOTHEM := 1.2
+const PLANTER_WALL := 0.2
+const PLANTER_PLINTH := 0.08
+const PLANTER_TOP := 0.36
+const PLANTER_CAP := 0.06
+const PLANTER_SOIL := 0.3
+const PLANTER_COLLISION_HEIGHT := 0.8
+const PLANTER_SOIL_COLOR := Color("33261c")
+const PLANTER_BUSH_COLOR := Color("3d5a3e")
+const PLANTER_FLOWER_COLOR := Color("e6dfcc")
+## Arbustos de la jardinera: ángulo (grados), distancia al centro y radio.
+const PLANTER_BUSHES: Array[Vector3] = [
+	Vector3(0.0, 0.6, 0.3), Vector3(72.0, 0.62, 0.27), Vector3(144.0, 0.6, 0.3),
+	Vector3(216.0, 0.62, 0.28), Vector3(288.0, 0.6, 0.29),
+]
+## Matas de flores blancas, entre los arbustos: ángulo (grados) y distancia al centro.
+const PLANTER_FLOWERS: Array[Vector2] = [
+	Vector2(36.0, 0.74), Vector2(108.0, 0.72), Vector2(180.0, 0.74), Vector2(252.0, 0.72), Vector2(324.0, 0.74),
+]
+
 
 static func street_lamp(location: LocationBase, where: Vector3, shadows: bool = false) -> void:
 	var procedural := func(_tint: Color) -> void: _street_lamp_mesh(location.batch, where)
@@ -41,6 +62,87 @@ static func _tree_mesh(batch: MeshBatcher, where: Vector3, height: float, autumn
 	batch.sphere(top + Vector3(0.5, -0.3, 0.2), height * 0.21, side, 6, 4)
 	batch.sphere(top + Vector3(-0.42, -0.2, -0.35), height * 0.2, side, 6, 4)
 	batch.sphere(top + Vector3(0.05, 0.55, 0.05), height * 0.16, main.lightened(0.05), 6, 4)
+
+
+## Jardinera octogonal de piedra con arbustos y flores, para plantar un árbol en la plaza.
+## Devuelve el punto de la tierra donde va el tronco (hundido 2 cm: ni flota ni comparte plano con
+## la tierra). La colisión son ocho cuñas, una por lado, que cubren el octógono entero: el detective
+## la rodea sin atravesar el bordillo y la navegación no deja huecos dentro.
+static func planter(location: LocationBase, where: Vector3) -> Vector3:
+	var procedural := func(_tint: Color) -> void: _planter_mesh(location.batch, where)
+	ModelCatalog.draw(location, "jardinera", Transform3D(Basis.IDENTITY, where), procedural)
+	var side := 2.0 * PLANTER_APOTHEM * tan(PI / 8.0)
+	for index in 8:
+		var angle := TAU * float(index) / 8.0
+		var middle := where + Vector3(cos(angle), 0.0, sin(angle)) * PLANTER_APOTHEM * 0.5
+		var size := Vector3(side, PLANTER_COLLISION_HEIGHT, PLANTER_APOTHEM)
+		location.collider(middle + Vector3.UP * PLANTER_COLLISION_HEIGHT * 0.5, size, PI * 0.5 - angle)
+	return where + Vector3.UP * (PLANTER_SOIL - 0.02)
+
+
+## Zócalo oscuro, bordillo de piedra con albardilla clara, tierra, arbustos y matas de flores.
+## Sólo lleva las caras que pueden verse: ni bases ni la parte de arriba del muro, que tapa la albardilla.
+static func _planter_mesh(batch: MeshBatcher, where: Vector3) -> void:
+	var inner := PLANTER_APOTHEM - PLANTER_WALL
+	var cap_top := PLANTER_TOP + PLANTER_CAP
+	_octagon_sides(batch, where, PLANTER_APOTHEM + 0.05, 0.0, PLANTER_PLINTH, Palette.STONE_DARK)
+	_octagon_ring(batch, where, PLANTER_APOTHEM + 0.05, PLANTER_APOTHEM, PLANTER_PLINTH, Palette.STONE_DARK)
+	_octagon_sides(batch, where, PLANTER_APOTHEM, PLANTER_PLINTH, PLANTER_TOP, Palette.STONE)
+	_octagon_sides(batch, where, PLANTER_APOTHEM + 0.04, PLANTER_TOP, cap_top, Palette.STONE_LIGHT)
+	_octagon_ring(batch, where, PLANTER_APOTHEM + 0.04, inner - 0.04, cap_top, Palette.STONE_LIGHT)
+	_octagon_sides(batch, where, inner - 0.04, PLANTER_TOP, cap_top, Palette.STONE_LIGHT, true)
+	_octagon_sides(batch, where, inner, PLANTER_SOIL, PLANTER_TOP, Palette.STONE_DARK, true)
+	batch.face(_octagon(where, inner, PLANTER_SOIL), PLANTER_SOIL_COLOR, Vector3.UP)
+	var soil := where + Vector3.UP * PLANTER_SOIL
+	for index in PLANTER_BUSHES.size():
+		var bush := PLANTER_BUSHES[index]
+		var color := PLANTER_BUSH_COLOR if index % 2 == 0 else Palette.FOLIAGE_LIGHT
+		var center := soil + _planter_offset(bush.x, bush.y) + Vector3.UP * 0.12
+		batch.sphere(center, bush.z, color, 6, 4, Vector3(1.0, 0.8, 1.0))
+	for flower in PLANTER_FLOWERS:
+		var mound := soil + _planter_offset(flower.x, flower.y)
+		batch.sphere(mound + Vector3.UP * 0.04, 0.16, Palette.FOLIAGE_LIGHT, 6, 3, Vector3(1.0, 0.65, 1.0))
+		for petal in 3:
+			var spot := _planter_offset(flower.x + 120.0 * float(petal), 0.07)
+			batch.sphere(mound + spot + Vector3.UP * (0.15 + 0.02 * float(petal)), 0.06, PLANTER_FLOWER_COLOR, 4, 2)
+
+
+static func _planter_offset(angle_degrees: float, distance: float) -> Vector3:
+	var angle := deg_to_rad(angle_degrees)
+	return Vector3(cos(angle), 0.0, sin(angle)) * distance
+
+
+## Vértices de un octógono horizontal con los lados a `apothem` metros del centro y uno de ellos
+## mirando a cada eje y a cada diagonal (los vértices quedan a 22,5° de ellos).
+static func _octagon(center: Vector3, apothem: float, height: float) -> PackedVector3Array:
+	var radius := apothem / cos(PI / 8.0)
+	var points := PackedVector3Array()
+	for index in 8:
+		var angle := PI / 8.0 + TAU * float(index) / 8.0
+		points.append(center + Vector3(cos(angle) * radius, height, sin(angle) * radius))
+	return points
+
+
+## Caras laterales de un prisma octogonal entre dos alturas, hacia fuera o hacia dentro.
+static func _octagon_sides(
+	batch: MeshBatcher, center: Vector3, apothem: float, bottom: float, top: float, color: Color, inward: bool = false
+) -> void:
+	var low := _octagon(center, apothem, bottom)
+	var high := _octagon(center, apothem, top)
+	for index in 8:
+		var next := (index + 1) % 8
+		var outward := Vector3(cos(TAU * float(index + 1) / 8.0), 0.0, sin(TAU * float(index + 1) / 8.0))
+		var points := PackedVector3Array([low[index], low[next], high[next], high[index]])
+		batch.face(points, color, -outward if inward else outward)
+
+
+## Corona horizontal entre dos octógonos concéntricos, mirando hacia arriba.
+static func _octagon_ring(batch: MeshBatcher, center: Vector3, outer: float, inner: float, height: float, color: Color) -> void:
+	var outside := _octagon(center, outer, height)
+	var inside := _octagon(center, inner, height)
+	for index in 8:
+		var next := (index + 1) % 8
+		batch.face(PackedVector3Array([outside[index], outside[next], inside[next], inside[index]]), color, Vector3.UP)
 
 
 static func hedge(location: LocationBase, center: Vector3, size: Vector3) -> void:

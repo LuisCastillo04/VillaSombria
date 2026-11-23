@@ -79,11 +79,11 @@ const PLAZA_LAMPS: Array[Vector2] = [
 ]
 const STATION_LAMPS: Array[Vector2] = [Vector2(-9.0, -2.6), Vector2(8.6, -2.6), Vector2(14.0, 6.6), Vector2(-0.6, 6.6)]
 
-## Árboles: posición, altura y si tienen hojas de otoño.
+## Árboles: posición, altura, si tienen hojas de otoño y si están en una jardinera.
 const PLAZA_TREES: Array[Dictionary] = [
 	{"at": Vector2(-5.2, -3.8), "height": 4.0, "autumn": false},
 	{"at": Vector2(12.0, -4.0), "height": 3.8, "autumn": true},
-	{"at": Vector2(-4.8, 10.0), "height": 3.6, "autumn": true},
+	{"at": Vector2(-2.0, 0.3), "height": 3.6, "autumn": true, "planter": true},
 	{"at": Vector2(12.4, 9.6), "height": 4.2, "autumn": false},
 ]
 
@@ -328,7 +328,9 @@ func _draw_roof(building: Dictionary, rect: Rect2, height: float) -> void:
 		_outline(points, Color(INK, 0.75), 0.07)
 
 
-func _draw_tree(at: Vector2, height: float, autumn: bool) -> void:
+func _draw_tree(at: Vector2, height: float, autumn: bool, planter: bool = false) -> void:
+	if planter:
+		_draw_planter(at)
 	var crown := height * 0.36
 	var center := _lift(at, height * 0.72)
 	draw_circle(at + _shadow * height * 0.3, crown * 0.9, Color(0.12, 0.07, 0.03, 0.16), true, -1.0, true)
@@ -339,6 +341,26 @@ func _draw_tree(at: Vector2, height: float, autumn: bool) -> void:
 	draw_circle(center, crown, main.darkened(0.2), true, -1.0, true)
 	draw_circle(center + light * 0.22, crown * 0.68, main, true, -1.0, true)
 	draw_circle(center + light * 0.36, crown * 0.28, main.lightened(0.18), true, -1.0, true)
+
+
+## Jardinera octogonal (`PropsKit.planter`): bordillo de piedra y tierra con arbustos.
+func _draw_planter(at: Vector2) -> void:
+	var rim := PackedVector2Array()
+	var base := PackedVector2Array()
+	var soil := PackedVector2Array()
+	var radius := PropsKit.PLANTER_APOTHEM / cos(PI / 8.0)
+	var inner := (PropsKit.PLANTER_APOTHEM - PropsKit.PLANTER_WALL) / cos(PI / 8.0)
+	var height := PropsKit.PLANTER_TOP + PropsKit.PLANTER_CAP
+	for index in 8:
+		var direction := Vector2.from_angle(PI / 8.0 + TAU * float(index) / 8.0)
+		base.append(at + direction * radius)
+		rim.append(_lift(at + direction * radius, height))
+		soil.append(_lift(at + direction * inner, height))
+	draw_colored_polygon(base, STONE_DARK)
+	draw_colored_polygon(rim, STONE)
+	_outline(rim, INK_SOFT, 0.08)
+	draw_colored_polygon(soil, FOLIAGE_DARK)
+	draw_circle(_lift(at, height), inner * 0.55, FOLIAGE, true, -1.0, true)
 
 
 func _draw_lamp(at: Vector2) -> void:
@@ -400,7 +422,7 @@ func _draw_plaza() -> void:
 	items.append({"depth": _depth(Vector2(9.5, -13.2)), "draw": _draw_archive_portico})
 	items.append({"depth": _depth(Vector2(-7.0, -13.0)), "draw": _draw_cafe_front})
 	for tree in PLAZA_TREES:
-		items.append({"depth": _depth(tree["at"]), "draw": _draw_tree.bind(tree["at"], tree["height"], tree["autumn"])})
+		items.append({"depth": _depth(tree["at"]), "draw": _draw_tree.bind(tree["at"], tree["height"], tree["autumn"], tree.get("planter", false))})
 	for lamp in PLAZA_LAMPS:
 		items.append({"depth": _depth(lamp), "draw": _draw_lamp.bind(lamp)})
 	_draw_sorted(items)

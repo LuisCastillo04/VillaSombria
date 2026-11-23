@@ -7,6 +7,8 @@ const STREET_TINT := Color("8f93a0")
 const SQUARE_TINT := Color("c9c6c0")
 const SIDEWALK_TINT := Color("e3ddd2")
 const VERGE_TINT := Color("3f4640")
+## Centro de la jardinera octogonal del árbol de la plaza (PropsKit.planter).
+const PLANTER := Vector3(-2.0, 0.0, 0.3)
 
 
 func build() -> void:
@@ -219,7 +221,10 @@ func _build_square() -> void:
 	PropsKit.bench(self, Vector3(3.5, 0.0, -3.4), 0.0)
 	PropsKit.tree(self, Vector3(-5.2, 0.0, -3.8), 4.0)
 	PropsKit.tree(self, Vector3(12.0, 0.0, -4.0), 3.8, true)
-	PropsKit.tree(self, Vector3(-4.8, 0.0, 10.0), 3.6, true)
+	# Árbol de otoño en su jardinera, entre el banco oeste y la farola del norte. Antes estaba en
+	# (-4,8; 10,0), pegado al mostrador del quiosco: la copa tapaba el toldo y el tronco cortaba el
+	# paso delante de los periódicos.
+	PropsKit.tree(self, PropsKit.planter(self, PLANTER), 3.6, true)
 	PropsKit.tree(self, Vector3(12.4, 0.0, 9.6), 4.2)
 
 
