@@ -15,7 +15,7 @@ RAIZ = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 BLENDER = os.path.join(RAIZ, "blender")
 PROYECTO = os.path.join(RAIZ, "new-game-project")
 
-CAPAS = {"opaco": "vs_opaco", "brillo": "vs_brillo", "suelo": "vs_suelo"}
+CAPAS = {"opaco": "vs_opaco", "brillo": "vs_brillo", "suelo": "vs_suelo", "tinte": "vs_tinte"}
 COLECCION_EXPORTAR = "Exportar"
 COLECCION_REFERENCIA = "Referencia"
 ATRIBUTO_COLOR = "Color"

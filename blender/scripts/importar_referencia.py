@@ -5,8 +5,12 @@ Uso (desde la raíz del repositorio):
 
 Lee blender/referencias/<id>.json (tools/modelos/exportar_referencias.tscn) y guarda
 blender/fuentes/<categoría>/<id>.blend con dos colecciones:
-  Exportar    la malla editable (lo único que llega al juego)
+  Exportar    un objeto editable por variante («Silla», «Mesa_160x76x90»...): lo único que llega
+              al juego. El origen de cada objeto es el punto de referencia de la pieza; los
+              objetos se reparten a lo largo de X sólo para verlos (el juego no usa su posición)
   Referencia  la pieza original en alambre y sus cajas de colisión; nunca se exporta
+Caras con material vs_tinte: toman el color de la pieza en el juego; su color es un factor (blanco
+= el color tal cual, gris = más oscuro).
 Si el .blend ya existe no se sobrescribe salvo con --forzar (podría tener retoques a mano).
 """
 
@@ -120,26 +124,44 @@ def construir(datos):
     escena.collection.children.link(referencia)
     referencia.hide_render = True
     referencia.color_tag = "COLOR_01"
-    objeto = bpy.data.objects.new(datos["objeto"], malla_desde_caras(datos["objeto"], datos["caras"]))
-    exportar.objects.link(objeto)
-    original = bpy.data.objects.new(
-        datos["objeto"] + "_Original", malla_desde_caras(datos["objeto"] + "_Original", datos["caras"], False)
-    )
-    original.display_type = "WIRE"
-    original.hide_render = True
-    referencia.objects.link(original)
-    for indice, colision in enumerate(datos["colisiones"]):
-        caja_colision("Colision_%02d" % indice, colision, referencia)
+    objetos = []
+    desplazamiento = 0.0
+    for clave in sorted(datos["variantes"]):
+        variante = datos["variantes"][clave]
+        nombre = variante["objeto"]
+        caja = variante["caja"]
+        if "muestra" in variante:
+            # Piezas que se ven montadas (los pivotes de un personaje): cada una en su sitio.
+            posicion = vs.godot_a_blender(variante["muestra"])
+        else:
+            if objetos:
+                desplazamiento += -caja["min"][0] + 0.5
+            posicion = (desplazamiento, 0.0, 0.0)
+        objeto = bpy.data.objects.new(nombre, malla_desde_caras(nombre, variante["caras"]))
+        objeto.location = posicion
+        objeto["vs_usos"] = len(variante.get("usos", []))
+        exportar.objects.link(objeto)
+        objetos.append(objeto)
+        original = bpy.data.objects.new(nombre + "_Original", malla_desde_caras(nombre + "_Original", variante["caras"], False))
+        original.display_type = "WIRE"
+        original.hide_render = True
+        original.location = posicion
+        referencia.objects.link(original)
+        for indice, colision in enumerate(variante.get("colisiones", [])):
+            caja_col = caja_colision("%s_Colision_%02d" % (nombre, indice), colision, referencia)
+            caja_col.location = tuple(a + b for a, b in zip(caja_col.location, posicion))
+        if "muestra" not in variante:
+            desplazamiento += caja["max"][0]
     # Notas para quien abra el archivo: de dónde sale y qué no se debe tocar.
     escena["vs_id"] = datos["id"]
-    escena["vs_origen"] = datos["origen"]
     escena["vs_nota"] = (
         "Exportar con blender/scripts/exportar_glb.py. Frente del atrezo hacia -Y (vista Front). "
+        "El origen de cada objeto es el punto de referencia de la pieza; su posición no se exporta. "
         "Las colisiones de Referencia son las del juego: no se exportan."
     )
     capa_vista = bpy.context.view_layer.layer_collection.children[vs.COLECCION_EXPORTAR]
     bpy.context.view_layer.active_layer_collection = capa_vista
-    return objeto
+    return objetos
 
 
 def main():
@@ -155,12 +177,13 @@ def main():
     if os.path.exists(destino) and not args.get("forzar"):
         print("VillaSombria: %s ya existe; se conserva (usa --forzar para rehacerlo)" % destino)
         return
-    objeto = construir(datos)
+    objetos = construir(datos)
     os.makedirs(os.path.dirname(destino), exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=destino, compress=True)
-    triangulos = sum(len(p.vertices) - 2 for p in objeto.data.polygons)
-    print("VillaSombria: %s -> %s (%d polígonos, %d triángulos)" % (
-        id_modelo, destino, len(objeto.data.polygons), triangulos))
+    for objeto in objetos:
+        triangulos = sum(len(p.vertices) - 2 for p in objeto.data.polygons)
+        print("VillaSombria: %s -> %s: %s (%d polígonos, %d triángulos)" % (
+            id_modelo, destino, objeto.name, len(objeto.data.polygons), triangulos))
 
 
 main()

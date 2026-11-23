@@ -76,6 +76,7 @@ def comprobar_coleccion(coleccion):
             problemas.append("%s no es una malla (%s): sin luces, cámaras ni esqueletos" % (objeto.name, objeto.type))
             continue
         if objeto.parent is None:
+            # La posición se ignora (el origen es el punto de referencia); el giro y la escala no.
             if any(abs(v) > 1e-6 for v in objeto.rotation_euler) or any(abs(v - 1.0) > 1e-6 for v in objeto.scale):
                 problemas.append("%s tiene giro o escala sin aplicar (Ctrl + A)" % objeto.name)
         if any(v < 0 for v in objeto.scale):
@@ -103,25 +104,30 @@ def colores_a_srgb(objetos):
 
 
 def medir(objetos):
+    """Triángulos y caja de cada objeto en su propio espacio (ejes de Godot): el juego coloca cada
+    objeto por su origen, así que su posición en el .blend no cuenta."""
     deps = bpy.context.evaluated_depsgraph_get()
     triangulos = 0
-    bajo = [float("inf")] * 3
-    alto = [float("-inf")] * 3
     por_objeto = {}
     for objeto in objetos:
         evaluado = objeto.evaluated_get(deps)
         malla = evaluado.to_mesh()
         malla.calc_loop_triangles()
-        por_objeto[objeto.name] = len(malla.loop_triangles)
-        triangulos += len(malla.loop_triangles)
+        giro = objeto.matrix_world.to_3x3()
+        bajo = [float("inf")] * 3
+        alto = [float("-inf")] * 3
         for vertice in malla.vertices:
-            punto = vs.blender_a_godot(tuple(objeto.matrix_world @ vertice.co))
+            punto = vs.blender_a_godot(tuple(giro @ vertice.co))
             for eje in range(3):
                 bajo[eje] = min(bajo[eje], punto[eje])
                 alto[eje] = max(alto[eje], punto[eje])
+        por_objeto[objeto.name] = {
+            "triangulos": len(malla.loop_triangles),
+            "caja_godot": {"min": [round(v, 5) for v in bajo], "max": [round(v, 5) for v in alto]},
+        }
+        triangulos += len(malla.loop_triangles)
         evaluado.to_mesh_clear()
-    redondear = lambda v: [round(x, 5) for x in v]  # noqa: E731
-    return triangulos, por_objeto, {"min": redondear(bajo), "max": redondear(alto)}
+    return triangulos, por_objeto
 
 
 def main():
@@ -143,7 +149,7 @@ def main():
     capa.exclude = False
     bpy.context.view_layer.active_layer_collection = capa
     objetos = comprobar_coleccion(capa.collection)
-    triangulos, por_objeto, caja = medir(objetos)
+    triangulos, por_objeto = medir(objetos)
     colores_a_srgb(objetos)
     os.makedirs(os.path.dirname(destino), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=destino, **OPCIONES)
@@ -157,8 +163,7 @@ def main():
         "blender": bpy.app.version_string,
         "exportador_gltf": version_exportador(),
         "triangulos": triangulos,
-        "triangulos_por_objeto": por_objeto,
-        "caja_godot": caja,
+        "objetos": por_objeto,
         "sha256": huella,
         "color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
         "opciones": OPCIONES,
