@@ -1,0 +1,123 @@
+{
+	"id": "personaje_detective",
+	"blend": "blender/fuentes/personajes/personaje_detective.blend",
+	"glb": "new-game-project/assets/modelos/personajes/personaje_detective.glb",
+	"fecha": "2026-11-23T02:54:56",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 390,
+	"objetos": {
+		"Detective_BrazoDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Detective_BrazoIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Detective_Cabeza": {
+			"triangulos": 210,
+			"caja_godot": {
+				"min": [
+					-0.28191,
+					0.0,
+					-0.29544
+				],
+				"max": [
+					0.3,
+					0.48,
+					0.29544
+				]
+			}
+		},
+		"Detective_PiernaDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Detective_PiernaIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Detective_Torso": {
+			"triangulos": 84,
+			"caja_godot": {
+				"min": [
+					-0.34,
+					-0.54,
+					-0.29445
+				],
+				"max": [
+					0.34,
+					0.7,
+					0.29445
+				]
+			}
+		}
+	},
+	"sha256": "6ecf93382b3f033e27fa300e37e9f18aff2f81f51c96cec473e22f31e6ecfa93",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

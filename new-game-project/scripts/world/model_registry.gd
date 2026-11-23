@@ -75,4 +75,7 @@ const MODELS := {
 	"taquilla": {"categoria": "escenario", "objeto": "Taquilla", "fiel": true},
 	"marquesina": {"categoria": "escenario", "objeto": "Marquesina", "fiel": true},
 	"reloj_anden": {"categoria": "escenario", "objeto": "RelojAnden", "fiel": true},
+	# Personajes (CharacterModel): un GLB por personaje con un objeto por pivote
+	# («<Objeto>_PiernaIzq», …, «<Objeto>_Cabeza»), cada uno con el origen en su pivote.
+	"personaje_detective": {"categoria": "personajes", "objeto": "Detective", "fiel": true},
 }
