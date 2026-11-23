@@ -1,5 +1,11 @@
 # 4. Evaluación Blender–Godot y arquitectura propuesta
 
+> **Propuesta de la sesión 1.** Lo que se implementó (sesiones 2 y 3) está en
+> [09-sistema-de-modelos.md](09-sistema-de-modelos.md). Diferencias principales: la API es
+> `ModelCatalog.draw(location, id, colocación, procedural, variante, tinte)` en lugar de `place`;
+> las referencias se capturan desde los escenarios reales y se guardan en JSON, no como GLB; y el
+> GLB lleva el color en sRGB (R4).
+
 ## Entorno comprobado (2026-11-22)
 
 | Herramienta | Versión | Ruta |

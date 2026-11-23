@@ -9,17 +9,17 @@ anota la excepción en su registro y en el commit.
 VillaSombria/                          raíz del repositorio
 ├── blender/                           fuera del proyecto Godot (Godot no lo ve)
 │   ├── fuentes/<categoría>/<id>.blend      fuente editable de cada modelo
-│   ├── referencias/<id>.glb                exportación de la pieza procedural (vía A)
-│   ├── referencias/<id>_colisiones.json    colisiones de la pieza procedural
+│   ├── referencias/<id>.json               la pieza procedural tal como la dibuja el juego (vía A):
+│   │                                       variantes, polígonos, colisiones cercanas y usos
 │   ├── registro/<id>.json                  registro de la última exportación
-│   └── scripts/                            importar_referencia.py, exportar_glb.py, construir_<id>.py
+│   └── scripts/                            migrar.py, importar_referencia.py, exportar_glb.py, vs_comun.py
 └── new-game-project/
     ├── assets/modelos/<categoría>/<id>.glb (+ .glb.import)   lo que carga el juego
-    └── tools/modelos/                      escena de exportación de referencias (vía A)
+    └── tools/modelos/                      exportar_referencias.tscn y validar_modelos.tscn
 ```
 
-Categorías: `atrezo` (exteriores de `PropsKit`), `mobiliario` (`InteriorKit`), `arquitectura`
-(`BuildingKit` y piezas propias de un escenario), `personajes`.
+Categorías: `atrezo` (`PropsKit`), `mobiliario` (`InteriorKit`), `arquitectura` (`BuildingKit`),
+`escenario` (piezas propias de un escenario concreto) y `personajes`.
 
 Los `.blend` **nunca** dentro de `new-game-project/`: Godot intentaría importarlos y exigiría
 Blender configurado en cada equipo ([03-riesgos.md](03-riesgos.md), R8).
@@ -134,8 +134,14 @@ bpy.ops.export_scene.gltf(
     export_lights=False,
     export_cameras=False,
     export_extras=False,
+    export_animations=False,
+    export_skins=False,
+    export_morph=False,
 )
 ```
+
+Antes de exportar, el script recodifica en memoria el atributo `Color` de lineal a sRGB (R4: el
+GLB lleva el color tal como lo usa el lote). El `.blend` no se guarda.
 
 El script imprime y guarda en `blender/registro/<id>.json`: versión de Blender y del exportador,
 fecha, `.blend` de origen, número de triángulos, caja y opciones usadas. Si una opción no existe
@@ -144,8 +150,10 @@ en la versión instalada, el script se detiene en lugar de exportar con otra con
 ## Importación en Godot
 
 - El `.glb` y su `.glb.import` se confirman juntos.
-- Opciones de importación por defecto; el juego no usa los LOD ni las mallas de sombra porque lee
-  los triángulos y los fusiona en el lote.
+- Importación sin LOD, sin mallas de sombra y sin tangentes (`meshes/generate_lods`,
+  `meshes/create_shadow_meshes` y `meshes/ensure_tangents` a `false`): el juego lee los
+  triángulos y los fusiona en el lote. `blender/scripts/migrar.py` ajusta los `.import` nuevos y
+  `validar_modelos` avisa si falta.
 - No se edita la escena importada ni se le añaden scripts. Si alguna vez hace falta, escena
   heredada aparte.
 - Los modelos sólo se cargan a través de `ModelCatalog` (una tabla con todas las rutas): así hay
@@ -164,3 +172,89 @@ en la versión instalada, el script se detiene en lugar de exportar con otra con
 
 Cada modelo nuevo se añade a `docs/RECURSOS.md` con su origen («propio, hecho en Blender 5.3 a
 partir de `PropsKit.mailbox`»), su `.blend` y su GLB.
+
+## Contrato de compatibilidad de los modelos (sesión 3)
+
+Lo que debe cumplir un modelo para que `ModelCatalog` lo use, y lo que garantiza el juego a cambio.
+Las comprobaciones automáticas están entre paréntesis.
+
+### Identificador y registro
+
+- Cada modelo tiene un **id estable** en `ModelCatalog.MODELS` (`snake_case`, sin tildes ni eñes):
+  es el nombre de su GLB (`assets/modelos/<categoría>/<id>.glb`), de su `.blend`
+  (`blender/fuentes/<categoría>/<id>.blend`), de su referencia y de su registro.
+- La entrada lleva `categoria`, `objeto` (nombre del objeto de Blender) y `fiel` (ver abajo)
+  (`validar_modelos`, `test_registered_models_are_complete`).
+- Los ids de modelo **no se guardan en las partidas** ni aparecen en los datos (`data/*.json`):
+  el guardado sigue usando sólo ids de escenario, de pista, de NPC y la posición. Renombrar un
+  modelo no rompe ninguna partida.
+
+### Objetos, variantes y pivote
+
+- Un GLB contiene **un objeto de primer nivel por variante**: `<objeto>` para la pieza sin
+  variantes y `<objeto>_<variante>` para cada medida o forma (`Mesa_160x76x90`, `Caja_90`).
+  La clave de variante la elige el kit con `ModelCatalog.size_key` o un texto fijo, y debe
+  incluir **todos** los parámetros que cambian la forma (la captura falla si dos usos de la
+  misma variante no coinciden).
+- El **origen** de cada objeto es el punto de referencia que usa la función del kit (`where`,
+  normalmente el centro de la base sobre el suelo). La posición del objeto en el `.blend` **no se
+  exporta al juego**: sólo sirve para repartir las variantes y verlas a la vez.
+- Giro y escala aplicados (Ctrl + A); sin escalas negativas (`exportar_glb.py` se niega).
+- Jerarquías: se admiten objetos hijos (se respeta su transformación relativa), pero no luces,
+  cámaras, esqueletos ni animaciones (`validar_modelos`).
+- Una variante que el GLB no tenga se dibuja con el código procedural, con un aviso: añadir una
+  medida nueva en el juego nunca rompe el escenario.
+
+### Ejes, escala y orientación
+
+- 1 unidad = 1 m. Blender Z arriba; el exportador convierte a Y arriba (`export_yup`).
+- Atrezo, mobiliario y escenario: frente hacia **−Y** en Blender (+Z en Godot).
+- Personajes: frente hacia **+Y** en Blender (−Z en Godot), sin nodos girados de por medio
+  (invertirían `set_head_tilt`). Ver la sección de personajes en
+  [04-arquitectura.md](04-arquitectura.md#personajes-conservar-la-interfaz-de-charactermodel).
+- El giro y la posición en el escenario los pone el kit: el modelo se guarda sin girar.
+
+### Materiales y color
+
+| Material | Capa del lote | Color de vértice |
+| --- | --- | --- |
+| `vs_opaco` | opaca (`vertex_lit`) | color de la pieza |
+| `vs_brillo` | brillo (sin sombreado) | color emitido |
+| `vs_suelo` | suelo (empedrado) | tinte del empedrado |
+| `vs_tinte` | opaca | **factor** que se multiplica por el color que pasa el kit (`tint`): blanco = el color tal cual |
+
+- El juego sólo lee el **nombre** del material. Cualquier otro nombre es un error
+  (`validar_modelos`, `exportar_glb.py`).
+- Sin texturas: color por vértice en el dominio de esquina de cara (cada cara de un color).
+- El `.blend` guarda el color en lineal (se ve bien en Blender); el GLB lo lleva en sRGB (R4).
+- La variación de tono por cara la añade el juego al fusionar el modelo: no se pinta en Blender.
+
+### Colisiones, luces, rótulos e interacciones
+
+- **Nunca** van en el GLB. Se quedan en el kit, fuera del `Callable` procedural de
+  `ModelCatalog.draw` (la captura rechaza un `Callable` que registre colisiones o nodos).
+- La colección `Referencia` del `.blend` enseña las cajas de colisión del juego para modelar
+  alrededor; no se exporta.
+- La caja del modelo debe quedar a ±5 cm de la de la pieza procedural (`validar_modelos`); si
+  un modelo crece, la colisión se cambia en el kit, en otro commit y con su prueba.
+
+### Fidelidad
+
+- `fiel: true`: el GLB reproduce exactamente la pieza procedural. `test_models` compara los
+  escenarios con modelos y sin ellos polígono a polígono.
+- `fiel: false`: el modelo se ha retocado en Blender. Las pruebas comparan su caja y las
+  colisiones del escenario, no los polígonos. Cambiar a `false` va en el mismo commit que el
+  retoque, con capturas antes y después.
+
+### Versiones
+
+- `blender/registro/<id>.json` guarda la versión de Blender y del exportador, la fecha, los
+  triángulos y la caja de cada objeto, las opciones y el `sha256` del GLB. `validar_modelos`
+  avisa si el GLB no es el que escribió `exportar_glb.py`.
+- El `.blend` es la fuente: `importar_referencia.py` no lo sobrescribe sin `--forzar`.
+
+### Animación
+
+- Atrezo y escenario: sin animación (geometría estática fusionada en el lote).
+- Personajes: la animación sigue siendo procedural en `CharacterModel`; el GLB sólo aporta las
+  mallas de los seis pivotes (sesión 7).

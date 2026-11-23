@@ -18,6 +18,7 @@ auditoría y planificación. Desde la sesión 2 (2026-11-23) hay modelos de Blen
 | 6 | [06-plan-migracion.md](06-plan-migracion.md) | Sesiones, ramas, orden y listas de comprobación |
 | 7 | [07-linea-base.md](07-linea-base.md) | Resultado de las pruebas antes de empezar |
 | 8 | [08-sesion-2.md](08-sesion-2.md) | Procedimiento completo del prototipo (el buzón), su resultado y medidas |
+| 9 | [09-sistema-de-modelos.md](09-sistema-de-modelos.md) | Arquitectura implementada (sesión 3): API, variantes, tinte, captura, validación, cómo añadir o retocar un modelo |
 | — | [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md) | Registro vivo: sesión, rama, último commit, pruebas, decisiones y próxima acción |
 
 ## Hallazgos principales
