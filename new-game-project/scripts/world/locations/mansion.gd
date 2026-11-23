@@ -6,6 +6,8 @@ extends LocationBase
 const WALL_COLOR := Color("4a3a33")
 const WALL_DARK := Color("3a2e2c")
 const FABRIC := Color("5a2a30")
+## Mesilla de noche del cuarto de Lucía (centro de su base).
+const LUCIA_NIGHTSTAND := Vector3(-13.45, 0.0, 5.45)
 
 
 func build() -> void:
@@ -110,13 +112,16 @@ func _build_bedroom() -> void:
 
 func _build_maid_room() -> void:
 	InteriorKit.bed(self, Vector3(-12.6, 0.0, 6.6), 90.0, Color("3f4a55"), Vector2(1.2, 2.0))
-	InteriorKit.table(self, Vector3(-11.4, 0.0, 4.6), Vector3(0.7, 0.6, 0.7), Palette.WOOD)
-	_book(Vector3(-11.4, 0.66, 4.6), Vector3(0.22, 0.08, 0.3), Palette.INK)
+	# Mesilla de noche (con el misal de la carta) contra la pared del fondo, junto al cabecero y a
+	# 0,2 m del costado de la cama. Antes estaba en (-11,4; 4,6), en mitad del cuarto.
+	InteriorKit.table(self, LUCIA_NIGHTSTAND, Vector3(0.7, 0.6, 0.7), Palette.WOOD)
+	_book(LUCIA_NIGHTSTAND + Vector3(0.0, 0.66, 0.0), Vector3(0.22, 0.08, 0.3), Palette.INK)
 	# Cómoda contra la pared del fondo, entre la esquina y la puerta de la alcoba. Antes estaba
 	# suelta en mitad del cuarto, delante de esa puerta, y estrechaba el paso a 0,6 m.
 	InteriorKit.dresser(self, Vector3(-12.0, 0.0, -0.6), 1.6, false)
 	InteriorKit.ceiling_lamp(self, Vector3(-9.5, 2.8, 4.0), 2.2, 7.0)
-	add_interactable(ClueObject.new("carta_amor"), Vector3(-10.6, 0.0, 4.6))
+	# Delante de la mesilla, del lado del cuarto: donde se pone quien la examina.
+	add_interactable(ClueObject.new("carta_amor"), LUCIA_NIGHTSTAND + Vector3(0.85, 0.0, -0.1))
 
 
 func _build_hall() -> void:
@@ -183,6 +188,6 @@ func _register_points() -> void:
 	add_marker("alcoba_elena", Vector3(-9.5, 0.0, -4.6))
 	face_marker("alcoba_elena", Vector3(-9.6, 0.0, -9.0))
 	add_marker("cuarto_lucia", Vector3(-8.0, 0.0, 5.6))
-	face_marker("cuarto_lucia", Vector3(-11.4, 0.0, 4.6))
+	face_marker("cuarto_lucia", LUCIA_NIGHTSTAND)
 	add_marker("office", Vector3(9.6, 0.0, 4.0))
 	face_marker("office", Vector3(8.2, 0.0, 7.4))
