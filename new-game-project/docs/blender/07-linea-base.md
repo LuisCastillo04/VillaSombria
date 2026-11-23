@@ -94,3 +94,4 @@ archivo 3,8 (la mansión y el archivo incluyen NPC que se mueven). Revisadas a o
 | Cierre de la sesión 3 (`3c5cf14`) | 542 correctas, 0 con fallos | Pipeline determinista: rehacer el `.blend` del buzón desde cero da el mismo GLB (mismo `sha256`) |
 | Cierre de la sesión 4 (`66fee96` + documentación) | **543 correctas, 0 con fallos**, sin `ERROR:` | 20 modelos, 86 usos; llamadas de dibujado iguales con y sin modelos (café 235, mansión 328, archivo 226) |
 | Cierre de la sesión 5 (`f07f3f7`) | **544 correctas, 0 con fallos**, sin `ERROR:` | 34 modelos; archivo 73.692 primitivas por fotograma (antes 99.872), mansión 118.270 (antes 140.968); mismas llamadas de dibujado |
+| Cierre de la sesión 6 (`7437acb`) | **544 correctas, 0 con fallos**, sin `ERROR:` | 58 modelos; plaza 236 / 99.972 y estación 230 / 29.676 (llamadas / primitivas), iguales con y sin modelos |

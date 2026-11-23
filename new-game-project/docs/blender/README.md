@@ -21,6 +21,7 @@ auditoría y planificación. Desde la sesión 2 (2026-11-23) hay modelos de Blen
 | 9 | [09-sistema-de-modelos.md](09-sistema-de-modelos.md) | Arquitectura implementada (sesión 3): API, variantes, tinte, captura, validación, cómo añadir o retocar un modelo |
 | 10 | [10-sesion-4-objetos.md](10-sesion-4-objetos.md) | Sesión 4: selección, migración y validación del mobiliario y los objetos compartidos |
 | 11 | [11-sesion-5-interiores.md](11-sesion-5-interiores.md) | Sesión 5: auditoría de los interiores, piezas propias, optimización de las estanterías y pruebas |
+| 12 | [12-sesion-6-exteriores.md](12-sesion-6-exteriores.md) | Sesión 6: exteriores (atrezo, fachadas, piezas de la plaza y la estación) |
 | — | [INVENTARIO_MODELOS.md](INVENTARIO_MODELOS.md) | Inventario generado de los modelos migrados (`python blender/scripts/inventario.py`) |
 | — | [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md) | Registro vivo: sesión, rama, último commit, pruebas, decisiones y próxima acción |
 

@@ -55,13 +55,13 @@ prisma por libro).
 | `mailbox` | Plaza ×1 | 68 (opaco) | 0,60 × 1,24 × 0,60 | 0,5 × 1,2 × 0,5 | — | Ninguna; no aparece en datos, mapa ni diálogos | Alta | Sí | **Mínimo** | **Migrado (sesión 2)**: `assets/modelos/atrezo/buzon.glb` |
 | `barrel` | Plaza, estación, café ×1 | 84 | 0,76 × 0,90 × 0,76 | 0,65 × 0,9 × 0,65 | — | — | Alta | Sí | Bajo | **Migrado (sesión 4)**: `barril` |
 | `crate(size, yaw)` | Plaza ×2, estación ×2, café ×1 (0,7 y 0,9) | 24 + 12 | 0,93 × 0,90 × 0,93 (0,9) | `solid` del tamaño | — | Escala uniforme | Alta | Sí | Bajo | **Migrado (sesión 4)**: `caja` |
-| `bench(yaw)` | Plaza ×3, estación ×2 | 108 | 1,80 × 0,91 × 0,46 | 1,9 × 0,9 × 0,5 | — | Puesto «banco_anden» cerca | Alta | Sí | Bajo | 3 |
-| `street_lamp(shadows)` | Plaza ×6 (4 con sombra), estación ×4 (1) | 72 + 20 brillo | 0,52 × 3,98 × 0,45 | 0,3 × 3,0 × 0,3 | `OmniLight3D` 5,0 / 9,5 m | La luz se queda en el kit | Alta | Sí | Bajo | 3 |
+| `bench(yaw)` | Plaza ×3, estación ×2 | 108 | 1,80 × 0,91 × 0,46 | 1,9 × 0,9 × 0,5 | — | Puesto «banco_anden» cerca | Alta | Sí | Bajo | **Migrado (sesión 6)**: `banco` |
+| `street_lamp(shadows)` | Plaza ×6 (4 con sombra), estación ×4 (1) | 72 + 20 brillo | 0,52 × 3,98 × 0,45 | 0,3 × 3,0 × 0,3 | `OmniLight3D` 5,0 / 9,5 m | La luz se queda en el kit | Alta | Sí | Bajo | **Migrado (sesión 6)**: `farola` |
 | `cafe_table` | Plaza ×2, café ×5 | 136 | 1,64 × 0,76 × 0,98 | 3 cajas (mesa y dos asientos) | — | Puestos «mesa_*» del café cerca | Alta | Sí | Bajo | **Migrado (sesión 4)**: `mesa_cafe` |
-| `signpost(labels)` | Plaza ×1 (3 rótulos), estación ×1 (1) | 56 | 1,90 × 2,70 × 0,15 | 0,2 × 2,4 × 0,2 | `Label3D` por flecha | Tableros por número de rótulos | Media | Sí | Bajo | 3 |
-| `newsstand(yaw)` | Plaza ×1 | 192 | 3,00 × 2,27 × 2,00 | `solid` 2,6 × 2,1 × 1,5 | «PRENSA» | **Pista `periodico_aniversario` al lado** | Alta | Sí | Medio | 3 |
-| `car(yaw)` | Plaza ×1 | 180 + 72 brillo | 1,97 × 1,37 × 4,26 | 1,9 × 1,4 × 4,2 | — | Faros en capa de brillo | Alta | Sí (remodelar) | Bajo | 3 |
-| `tree(height, autumn)` | Plaza ×4 (2 de otoño) | 164 | 2,62 × 4,07 × 2,22 (4 m) | 0,4 × 2,0 × 0,4 | — | Altura por parámetro; artístico | Media | Sí (a mano) | Bajo | 7 |
+| `signpost(labels)` | Plaza ×1 (3 rótulos), estación ×1 (1) | 56 | 1,90 × 2,70 × 0,15 | 0,2 × 2,4 × 0,2 | `Label3D` por flecha | Tableros por número de rótulos | Media | Sí | Bajo | **Migrado (sesión 6)**: `poste_indicador` |
+| `newsstand(yaw)` | Plaza ×1 | 192 | 3,00 × 2,27 × 2,00 | `solid` 2,6 × 2,1 × 1,5 | «PRENSA» | **Pista `periodico_aniversario` al lado** | Alta | Sí | Medio | **Migrado (sesión 6)**: `quiosco` |
+| `car(yaw)` | Plaza ×1 | 180 + 72 brillo | 1,97 × 1,37 × 4,26 | 1,9 × 1,4 × 4,2 | — | Faros en capa de brillo | Alta | Sí (remodelar) | Bajo | **Migrado (sesión 6)**: `coche` |
+| `tree(height, autumn)` | Plaza ×4 (2 de otoño) | 164 | 2,62 × 4,07 × 2,22 (4 m) | 0,4 × 2,0 × 0,4 | — | Altura por parámetro; artístico | Media | Sí (a mano) | Bajo | **Migrado (sesión 6)**: `arbol` |
 | `hedge(center, size)` | Plaza ×1, estación ×1 | 272 (15 m) | según `size` | `solid` de `size` | — | Borde que evita salir del escenario | Baja | No | Medio | — |
 | `low_wall(center, size)` | Plaza ×2, estación ×2 | 24 | según `size` | `solid` de `size` | — | Borde cercano a la cámara | Baja | No | Alto | — |
 
@@ -95,29 +95,29 @@ prisma por libro).
 | Función | Uso | Tri. (capas) | Caja (m) | Colisión | Narrativa / notas | Exp. directa | Blender | Riesgo | Prio. |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | `body(width, height, depth, wall, roof)` | Plaza ×4 (café, casa estrecha, archivo, banco), estación ×1 | 42 | 11,5 × 8,7 × 7,7 (café) | `solid` ancho × alto × fondo | **Huella copiada en el mapa del pueblo y comprobada por `test_map`** | Baja | Sí, sin cambiar la huella | Alto | 6 |
-| `window(x, y, w, h, lit, shutters)` | Plaza ×32 (directas y en rejillas), estación ×2 | 72 + 12 brillo | 1,95 × 1,66 × 0,21 (1,0 × 1,4) | — | Encendida o no; contraventanas | Media | Variantes | Bajo | 6 |
+| `window(x, y, w, h, lit, shutters)` | Plaza ×32 (directas y en rejillas), estación ×2 | 72 + 12 brillo | 1,95 × 1,66 × 0,21 (1,0 × 1,4) | — | Encendida o no; contraventanas | Media | Variantes | Bajo | **Migrado (sesión 6)**: `ventana` |
 | `window_grid` | Plaza ×3 | — | — | — | Reparte `window` | — | — | — | 6 |
-| `door(x, w, h, color)` | Plaza ×2 (café, archivo) | 48 + 12 brillo | 2,10 × 2,70 × 0,76 | — | **Junto a `LocationExit`** (las salidas siguen en el escenario) | Media | Sí | Medio | 6 |
-| `awning(x, y, w, depth)` | Plaza ×1 (café) | 320 | 10,0 × 0,81 × 1,62 | — | Toldo a rayas | Media | Sí | Bajo | 6 |
-| `chimney(where)` | Plaza ×1 | 24 | 0,85 × 1,31 × 0,85 | — | — | Alta | Sí | Bajo | 6 |
-| `column(base, height)` | Plaza ×4 (pórtico del archivo) | 52 | 0,70 × 4,10 × 0,70 | 0,5 × alto × 0,5 | — | Alta | Sí | Bajo | 6 |
+| `door(x, w, h, color)` | Plaza ×2 (café, archivo) | 48 + 12 brillo | 2,10 × 2,70 × 0,76 | — | **Junto a `LocationExit`** (las salidas siguen en el escenario) | Media | Sí | Medio | **Migrado (sesión 6)**: `puerta` |
+| `awning(x, y, w, depth)` | Plaza ×1 (café) | 320 | 10,0 × 0,81 × 1,62 | — | Toldo a rayas | Media | Sí | Bajo | **Migrado (sesión 6)**: `toldo` |
+| `chimney(where)` | Plaza ×1 | 24 | 0,85 × 1,31 × 0,85 | — | — | Alta | Sí | Bajo | **Migrado (sesión 6)**: `chimenea_tejado` |
+| `column(base, height)` | Plaza ×4 (pórtico del archivo) | 52 | 0,70 × 4,10 × 0,70 | 0,5 × alto × 0,5 | — | Alta | Sí | Bajo | **Migrado (sesión 6)**: `columna` |
 
 ## Piezas propias de cada escenario (código `batch.*` dentro del escenario)
 
 | Escenario | Pieza | Colisión | Narrativa / notas | Blender | Riesgo | Prio. |
 | --- | --- | --- | --- | --- | --- | --- |
 | Plaza | Suelos, aceras y bordillos | suelo de 90 × 90 m | Empedrado por shader | No | Alto | — |
-| Plaza | Escaparate, rótulo y toldo del café | — | «CAFÉ LA LUNA», salida al café | Sí | Medio | 6 |
-| Plaza | Pórtico, frontón y torre del reloj del archivo | columnas | Esfera del reloj en capa de brillo; salida con cierre el domingo | Sí | Medio | 6 |
-| Plaza | Mansión de fondo, tapia, pilares, verja | tapia, pilares, verja (3,9 × 3,0 m) | «MANSIÓN VALDÉS»; salida cerrada hasta `llamada_atendida` | Sí | Medio | 6 |
-| Plaza | Fuente | dos cajas giradas 45° | Ronda del sargento alrededor (4 marcadores) | Sí | Bajo | 6 |
+| Plaza | Escaparate, rótulo y toldo del café | — | «CAFÉ LA LUNA», salida al café | Sí | Medio | **Migrado (sesión 6)**: `escaparate_cafe, rotulo_cafe, toldo` |
+| Plaza | Pórtico, frontón y torre del reloj del archivo | columnas | Esfera del reloj en capa de brillo; salida con cierre el domingo | Sí | Medio | **Migrado (sesión 6)**: `portico_archivo, torre_reloj` |
+| Plaza | Mansión de fondo, tapia, pilares, verja | tapia, pilares, verja (3,9 × 3,0 m) | «MANSIÓN VALDÉS»; salida cerrada hasta `llamada_atendida` | Sí | Medio | **Migrado (sesión 6)**: `mansion_fondo, verja_mansion` |
+| Plaza | Fuente | dos cajas giradas 45° | Ronda del sargento alrededor (4 marcadores) | Sí | Bajo | **Migrado (sesión 6)**: `fuente` |
 | Plaza | Muros invisibles del perímetro | 4 cajas | — | No | Alto | — |
 | Café | Barra, taburetes, botellero, espejo | barra `solid` + 5 taburetes | Puestos «barra*» detrás; 78 cilindros de botellas | Sí | Medio | **Migrado (sesión 5)**: `barra_cafe, taburete, botellero_cafe` |
 | Café | Teléfono sobre la barra | — | Referencia narrativa (desde él llamó el sargento); hoy decorativo | Sí | Bajo | **Migrado (sesión 5)**: `telefono` |
 | Café | Mesita de la pensión, papeles de la trastienda | caja | — | Sí | Bajo | **Migrado (sesión 5)**: `mesilla, papeles` |
 | Estación | Vías, traviesas, raíles, bordillo | bordillo (90 m) | El bordillo impide bajar a las vías | Sí (sin la colisión) | Medio | 6 |
-| Estación | Tren (locomotora y vagón) | — | Llegada del detective; ventanas en brillo | Sí (a mano) | Bajo | 6 |
-| Estación | Marquesina, reloj de andén | 3 postes + reloj | — | Sí | Bajo | 6 |
+| Estación | Tren (locomotora y vagón) | — | Llegada del detective; ventanas en brillo | Sí (a mano) | Bajo | **Migrado (sesión 6)**: `locomotora, vagon` |
+| Estación | Marquesina, reloj de andén | 3 postes + reloj | — | Sí | Bajo | **Migrado (sesión 6)**: `marquesina, reloj_anden` |
 | Mansión | Reloj caído y cristales del despacho | — | **Pista `reloj_despacho`** | Sí, sin moverlo | Medio | **Migrado (sesión 5)**: `reloj_caido` |
 | Mansión | Huellas de betún | — | **Pista `huellas_betun`** | Sí, sin moverlas | Medio | **Migrado (sesión 5)**: `huellas_betun` |
 | Mansión | Objetos sobre muebles (copa, tintero, papel, libro, foto) | — | **Pistas `copa_lavada`, `carta_amor`, `lista_invitados`, `libro_bodega`, `foto_clara`** | Sí, sin moverlos | Medio | **Migrado (sesión 5)**: `copa, tintero, papeles, libro, foto` |
