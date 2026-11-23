@@ -90,7 +90,7 @@
     "prompt": "Registrar el tocador",
     "presentation": {
       "template": "ficha",
-      "art": {"image": "res://assets/ui/evidencias/billete_tren.png", "center": [1150, 452], "width": 630}
+      "art": {"image": "res://assets/ui/evidencias/billete_tren.png", "center": [1160, 440], "width": 620}
     }
   },
   "carta_amor": {
