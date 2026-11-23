@@ -79,12 +79,12 @@ const PLAZA_LAMPS: Array[Vector2] = [
 ]
 const STATION_LAMPS: Array[Vector2] = [Vector2(-9.0, -2.6), Vector2(8.6, -2.6), Vector2(14.0, 6.6), Vector2(-0.6, 6.6)]
 
-## Árboles: posición, altura, si tienen hojas de otoño y si están en una jardinera.
+## Árboles: posición, altura, si tienen hojas de otoño y si están en una jardinera o en un alcorque.
 const PLAZA_TREES: Array[Dictionary] = [
-	{"at": Vector2(-5.2, -3.8), "height": 4.0, "autumn": false},
-	{"at": Vector2(12.0, -4.0), "height": 3.8, "autumn": true},
+	{"at": Vector2(-5.2, -3.8), "height": 4.0, "autumn": false, "pit": true},
+	{"at": Vector2(12.0, -4.0), "height": 3.8, "autumn": true, "pit": true},
 	{"at": Vector2(-2.0, 0.3), "height": 3.6, "autumn": true, "planter": true},
-	{"at": Vector2(12.4, 9.6), "height": 4.2, "autumn": false},
+	{"at": Vector2(12.4, 9.6), "height": 4.2, "autumn": false, "pit": true},
 ]
 
 ## Casas de los alrededores, sólo decorativas, en metros de la plaza: rectángulo, altura y tejado.
@@ -328,9 +328,15 @@ func _draw_roof(building: Dictionary, rect: Rect2, height: float) -> void:
 		_outline(points, Color(INK, 0.75), 0.07)
 
 
-func _draw_tree(at: Vector2, height: float, autumn: bool, planter: bool = false) -> void:
+func _draw_tree(at: Vector2, height: float, autumn: bool, planter: bool = false, pit: bool = false) -> void:
 	if planter:
 		_draw_planter(at)
+	if pit:
+		var half := PropsKit.TREE_PIT_SIZE * 0.5
+		var curb := Rect2(at - Vector2(half, half), Vector2.ONE * PropsKit.TREE_PIT_SIZE)
+		draw_rect(curb, STONE)
+		draw_rect(curb.grow(-PropsKit.TREE_PIT_CURB), FOLIAGE_DARK.darkened(0.3))
+		_outline(_corners(curb), INK_SOFT, 0.06)
 	var crown := height * 0.36
 	var center := _lift(at, height * 0.72)
 	draw_circle(at + _shadow * height * 0.3, crown * 0.9, Color(0.12, 0.07, 0.03, 0.16), true, -1.0, true)
@@ -422,7 +428,7 @@ func _draw_plaza() -> void:
 	items.append({"depth": _depth(Vector2(9.5, -13.2)), "draw": _draw_archive_portico})
 	items.append({"depth": _depth(Vector2(-7.0, -13.0)), "draw": _draw_cafe_front})
 	for tree in PLAZA_TREES:
-		items.append({"depth": _depth(tree["at"]), "draw": _draw_tree.bind(tree["at"], tree["height"], tree["autumn"], tree.get("planter", false))})
+		items.append({"depth": _depth(tree["at"]), "draw": _draw_tree.bind(tree["at"], tree["height"], tree["autumn"], tree.get("planter", false), tree.get("pit", false))})
 	for lamp in PLAZA_LAMPS:
 		items.append({"depth": _depth(lamp), "draw": _draw_lamp.bind(lamp)})
 	_draw_sorted(items)

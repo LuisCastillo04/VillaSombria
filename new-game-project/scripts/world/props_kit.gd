@@ -27,6 +27,19 @@ const PLANTER_FLOWERS: Array[Vector2] = [
 	Vector2(36.0, 0.74), Vector2(108.0, 0.72), Vector2(180.0, 0.74), Vector2(252.0, 0.72), Vector2(324.0, 0.74),
 ]
 
+## Alcorque cuadrado a ras del suelo (`tree_pit`): lado, bordillo (ancho y alto) y altura de la tierra.
+const TREE_PIT_SIZE := 1.4
+const TREE_PIT_CURB := 0.12
+const TREE_PIT_CURB_HEIGHT := 0.06
+const TREE_PIT_SOIL := 0.035
+const TREE_PIT_COLLISION_HEIGHT := 0.8
+## Hojas caídas sobre la tierra: x, z (metros desde el centro) y giro (grados).
+const TREE_PIT_LEAVES: Array[Vector3] = [
+	Vector3(-0.38, 0.22, 20.0), Vector3(0.31, 0.36, -35.0), Vector3(0.42, -0.18, 70.0),
+	Vector3(-0.2, -0.41, -10.0), Vector3(0.05, 0.47, 45.0), Vector3(-0.45, -0.05, 100.0),
+]
+const TREE_PIT_LEAF_COLORS: Array[Color] = [Color("8a5a24"), Color("7a3a24"), Color("a8782e")]
+
 ## Valla de obras (`work_barrier`): largo del tablero, inclinación de las patas y amarillo de aviso.
 const BARRIER_LENGTH := 1.3
 const BARRIER_LEG_ANGLE := 0.28
@@ -148,6 +161,36 @@ static func _octagon_ring(batch: MeshBatcher, center: Vector3, outer: float, inn
 	for index in 8:
 		var next := (index + 1) % 8
 		batch.face(PackedVector3Array([outside[index], outside[next], inside[next], inside[index]]), color, Vector3.UP)
+
+
+## Alcorque a ras del suelo para un árbol del empedrado: bordillo bajo de piedra, tierra y unas
+## hojas caídas. Devuelve el pie del tronco (el árbol se planta ahí: la tierra, 3,5 cm más arriba,
+## lo tapa sin compartir plano con nada). La colisión cubre el alcorque entero: se rodea, no se pisa.
+static func tree_pit(location: LocationBase, where: Vector3) -> Vector3:
+	var procedural := func(_tint: Color) -> void: _tree_pit_mesh(location.batch, where)
+	ModelCatalog.draw(location, "alcorque", Transform3D(Basis.IDENTITY, where), procedural)
+	location.collider(where + Vector3.UP * TREE_PIT_COLLISION_HEIGHT * 0.5, Vector3(TREE_PIT_SIZE, TREE_PIT_COLLISION_HEIGHT, TREE_PIT_SIZE))
+	return where
+
+
+## El bordillo son cuatro piezas que no se solapan (las largas cubren las esquinas): ninguna cara
+## visible comparte plano con otra. La tierra queda por encima del empedrado de la plaza (1 cm).
+static func _tree_pit_mesh(batch: MeshBatcher, where: Vector3) -> void:
+	var half := TREE_PIT_SIZE * 0.5
+	var inner := half - TREE_PIT_CURB
+	var curb_y := TREE_PIT_CURB_HEIGHT * 0.5
+	for side: float in [-1.0, 1.0]:
+		batch.box(where + Vector3(0.0, curb_y, side * (half - TREE_PIT_CURB * 0.5)), Vector3(TREE_PIT_SIZE, TREE_PIT_CURB_HEIGHT, TREE_PIT_CURB), Palette.STONE)
+		batch.box(where + Vector3(side * (half - TREE_PIT_CURB * 0.5), curb_y, 0.0), Vector3(TREE_PIT_CURB, TREE_PIT_CURB_HEIGHT, inner * 2.0), Palette.STONE)
+	var soil := PackedVector3Array([
+		where + Vector3(-inner, TREE_PIT_SOIL, -inner), where + Vector3(inner, TREE_PIT_SOIL, -inner),
+		where + Vector3(inner, TREE_PIT_SOIL, inner), where + Vector3(-inner, TREE_PIT_SOIL, inner),
+	])
+	batch.face(soil, PLANTER_SOIL_COLOR, Vector3.UP)
+	for index in TREE_PIT_LEAVES.size():
+		var leaf := TREE_PIT_LEAVES[index]
+		var color: Color = TREE_PIT_LEAF_COLORS[index % TREE_PIT_LEAF_COLORS.size()]
+		batch.box(where + Vector3(leaf.x, TREE_PIT_SOIL + 0.004, leaf.y), Vector3(0.11, 0.008, 0.07), color, deg_to_rad(leaf.z))
 
 
 ## Valla de obras: tablero con franjas negras y amarillas sobre dos caballetes de madera. `where`

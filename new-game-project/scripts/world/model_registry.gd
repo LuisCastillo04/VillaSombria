@@ -23,6 +23,7 @@ const MODELS := {
 	"coche": {"categoria": "atrezo", "objeto": "Coche", "fiel": true},
 	"quiosco": {"categoria": "atrezo", "objeto": "Quiosco", "fiel": true},
 	"poste_indicador": {"categoria": "atrezo", "objeto": "PosteIndicador", "fiel": true},
+	"alcorque": {"categoria": "atrezo", "objeto": "Alcorque", "fiel": true},
 	"valla_obras": {"categoria": "atrezo", "objeto": "VallaObras", "fiel": true},
 	# Detalles de fachada (BuildingKit). El cuerpo de los edificios sigue procedural (huella del mapa).
 	"ventana": {"categoria": "arquitectura", "objeto": "Ventana", "fiel": true},

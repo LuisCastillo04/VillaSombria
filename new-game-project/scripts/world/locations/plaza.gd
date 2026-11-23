@@ -9,6 +9,12 @@ const SIDEWALK_TINT := Color("e3ddd2")
 const VERGE_TINT := Color("3f4640")
 ## Centro de la jardinera octogonal del árbol de la plaza (PropsKit.planter).
 const PLANTER := Vector3(-2.0, 0.0, 0.3)
+## Árboles del empedrado, cada uno en su alcorque (PropsKit.tree_pit): posición, altura y otoño.
+const PIT_TREES: Array[Dictionary] = [
+	{"at": Vector3(-5.2, 0.0, -3.8), "height": 4.0, "autumn": false},
+	{"at": Vector3(12.0, 0.0, -4.0), "height": 3.8, "autumn": true},
+	{"at": Vector3(12.4, 0.0, 9.6), "height": 4.2, "autumn": false},
+]
 ## Banco Valdés: origen de su fachada (mira hacia +X), hoja de la puerta (ancho y alto), aviso y
 ## valla de obras, en el sistema local de la fachada (X a lo largo, +Z hacia la calle).
 const BANK_ORIGIN := Vector3(-14.0, 0.0, 9.0)
@@ -242,13 +248,13 @@ func _build_square() -> void:
 	PropsKit.bench(self, Vector3(-3.4, 0.0, 3.0), 90.0)
 	PropsKit.bench(self, Vector3(10.2, 0.0, 3.0), -90.0)
 	PropsKit.bench(self, Vector3(3.5, 0.0, -3.4), 0.0)
-	PropsKit.tree(self, Vector3(-5.2, 0.0, -3.8), 4.0)
-	PropsKit.tree(self, Vector3(12.0, 0.0, -4.0), 3.8, true)
+	# Los árboles del empedrado salen de un alcorque con tierra, no de entre las piedras.
+	for tree: Dictionary in PIT_TREES:
+		PropsKit.tree(self, PropsKit.tree_pit(self, tree["at"]), tree["height"], tree["autumn"])
 	# Árbol de otoño en su jardinera, entre el banco oeste y la farola del norte. Antes estaba en
 	# (-4,8; 10,0), pegado al mostrador del quiosco: la copa tapaba el toldo y el tronco cortaba el
 	# paso delante de los periódicos.
 	PropsKit.tree(self, PropsKit.planter(self, PLANTER), 3.6, true)
-	PropsKit.tree(self, Vector3(12.4, 0.0, 9.6), 4.2)
 
 
 func _build_street_furniture() -> void:
