@@ -18,7 +18,9 @@ func test_imported_polygon_matches_procedural_face() -> void:
 	var recorder := MeshBatcher.new()
 	recorder.recording = true
 	recorder.face(PackedVector3Array(QUAD), Palette.WINE, Vector3.UP)
-	var surfaces := ModelCatalog.surfaces_from_node(_node_from_recorded(recorder.recorded), false)
+	var node := _node_from_recorded(recorder.recorded)
+	var surfaces := ModelCatalog.surfaces_from_node(node, false)
+	node.free()
 	var imported := MeshBatcher.new()
 	imported.add_surfaces(surfaces)
 	var expected := procedural.build_mesh().surface_get_arrays(0)
@@ -77,7 +79,9 @@ func test_mirrored_placement_keeps_faces_outward() -> void:
 	var recorder := MeshBatcher.new()
 	recorder.recording = true
 	recorder.face(PackedVector3Array(QUAD), Palette.STONE, Vector3.UP)
-	var surfaces := ModelCatalog.surfaces_from_node(_node_from_recorded(recorder.recorded), false)
+	var node := _node_from_recorded(recorder.recorded)
+	var surfaces := ModelCatalog.surfaces_from_node(node, false)
+	node.free()
 	var batch := MeshBatcher.new()
 	batch.add_surfaces(surfaces, Transform3D(Basis.from_scale(Vector3(-1.0, 1.0, 1.0)), Vector3.ZERO))
 	var arrays := batch.build_mesh().surface_get_arrays(0)
