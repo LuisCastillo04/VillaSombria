@@ -1,3 +1,6 @@
 # Modelos 3D: binarios, sin conversión de finales de línea ni diff de texto.
 *.glb binary
 *.blend binary
+
+# Scripts, referencias y registros de Blender: finales de línea LF, como el proyecto.
+blender/** text=auto eol=lf
