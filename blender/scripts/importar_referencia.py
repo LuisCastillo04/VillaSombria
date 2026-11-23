@@ -137,7 +137,14 @@ def construir(datos):
             if objetos:
                 desplazamiento += -caja["min"][0] + 0.5
             posicion = (desplazamiento, 0.0, 0.0)
-        objeto = bpy.data.objects.new(nombre, malla_desde_caras(nombre, variante["caras"]))
+        malla = malla_desde_caras(nombre, variante["caras"])
+        if len(malla.polygons) < len(variante["caras"]):
+            # Dos caras coincidentes (una tapa interior por cada lado) se vuelven la misma al unir
+            # los vértices y Blender borra una: se deja sin unir para no perder ninguna.
+            print("VillaSombria: AVISO %s tiene caras coincidentes; se deja sin unir los vértices" % nombre)
+            bpy.data.meshes.remove(malla)
+            malla = malla_desde_caras(nombre, variante["caras"], False)
+        objeto = bpy.data.objects.new(nombre, malla)
         objeto.location = posicion
         objeto["vs_usos"] = len(variante.get("usos", []))
         exportar.objects.link(objeto)
