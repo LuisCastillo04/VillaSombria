@@ -7,11 +7,11 @@ El detalle de cada decisión está en los documentos numerados de esta carpeta.
 
 | Dato | Valor |
 | --- | --- |
-| Sesión | 6 terminada; siguiente: 7 — personajes |
-| Rama | `feature/blender-exteriores` (cerrada) → `feature/blender-personajes` |
-| Último commit válido | `7437acb` + documentación de la sesión 6 |
-| Fase | Sesión 6 validada: 544 pruebas, 58 modelos |
-| Próxima acción | Sesión 7: personajes_s7.py (CharacterModel.build(look, id) y draw_in por pivote), herramienta_s7.py (captura de personajes), test_personajes.gd, registrar personaje_<id> |
+| Sesión | 7 terminada; siguiente: 8 — integración |
+| Rama | `feature/blender-personajes` (cerrada) → `feature/blender-integracion` |
+| Último commit válido | `e7526e2` + documentación de la sesión 7 |
+| Fase | Sesión 7 validada: 547 pruebas, 68 modelos |
+| Próxima acción | Sesión 8: revisión, recuperación (variante y GLB inválidos), medidas de rendimiento, inventario final, limpieza, verificar.ps1 -ConVentana y documentación final |
 
 Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exteriores) → 7 (personajes) →
 8 (integración), cada una en su rama creada desde la anterior. Ver [06-plan-migracion.md](06-plan-migracion.md).
@@ -45,7 +45,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | 4 | `feature/blender-objetos` | Terminada y validada | `66fee96` (+ documentación) |
 | 5 | `feature/blender-interiores` | Terminada y verificada (`verificar.ps1 -ConVentana` correcto) | `6ef704f` |
 | 6 | `feature/blender-exteriores` | Terminada y validada | `7437acb` (+ documentación) |
-| 7 | `feature/blender-personajes` | Pendiente | — |
+| 7 | `feature/blender-personajes` | Terminada y validada | `e7526e2` (+ documentación) |
 | 8 | `feature/blender-integracion` | Pendiente | — |
 
 ## Decisiones técnicas
@@ -64,6 +64,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 7. **Sesión 4:** refactorizaciones verificadas con `huella_escenarios.tscn` (huella idéntica antes y después). El GLB lleva el número de polígono en un mapa UV (tono exacto por polígono). Prueba por superficie cubierta (`test_each_model_matches_its_procedural_piece`). El importador no une vértices si se perderían caras coincidentes
 8. **Sesión 5:** importación sin compresión de vértices (precisión del tono en piezas grandes). Estanterías «optimizadas»: sin caras hacia abajo ni traseras tapadas por el fondo (archivo -26 % de primitivas). Papeles y libros compartidos por los tres interiores
 9. **Sesión 6:** 24 modelos exteriores exactos; `BuildingKit.body`, suelos, vías, muretes y setos siguen procedurales. `exportar_glb.py` conserva el registro si el GLB no cambia
+10. **Sesión 7:** `CharacterModel.build(look, id)`; cada pivote con `ModelCatalog.draw_in`; un GLB por personaje con un objeto por pivote (origen en el pivote, frente +Y en Blender); animación procedural intacta
 
 ## Pruebas
 
@@ -79,6 +80,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | Cierre de la sesión 5 (carpeta de trabajo) | 544 correctas, 0 con fallos, sin `ERROR:` |
 | `verificar.ps1 -ConVentana` en copia limpia de `6ef704f` (cierre de las sesiones 2–5) | **RESUMEN: todo correcto** (544 pruebas, 7 reinicios, imágenes de ranuras, modos de pantalla, cierre con X y Alt + F4) |
 | Cierre de la sesión 6 (carpeta de trabajo) | 544 correctas, 0 con fallos, sin `ERROR:` |
+| Cierre de la sesión 7 (carpeta de trabajo) | 547 correctas, 0 con fallos, sin `ERROR:` |
 
 Ruido entre dos capturas idénticas de la plaza (lluvia y grano): media 4,4 por píxel, máximo 185.
 Las comparaciones exactas se hacen con la geometría (pruebas), no con píxeles.

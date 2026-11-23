@@ -67,5 +67,15 @@ el escenario que lo dibuja (`ModelCatalog.draw`). Triángulos: de todas las vari
 | mobiliario | sillon | 1 | 2 | mansion | 48 | 1 | sí | — | exacto | migrado |
 | mobiliario | sofa | 1 | 1 | mansion | 48 | 1 | sí | — | exacto | migrado |
 | mobiliario | ventana_interior | 4 | 4 | archivo, cafe, mansion | 192 | 0 | — | sí | exacto | migrado |
+| personajes | personaje_anselmo | 6 | 6 | personaje | 292 | 0 | — | — | exacto | migrado |
+| personajes | personaje_detective | 6 | 6 | personaje | 390 | 0 | — | — | exacto | migrado |
+| personajes | personaje_elena | 6 | 6 | personaje | 446 | 0 | — | — | exacto | migrado |
+| personajes | personaje_eusebio | 6 | 6 | personaje | 322 | 0 | — | — | exacto | migrado |
+| personajes | personaje_hilario | 6 | 6 | personaje | 276 | 0 | — | — | exacto | migrado |
+| personajes | personaje_irene | 6 | 6 | personaje | 366 | 0 | — | — | exacto | migrado |
+| personajes | personaje_lucia | 6 | 6 | personaje | 330 | 0 | — | — | exacto | migrado |
+| personajes | personaje_marcos | 6 | 6 | personaje | 294 | 0 | — | — | exacto | migrado |
+| personajes | personaje_ortega | 6 | 6 | personaje | 338 | 0 | — | — | exacto | migrado |
+| personajes | personaje_rosa | 6 | 6 | personaje | 396 | 0 | — | — | exacto | migrado |
 
-**Total:** 58 modelos, 191 usos en el juego, 12317 triángulos en los GLB.
+**Total:** 68 modelos, 251 usos en el juego, 15767 triángulos en los GLB.

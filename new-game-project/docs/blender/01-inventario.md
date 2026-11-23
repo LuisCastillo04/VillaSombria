@@ -150,6 +150,9 @@ Variantes que debe cubrir un modelo de Blender: peinados `short`, `slick`, `bun`
 abrigo `short`, `long`, `tails`; `dress`; extras `tray`, `cigarette`, `apron`, `scarf`, `pearls`,
 `bowtie`, `tie`, `badge`, `mustache`, `glasses`.
 
+**Migrados en la sesión 7:** un GLB por personaje (`personaje_<id>`), un objeto por pivote. Ver
+[13-sesion-7-personajes.md](13-sesion-7-personajes.md).
+
 Evaluación: exportación directa **media** (diez combinaciones distintas de un mismo código);
 Blender **sí**, con un cuerpo base y piezas opcionales (vía B, luego retoque a mano); riesgo
 **alto** (interfaz usada por NPC, jugador, pasos y pruebas); prioridad **5**.
