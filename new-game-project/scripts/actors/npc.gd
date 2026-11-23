@@ -107,7 +107,7 @@ func setup(id: String) -> void:
 	var data: Dictionary = GameData.characters.get(id, {})
 	display_name = data.get("name", id)
 	personality = data.get("personality", "")
-	model.build(data.get("model", {}))
+	model.build(data.get("model", {}), npc_id)
 	interaction.setup(self)
 	# Cada personaje tiene su propia secuencia: no se mueven todos a la vez ni igual.
 	_rng.seed = hash(id)
