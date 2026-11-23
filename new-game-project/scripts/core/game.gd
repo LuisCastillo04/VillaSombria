@@ -37,6 +37,10 @@ var _saved_pose: Dictionary = {}
 func _ready() -> void:
 	camera.target = player
 	player.camera_yaw = camera.get_yaw()
+	# El sonido 3D se oye desde el detective, orientado como la cámara, y sus pasos suenan según
+	# el suelo que pisa.
+	AudioManager.attach_listener(player, camera.get_yaw())
+	player.model.stepped.connect(_on_player_stepped)
 	player.guard.recovered.connect(_on_player_recovered)
 	_pause.set_map_target(player)
 	EventBus.location_change_requested.connect(go_to)
@@ -182,12 +186,12 @@ func _load_location(location_id: String, spawn_id: String) -> void:
 	GameState.location_id = location_id
 	GameState.spawn_id = spawn_id
 	_apply_weather(bool(GameData.locations[location_id].get("outdoor", false)))
+	AudioManager.enter_location(location_id, current_location)
 	EventBus.location_changed.emit(location_id)
 
 
 func _apply_weather(outdoor: bool) -> void:
 	_post_fx.set_outdoor(outdoor)
-	AudioManager.set_rain(outdoor)
 	if outdoor and _rain == null:
 		_rain = RainEffect.new()
 		_rain.target = player
@@ -217,6 +221,7 @@ func _wait_an_hour() -> void:
 		GameState.unlock_player(CONFIRM_LOCK)
 		if not accepted or not is_inside_tree():
 			return
+	AudioManager.play("reloj_avanza")
 	GameClock.advance(WAIT_MINUTES)
 	EventBus.notification_requested.emit("Pasa el tiempo", "Son las %s." % GameClock.format_time(), "info")
 
@@ -245,6 +250,10 @@ func _on_story_action(action: String) -> void:
 			DialogueManager.play_scene("epilogo")
 		"case_closed":
 			_case_closed.open()
+
+
+func _on_player_stepped() -> void:
+	AudioManager.play_footstep(current_location, player.global_position)
 
 
 ## La red de seguridad ha devuelto al detective a suelo firme: la cámara lo sigue sin barrido.

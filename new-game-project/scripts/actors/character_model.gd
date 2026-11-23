@@ -3,6 +3,9 @@ extends Node3D
 ## Personaje low-poly procedural. El aspecto se describe con un diccionario, de modo
 ## que el detective y todos los NPC comparten el mismo código y la misma animación.
 
+## Un pie apoya en el suelo (medio ciclo del paso). Lo usa el sonido de los pasos del detective.
+signal stepped
+
 const HIP_HEIGHT := 0.84
 const SHOULDER_HEIGHT := 1.42
 const NECK_HEIGHT := 1.5
@@ -91,7 +94,11 @@ func _process(delta: float) -> void:
 		return
 	_clock += delta
 	if _motion > 0.02:
+		# Cada pie apoya cuando la pierna llega a su extremo: sin(fase) = ±1.
+		var before := floorf((_phase - PI * 0.5) / PI)
 		_phase += delta * (5.0 + 7.0 * _motion)
+		if _motion > 0.15 and floorf((_phase - PI * 0.5) / PI) > before:
+			stepped.emit()
 	var stride := minf(_motion * 2.2, 1.0)
 	var swing := sin(_phase) * 0.75 * stride
 	_left_leg.rotation.x = swing

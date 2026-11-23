@@ -17,7 +17,7 @@ Todo el contenido actual se genera en el propio repositorio:
 | Ilustraciones de las evidencias (reloj de sobremesa, violetas prensadas) | SVG generados con `tools/generar_evidencias.py`; provisionales, ver [EVIDENCIAS.md](EVIDENCIAS.md) |
 | Iconos de la interfaz | SVG escritos a mano en el repositorio (`assets/ui/iconos/`) |
 | Materiales y efectos | Shaders propios (`assets/shaders/`) |
-| Sonido y música | Síntesis al arrancar (`scripts/autoload/audio_manager.gd`) |
+| Música, ambientes y efectos | Composiciones y sonidos originales sintetizados con `tools/generar_audio.py` (`tools/sintesis/`), en `assets/audio/`; ver [AUDIO.md](AUDIO.md) y [AUDIO_INVENTARIO.md](AUDIO_INVENTARIO.md) |
 | Fuentes | Fuentes del sistema; no se incluyen archivos de fuentes. Las manuscritas de las cartas y la del periódico usan familias de Microsoft Office si el equipo las tiene y, si no, Segoe Script y Georgia, que vienen con Windows; ver [EVIDENCIAS.md](EVIDENCIAS.md) |
 | Motor | Godot Engine 4.7, licencia MIT |
 
@@ -64,7 +64,7 @@ Añade una fila por recurso o lote de recursos.
 
 | Archivo o carpeta | Herramienta | Fecha | Autor de la indicación | Condiciones |
 | --- | --- | --- | --- | --- |
-| *(vacío)* | | | | |
+| `assets/audio/` (115 archivos) | Sintetizador propio en Python (`tools/generar_audio.py` y `tools/sintesis/`, con NumPy, SciPy y FFmpeg), escrito y compuesto con Claude Code (Anthropic) | 22/11/2026 | Los autores | Originales del proyecto: síntesis sin muestras grabadas ni recursos de terceros. NumPy y SciPy (BSD) y FFmpeg (LGPL) sólo se usan para generarlos; no forman parte del juego |
 
 ## Créditos previstos
 

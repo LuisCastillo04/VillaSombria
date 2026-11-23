@@ -28,6 +28,7 @@ func with_lock(condition: Dictionary, message: String) -> LocationExit:
 func interact(actor: Node) -> void:
 	super.interact(actor)
 	if not Conditions.check(requires):
+		AudioManager.play("puerta_cerrada")
 		EventBus.notification_requested.emit("Cerrado", locked_message, "info")
 		return
 	GameClock.advance(travel_minutes)

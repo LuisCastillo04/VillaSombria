@@ -11,7 +11,7 @@ hay dos pestañas más, Filtros y Accesibilidad.
 
 | Pestaña | Opciones |
 | --- | --- |
-| Audio | Volumen general, música, efectos, lluvia y ambiente (barras, como antes) |
+| Audio | Volumen general, música, ambiente y efectos (barras); ver [AUDIO.md](AUDIO.md) |
 | Gráficos | Pantalla completa y sincronización vertical (interruptores); modo de ventana, resolución de pantalla, calidad de sombras e iluminación y efectos y partículas (selectores) |
 | Jugabilidad | Velocidad del texto (selector); avance automático de diálogos y confirmaciones (interruptores) |
 | Filtros | Modo noir, sepia, frío nocturno o colores originales (tarjetas, uno a la vez); ver [FILTROS.md](FILTROS.md) |

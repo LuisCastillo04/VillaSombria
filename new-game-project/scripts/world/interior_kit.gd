@@ -10,6 +10,7 @@ const COLLISION_HEIGHT := 3.0
 
 ## Suelo de tablones. `along_x` orienta las tablas.
 static func plank_floor(location: LocationBase, from: Vector2, to: Vector2, color: Color, along_x: bool = true) -> void:
+	location.register_surface(from, to, "madera")
 	var batch := location.batch
 	var width := 0.55
 	var span := (to.y - from.y) if along_x else (to.x - from.x)
@@ -38,6 +39,7 @@ static func plank_floor(location: LocationBase, from: Vector2, to: Vector2, colo
 
 ## Baldosas ajedrezadas.
 static func tile_floor(location: LocationBase, from: Vector2, to: Vector2, light: Color, dark: Color, tile: float = 1.0) -> void:
+	location.register_surface(from, to, "baldosa")
 	var columns := int(ceil((to.x - from.x) / tile))
 	var rows := int(ceil((to.y - from.y) / tile))
 	for row in rows:
@@ -117,6 +119,7 @@ static func _wall_segment(
 
 
 static func rug(location: LocationBase, center: Vector3, size: Vector2, color: Color) -> void:
+	location.register_surface(Vector2(center.x, center.z) - size * 0.5, Vector2(center.x, center.z) + size * 0.5, "alfombra")
 	var batch := location.batch
 	batch.box(center + Vector3.UP * 0.01, Vector3(size.x, 0.02, size.y), color)
 	batch.box(center + Vector3.UP * 0.022, Vector3(size.x - 0.5, 0.02, size.y - 0.5), color.lightened(0.14))

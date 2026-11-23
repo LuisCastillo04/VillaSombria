@@ -69,4 +69,5 @@ func _on_accuse_pressed() -> void:
 		close()
 		DialogueManager.play_scene("confrontacion")
 	else:
+		AudioManager.play("acusacion_fallida")
 		_verdict.text = "[b]Ortega:[/b] %s" % verdict["reason"]

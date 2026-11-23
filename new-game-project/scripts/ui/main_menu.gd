@@ -70,7 +70,7 @@ func _ready() -> void:
 	_credits.hide()
 	_slots.hide()
 	_new_game.grab_focus()
-	AudioManager.set_rain(true)
+	AudioManager.enter_location("menu")
 	_fade.fade_in(0.9)
 
 

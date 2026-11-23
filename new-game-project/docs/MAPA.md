@@ -242,4 +242,4 @@ chincheta).
   una salida a la otra con un fundido, y el mapa no muestra al detective por el camino.
 - **Revisión visual con capturas fijas.** Las animaciones (la pulsación, el deslizamiento, el
   rombo y la entrada) se comprobaron con pruebas y capturas, no a mano ni con un mando real.
-- **Sonido:** la selección y «Volver» usan el clic existente; el mapa no tiene un sonido propio.
+- **Sonido:** abrir el mapa suena a papel desplegado (`mapa_abrir`); la selección y «Volver» usan el clic.
