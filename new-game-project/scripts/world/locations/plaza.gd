@@ -15,6 +15,14 @@ const PIT_TREES: Array[Dictionary] = [
 	{"at": Vector3(12.0, 0.0, -4.0), "height": 3.8, "autumn": true},
 	{"at": Vector3(12.4, 0.0, 9.6), "height": 4.2, "autumn": false},
 ]
+## Parterres con arbustos (PropsKit.shrub_bed): centro, largo y giro. Junto a la acera del archivo,
+## a la derecha de las cajas; detrás del seto de la calle de la estación, y por fuera del murete
+## este de la plaza. Ninguno está en la calle, en la plaza ni delante de una puerta.
+const SHRUB_BEDS: Array[Dictionary] = [
+	{"center": Vector3(23.5, 0.0, -13.55), "length": 8.0, "yaw": 0.0},
+	{"center": Vector3(22.55, 0.0, -5.8), "length": 13.5, "yaw": 0.0},
+	{"center": Vector3(15.95, 0.0, 3.0), "length": 15.0, "yaw": 90.0},
+]
 ## Banco Valdés: origen de su fachada (mira hacia +X), hoja de la puerta (ancho y alto), aviso y
 ## valla de obras, en el sistema local de la fachada (X a lo largo, +Z hacia la calle).
 const BANK_ORIGIN := Vector3(-14.0, 0.0, 9.0)
@@ -280,6 +288,8 @@ func _build_edges() -> void:
 	PropsKit.low_wall(self, Vector3(3.59, 0.3, 13.2), Vector3(34.82, 0.6, 0.5))
 	PropsKit.low_wall(self, Vector3(15.2, 0.3, 3.0), Vector3(0.5, 0.6, 20.0))
 	PropsKit.hedge(self, Vector3(22.5, 0.4, -6.6), Vector3(15.0, 0.8, 0.7))
+	for bed: Dictionary in SHRUB_BEDS:
+		PropsKit.shrub_bed(self, bed["center"], bed["length"], bed["yaw"])
 	# Límites invisibles del área jugable.
 	collider(Vector3(29.6, 2.0, -10.0), Vector3(1.0, 4.0, 10.0))
 	collider(Vector3(8.0, 2.0, -14.5), Vector3(50.0, 4.0, 1.0))

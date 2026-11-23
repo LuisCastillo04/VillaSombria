@@ -40,6 +40,14 @@ const TREE_PIT_LEAVES: Array[Vector3] = [
 ]
 const TREE_PIT_LEAF_COLORS: Array[Color] = [Color("8a5a24"), Color("7a3a24"), Color("a8782e")]
 
+## Parterre alargado (`shrub_bed`): ancho, muro, altura, tierra, separación entre arbustos y colisión.
+const SHRUB_BED_WIDTH := 0.7
+const SHRUB_BED_WALL := 0.1
+const SHRUB_BED_HEIGHT := 0.3
+const SHRUB_BED_SOIL := 0.24
+const SHRUB_BED_SPACING := 0.62
+const SHRUB_BED_COLLISION_HEIGHT := 0.8
+
 ## Valla de obras (`work_barrier`): largo del tablero, inclinación de las patas y amarillo de aviso.
 const BARRIER_LENGTH := 1.3
 const BARRIER_LEG_ANGLE := 0.28
@@ -191,6 +199,41 @@ static func _tree_pit_mesh(batch: MeshBatcher, where: Vector3) -> void:
 		var leaf := TREE_PIT_LEAVES[index]
 		var color: Color = TREE_PIT_LEAF_COLORS[index % TREE_PIT_LEAF_COLORS.size()]
 		batch.box(where + Vector3(leaf.x, TREE_PIT_SOIL + 0.004, leaf.y), Vector3(0.11, 0.008, 0.07), color, deg_to_rad(leaf.z))
+
+
+## Parterre alargado de piedra con una fila de arbustos redondos. `center` es el centro de su base
+## y el largo va por el eje X local (`yaw_degrees` lo gira). El largo es la variante del modelo.
+static func shrub_bed(location: LocationBase, center: Vector3, length: float, yaw_degrees: float = 0.0) -> void:
+	var previous := location.batch.xform
+	location.batch.xform = previous * Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_degrees)), center)
+	var procedural := func(_tint: Color) -> void: _shrub_bed_mesh(location.batch, length)
+	ModelCatalog.draw(location, "parterre", Transform3D.IDENTITY, procedural, ModelCatalog.size_key(length))
+	location.collider(Vector3(0.0, SHRUB_BED_COLLISION_HEIGHT * 0.5, 0.0), Vector3(length, SHRUB_BED_COLLISION_HEIGHT, SHRUB_BED_WIDTH))
+	location.batch.xform = previous
+
+
+## Muretes que no se solapan (los largos cubren las esquinas), tierra hundida 6 cm y arbustos
+## repartidos a lo largo, con tamaños y desvíos fijos para que no parezcan copiados.
+static func _shrub_bed_mesh(batch: MeshBatcher, length: float) -> void:
+	var half_width := SHRUB_BED_WIDTH * 0.5
+	var wall := SHRUB_BED_WALL
+	var y := SHRUB_BED_HEIGHT * 0.5
+	for side: float in [-1.0, 1.0]:
+		batch.box(Vector3(0.0, y, side * (half_width - wall * 0.5)), Vector3(length, SHRUB_BED_HEIGHT, wall), Palette.STONE)
+		batch.box(Vector3(side * (length * 0.5 - wall * 0.5), y, 0.0), Vector3(wall, SHRUB_BED_HEIGHT, SHRUB_BED_WIDTH - wall * 2.0), Palette.STONE)
+	var inner := Vector2(length * 0.5 - wall, half_width - wall)
+	batch.face(PackedVector3Array([
+		Vector3(-inner.x, SHRUB_BED_SOIL, -inner.y), Vector3(inner.x, SHRUB_BED_SOIL, -inner.y),
+		Vector3(inner.x, SHRUB_BED_SOIL, inner.y), Vector3(-inner.x, SHRUB_BED_SOIL, inner.y),
+	]), PLANTER_SOIL_COLOR, Vector3.UP)
+	var count := maxi(1, roundi((length - wall * 2.0) / SHRUB_BED_SPACING))
+	var step := (length - wall * 2.0) / float(count)
+	for index in count:
+		var x := -length * 0.5 + wall + step * (float(index) + 0.5)
+		var radius := 0.27 + 0.04 * float((index * 5) % 3)
+		var drift := 0.05 * float((index * 7) % 3 - 1)
+		var color := PLANTER_BUSH_COLOR if index % 2 == 0 else Palette.FOLIAGE_LIGHT
+		batch.sphere(Vector3(x, SHRUB_BED_SOIL + radius * 0.55, drift), radius, color, 6, 4, Vector3(1.0, 0.85, 1.0))
 
 
 ## Valla de obras: tablero con franjas negras y amarillas sobre dos caballetes de madera. `where`

@@ -86,6 +86,9 @@ const PLAZA_TREES: Array[Dictionary] = [
 	{"at": Vector2(-2.0, 0.3), "height": 3.6, "autumn": true, "planter": true},
 	{"at": Vector2(12.4, 9.6), "height": 4.2, "autumn": false, "pit": true},
 ]
+## Escenarios cuyos parterres (`SHRUB_BEDS`) se dibujan tal cual.
+const PlazaLocation := preload("res://scripts/world/locations/plaza.gd")
+const StationLocation := preload("res://scripts/world/locations/estacion.gd")
 
 ## Casas de los alrededores, sólo decorativas, en metros de la plaza: rectángulo, altura y tejado.
 const OUTSKIRTS_PLAZA: Array[Dictionary] = [
@@ -369,6 +372,21 @@ func _draw_planter(at: Vector2) -> void:
 	draw_circle(_lift(at, height), inner * 0.55, FOLIAGE, true, -1.0, true)
 
 
+## Parterre alargado (`PropsKit.shrub_bed`): murete de piedra y una fila de arbustos.
+func _draw_shrub_bed(bed: Dictionary) -> void:
+	var center: Vector3 = bed["center"]
+	var length: float = bed["length"]
+	var along_x := absf(fmod(float(bed["yaw"]), 180.0)) < 45.0
+	var size := Vector2(length, PropsKit.SHRUB_BED_WIDTH) if along_x else Vector2(PropsKit.SHRUB_BED_WIDTH, length)
+	var rect := Rect2(Vector2(center.x, center.z) - size * 0.5, size)
+	_draw_box(rect, 0.0, PropsKit.SHRUB_BED_HEIGHT, STONE)
+	var count := maxi(1, roundi(length / PropsKit.SHRUB_BED_SPACING))
+	var axis := Vector2.RIGHT if along_x else Vector2.DOWN
+	for index in count:
+		var at := Vector2(center.x, center.z) + axis * (length * ((float(index) + 0.5) / float(count) - 0.5))
+		draw_circle(_lift(at, PropsKit.SHRUB_BED_HEIGHT + 0.1), 0.3, FOLIAGE if index % 2 == 0 else FOLIAGE_DARK, true, -1.0, true)
+
+
 func _draw_lamp(at: Vector2) -> void:
 	draw_circle(at, 2.6, Color(GLOW, 0.1), true, -1.0, true)
 	draw_circle(at, 1.4, Color(GLOW, 0.1), true, -1.0, true)
@@ -451,6 +469,8 @@ func _draw_ground_details() -> void:
 	draw_circle(Vector2(-2.2, -12.1), 0.3, WINE, true, -1.0, true)
 	draw_line(Vector2(14.5, -6.2), _lift(Vector2(14.5, -6.2), 2.7), WOOD, 0.12, true)
 	draw_line(_lift(Vector2(13.6, -6.2), 2.4), _lift(Vector2(15.4, -6.2), 2.4), SIDEWALK.darkened(0.2), 0.3, true)
+	for bed: Dictionary in PlazaLocation.SHRUB_BEDS:
+		_draw_shrub_bed(bed)
 
 
 func _draw_square_props() -> void:
@@ -538,6 +558,8 @@ func _draw_station() -> void:
 	_draw_box(Rect2(-14.4, 8.0, 26.0, 0.4), 0.0, 0.6, STONE)
 	_draw_box(Rect2(22.0, -4.0, 0.4, 14.0), 0.0, 0.6, STONE)
 	_draw_box(Rect2(11.65, 8.0, 0.7, 6.0), 0.0, 0.8, FOLIAGE_DARK)
+	for bed: Dictionary in StationLocation.SHRUB_BEDS:
+		_draw_shrub_bed(bed)
 	for crate: Rect2 in [Rect2(-6.85, 5.55, 0.9, 0.9), Rect2(-5.85, 6.05, 0.7, 0.7)]:
 		_draw_box(crate, 0.0, crate.size.x, WOOD)
 	draw_circle(Vector2(-4.6, 6.6), 0.35, WOOD.darkened(0.2), true, -1.0, true)
