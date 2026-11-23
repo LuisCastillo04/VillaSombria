@@ -52,7 +52,7 @@ prisma por libro).
 
 | Función | Uso | Tri. (capas) | Caja (m) | Colisión | Luz / rótulo | Narrativa / notas | Exp. directa | Blender | Riesgo | Prio. |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| `mailbox` | Plaza ×1 | 68 (opaco) | 0,60 × 1,24 × 0,60 | 0,5 × 1,2 × 0,5 | — | Ninguna; no aparece en datos, mapa ni diálogos | Alta | Sí | **Mínimo** | **2 (prototipo)** |
+| `mailbox` | Plaza ×1 | 68 (opaco) | 0,60 × 1,24 × 0,60 | 0,5 × 1,2 × 0,5 | — | Ninguna; no aparece en datos, mapa ni diálogos | Alta | Sí | **Mínimo** | **Migrado (sesión 2)**: `assets/modelos/atrezo/buzon.glb` |
 | `barrel` | Plaza, estación, café ×1 | 84 | 0,76 × 0,90 × 0,76 | 0,65 × 0,9 × 0,65 | — | — | Alta | Sí | Bajo | 3 |
 | `crate(size, yaw)` | Plaza ×2, estación ×2, café ×1 (0,7 y 0,9) | 24 + 12 | 0,93 × 0,90 × 0,93 (0,9) | `solid` del tamaño | — | Escala uniforme | Alta | Sí | Bajo | 3 |
 | `bench(yaw)` | Plaza ×3, estación ×2 | 108 | 1,80 × 0,91 × 0,46 | 1,9 × 0,9 × 0,5 | — | Puesto «banco_anden» cerca | Alta | Sí | Bajo | 3 |

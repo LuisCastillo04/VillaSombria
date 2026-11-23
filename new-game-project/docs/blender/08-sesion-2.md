@@ -209,3 +209,55 @@ No lanzar la batería a la vez que `verificar.ps1` (comparten `user://pruebas_gu
 Con el proceso validado, la sesión 3 (`feature/blender-atrezo-exterior`) repite los pasos 1, 5–9
 por cada pieza de `PropsKit` de tamaño fijo, en el orden de [06-plan-migracion.md](06-plan-migracion.md),
 y sólo entonces empieza a **editar** modelos en Blender (primero retoques pequeños, uno por commit).
+
+## Resultado (2026-11-23)
+
+La sesión 2 se hizo en la rama `feature/blender-prototipo-buzon`, creada desde `3090bad` (cierre
+de la sesión 1 más un commit del propietario que sólo añade el MCP de Blender a `.mcp.json`), en
+un `git worktree` aparte: el editor de Godot seguía abierto sobre la carpeta principal y
+reescribe `project.godot` y `main_menu.tscn` (R17).
+
+### Qué se hizo y en qué se apartó del procedimiento
+
+| Paso | Hecho | Diferencia con lo previsto |
+| --- | --- | --- |
+| 1. Capturas «antes» | Cinco escenarios y el buzón (`--pos=-4.6,0.1,-9.0`), con `--stats` | Las capturas llevan lluvia y grano: dos capturas idénticas difieren en media 4,4 por píxel (máximo 185). Las comparaciones exactas se hacen con la geometría |
+| 2. Git para binarios | `.gitattributes` y `.gitignore` en la raíz; `*.glb binary` también en `new-game-project/.gitattributes` (su `* text=auto` tiene prioridad dentro del proyecto) | — |
+| 3. R5 | `MeshBatcher.shaded`: hash del centro de la cara | Rejilla desplazada 0,37 cm para que las medidas del juego no caigan en el borde de una celda |
+| 4. Catálogo | `ModelCatalog`, `MeshBatcher.add_surfaces`, `MeshBatcher.recording` | Los triángulos importados se reagrupan en polígonos (arista, normal y color) para aplicar la misma variación de tono que `face` |
+| 5. Referencias | `tools/modelos/exportar_referencias.tscn` → `blender/referencias/<id>.json` | **JSON con polígonos en lugar de un GLB exportado por Godot**: conserva los polígonos reales (cuadriláteros, octógonos), es legible en un diff y no depende de cómo Godot codifica el color. `tools/` tiene `.gdignore`: la escena se carga por ruta y no se exporta con el juego |
+| 6. Scripts de Blender | `vs_comun.py`, `importar_referencia.py`, `exportar_glb.py` | El color se guarda en el `.blend` en lineal y se exporta en sRGB (R4) |
+| 7. Buzón en Blender | `blender/fuentes/atrezo/buzon.blend`, `assets/modelos/atrezo/buzon.glb` (5,4 kB) y `blender/registro/buzon.json` | Importación sin LOD, mallas de sombra ni tangentes: el juego sólo lee los triángulos |
+| 8. Uso en el juego | `PropsKit.mailbox` → `ModelCatalog.place`, si falla `_mailbox_mesh` | — |
+| 9. Comparación | Pruebas geométricas (abajo) y capturas | — |
+
+### Medidas
+
+| Medida | Procedural | Modelo de Blender |
+| --- | --- | --- |
+| Triángulos del buzón | 68 | 68 |
+| Polígonos | 26 | 26 (Blender parte los cuatro octógonos con otras diagonales: misma superficie) |
+| Caja | 0,60 × 1,24 × 0,60 m | 0,60 × 1,24 × 0,60 m |
+| Colores | `622222`, `551d1d`, `1d2027` | Iguales (con el color en lineal salían `551c1c` y `1c1c26`) |
+| Colisión | 0,5 × 1,2 × 0,5 m a 0,6 m | La misma (la registra el kit, no el modelo) |
+| Mallas de la plaza | 3 | 3 |
+
+`test_models.test_locations_match_with_and_without_models` construye los cinco escenarios con
+modelos y en modo procedural y exige los mismos polígonos (vértices a 1 mm, área, color a 1/255 y
+cara frontal) y la misma lista de colisiones. Se comprobó que detecta un cambio de color de la
+pieza procedural (prueba de mutación: falla con 0,047 de diferencia en el buzón y en la plaza).
+
+### Cómo usar el prototipo como plantilla
+
+```text
+# desde new-game-project/
+godot --headless --path . res://tools/modelos/exportar_referencias.tscn -- --pieza=buzon
+# desde la raíz del repositorio
+blender --background --factory-startup --python blender/scripts/importar_referencia.py -- --id buzon
+blender --background --factory-startup --python blender/scripts/exportar_glb.py -- --id buzon --categoria atrezo
+# desde new-game-project/
+godot --headless --path . --import
+```
+
+La sesión 3 generaliza estos pasos (registro de modelos, variantes, captura automática de las
+referencias desde los escenarios y validación).

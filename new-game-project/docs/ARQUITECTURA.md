@@ -296,6 +296,18 @@ caso está en `data/audio.json`. La tensión no se guarda: `AudioMood` la deduce
 marcas y la hora. El detective lleva el oído (`AudioListener3D`) y sus pasos suenan según el suelo que
 declaran los kits. Detalle, estados, canales y ampliaciones en [AUDIO.md](AUDIO.md).
 
+## Modelos de Blender
+
+Las piezas migradas a Blender se dibujan con `ModelCatalog` (`scripts/world/model_catalog.gd`):
+el kit pide el modelo por su id y, si no se puede usar (falta el GLB, no se lee o se lanza con
+`-- --modelos=procedural`), dibuja la pieza con su código de siempre. El modelo no se instancia
+como nodo: sus triángulos se fusionan en el lote del escenario (`MeshBatcher.add_surfaces`), con
+los mismos tres materiales y la misma variación de tono por cara, así que un escenario sigue
+siendo tres mallas. Colisiones, luces, rótulos e interacciones siguen en el kit: migrar una pieza
+no cambia la navegación, el guardado ni el mapa. Fuentes `.blend` y scripts en `blender/`, fuera
+del proyecto (Godot no necesita Blender). Procedimiento y estado en
+[blender/README.md](blender/README.md).
+
 ## Decisiones técnicas
 
 - **Niebla por postproceso.** La niebla volumétrica no se usa porque la cámara es ortográfica.

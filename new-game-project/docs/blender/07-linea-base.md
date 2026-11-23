@@ -72,3 +72,17 @@ Blender 5.3.0 (`D:\Program Files (x86)\steam\steamapps\common\Blender\blender.ex
 ventana y tiene el exportador glTF 5.3.43. Comprobado con
 `blender --background --factory-startup --python-expr …`. No se ha creado ningún archivo de
 Blender en esta sesión.
+
+## Sesión 2 (2026-11-23): tras el prototipo del buzón
+
+| Comprobación | Resultado |
+| --- | --- |
+| Batería (`test_runner.tscn`) en la rama, `aa20034` | **538 correctas, 0 con fallos** (524 + 4 de `test_mesh_batcher` + 10 de `test_models`) |
+| Llamadas de dibujado y primitivas, plaza junto al buzón (`--stats`, 1280 × 720) | Antes 218 / 61.038 · con modelo 218 / 61.038 · procedural 218 / 61.038 |
+| Llamadas y primitivas, plaza desde «inicio» | 236 / 99.972 en los tres casos |
+| Diferencia de píxeles modelo frente a procedural (zona del buzón) | Media 5,0, igual al ruido de lluvia y grano entre dos capturas idénticas (5,8): sin diferencia visible |
+| Geometría de los cinco escenarios con y sin modelos | Idéntica (`test_locations_match_with_and_without_models`) |
+
+El cambio de R5 altera el reparto de tonos de todos los escenarios (no su amplitud). Diferencia
+media de las capturas antes/después de R5 en interiores, sin lluvia: café 0,9; mansión 3,9;
+archivo 3,8 (la mansión y el archivo incluyen NPC que se mueven). Revisadas a ojo: mismo aspecto.

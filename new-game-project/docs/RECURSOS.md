@@ -10,7 +10,7 @@ Todo el contenido actual se genera en el propio repositorio:
 
 | Recurso | Origen |
 | --- | --- |
-| Geometría y escenarios | Primitivas generadas por código (`scripts/world/`) |
+| Geometría y escenarios | Primitivas generadas por código (`scripts/world/`); las piezas migradas se dibujan con modelos propios de Blender (`assets/modelos/`), con el código como alternativa |
 | Personajes 3D | Modelo procedural (`scripts/actors/character_model.gd`) |
 | Siluetas de los interrogatorios | SVG generados con `tools/generar_siluetas.py` |
 | Grabados sepia del expediente | SVG generados con `tools/generar_grabados.py` |
@@ -49,10 +49,10 @@ No forman parte del contenido del juego.
   la introducción, la confrontación y el epílogo.
 - **Ubicación sugerida:** `assets/voces/`.
 
-### Modelos 3D hechos en Blender (en planificación)
+### Modelos 3D hechos en Blender (en curso)
 
-- **Estado:** auditoría y plan terminados el 2026-11-22; todavía no hay ningún modelo externo.
-  Detalle en [blender/README.md](blender/README.md).
+- **Estado:** el buzón de la plaza es el primer modelo (2026-11-23). La lista de modelos
+  migrados está en [blender/README.md](blender/README.md) y en `ModelCatalog.MODELS`.
 - **Origen:** modelos propios, hechos en Blender 5.3 a partir de las piezas procedurales de hoy.
 - **Integración:** GLB en `assets/modelos/<categoría>/`, fusionados en el lote de cada escenario;
   el código procedural se conserva como alternativa.
@@ -73,6 +73,7 @@ Añade una fila por recurso o lote de recursos.
 
 | Archivo o carpeta | Herramienta | Fecha | Autor de la indicación | Condiciones |
 | --- | --- | --- | --- | --- |
+| `assets/modelos/` y `blender/fuentes/` (modelos 3D) | Blender 5.3 (exportador glTF 5.3.43) con los scripts de `blender/scripts/`, a partir de las piezas procedurales del propio juego; escrito con Claude Code (Anthropic) | 23/11/2026 | Los autores | Originales del proyecto. Cada GLB tiene su `.blend` de origen y su registro de exportación en `blender/registro/`. Blender no hace falta para abrir ni jugar el proyecto |
 | `assets/audio/` (115 archivos) | Sintetizador propio en Python (`tools/generar_audio.py` y `tools/sintesis/`, con NumPy, SciPy y FFmpeg), escrito y compuesto con Claude Code (Anthropic) | 22/11/2026 | Los autores | Originales del proyecto: síntesis sin muestras grabadas ni recursos de terceros. NumPy y SciPy (BSD) y FFmpeg (LGPL) sólo se usan para generarlos; no forman parte del juego |
 
 ## Créditos previstos

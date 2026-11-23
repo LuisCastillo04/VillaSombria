@@ -2,7 +2,9 @@
 
 Plan para pasar, poco a poco, los modelos 3D que hoy genera el código de Villa Sombría a modelos
 editables en Blender, **sin perder ninguna funcionalidad**. La sesión 1 (2026-11-22) fue sólo de
-auditoría y planificación: no se cambió ningún modelo, colisión, script ni dato del juego.
+auditoría y planificación. Desde la sesión 2 (2026-11-23) hay modelos de Blender en el juego.
+
+**Estado al día y punto de partida para retomar:** [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md).
 
 ## Documentos
 
@@ -15,7 +17,8 @@ auditoría y planificación: no se cambió ningún modelo, colisión, script ni 
 | 5 | [05-estandares.md](05-estandares.md) | Carpetas, nombres, ejes, escala, color, opciones de exportación, Git |
 | 6 | [06-plan-migracion.md](06-plan-migracion.md) | Sesiones, ramas, orden y listas de comprobación |
 | 7 | [07-linea-base.md](07-linea-base.md) | Resultado de las pruebas antes de empezar |
-| 8 | [08-sesion-2.md](08-sesion-2.md) | Procedimiento completo del prototipo (el buzón) e instrucciones para continuar |
+| 8 | [08-sesion-2.md](08-sesion-2.md) | Procedimiento completo del prototipo (el buzón), su resultado y medidas |
+| — | [ESTADO_MIGRACION.md](ESTADO_MIGRACION.md) | Registro vivo: sesión, rama, último commit, pruebas, decisiones y próxima acción |
 
 ## Hallazgos principales
 

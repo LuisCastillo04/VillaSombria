@@ -7,15 +7,20 @@ expreso.
 
 ## Resumen
 
+El 2026-11-23 el propietario reordenó las sesiones 3 en adelante (encargos de las sesiones 2–5 y
+6–8). Este es el orden vigente; el plan original de la sesión 1 se conserva más abajo, en
+«Plan original», porque sus listas de piezas siguen siendo útiles.
+
 | Sesión | Rama | Parte de | Alcance | Riesgo |
 | --- | --- | --- | --- | --- |
 | 1 | `feature/blender-auditoria` | `main` (`85b9f82`) | Auditoría, documentación y línea base. Sin cambios en el juego | — |
-| 2 | `feature/blender-prototipo-buzon` | último commit de la sesión 1 | Infraestructura mínima y **un** modelo: el buzón de la plaza | Bajo |
-| 3 | `feature/blender-atrezo-exterior` | sesión 2 | Resto del atrezo de tamaño fijo de `PropsKit` | Bajo–medio |
-| 4 | `feature/blender-mobiliario` | sesión 3 | Mobiliario de `InteriorKit` (fijo primero, variantes después) | Medio |
-| 5 | `feature/blender-personajes` | sesión 4 | Mallas de `CharacterModel` desde GLB, misma interfaz | Alto |
-| 6 | `feature/blender-arquitectura` | sesión 5 | Detalles de `BuildingKit` y piezas propias de cada escenario | Medio–alto |
-| 7 | `feature/blender-pulido` | sesión 6 | Mejora artística en Blender, escenas de atrezo opcionales, cierre | Medio |
+| 2 | `feature/blender-prototipo-buzon` | `3090bad` (sesión 1 + MCP de Blender) | Infraestructura mínima y **un** modelo: el buzón de la plaza | Bajo |
+| 3 | `feature/blender-arquitectura` | sesión 2 | Infraestructura reutilizable: registro, variantes, tinte, captura automática de referencias, validación | Medio |
+| 4 | `feature/blender-objetos` | sesión 3 | Mobiliario de `InteriorKit` y objetos compartidos de `PropsKit` | Medio |
+| 5 | `feature/blender-interiores` | sesión 4 | Piezas propias del café, la mansión y el archivo; optimización del archivo | Medio |
+| 6 | `feature/blender-exteriores` | sesión 5 | Atrezo exterior, detalles de `BuildingKit` y piezas propias de la plaza y la estación | Medio |
+| 7 | `feature/blender-personajes` | sesión 6 | Mallas de `CharacterModel` desde GLB, misma interfaz y pivotes | Alto |
+| 8 | `feature/blender-integracion` | sesión 7 | Revisión, inventario final, rendimiento, verificación completa y documentación | Medio |
 
 El orden va de lo que menos puede romper a lo que más. Si una sesión no termina su alcance, la
 siguiente lo completa antes de empezar el suyo.
@@ -38,7 +43,13 @@ Detalle paso a paso en [08-sesion-2.md](08-sesion-2.md). En resumen:
 idénticas, la plaza sigue siendo tres mallas, todas las pruebas pasan y el modo procedural sigue
 funcionando.
 
-## Sesión 3 — Atrezo exterior (`PropsKit`)
+## Plan original (sesión 1)
+
+Listas de piezas del plan de la sesión 1. Las sesiones vigentes las reparten así: atrezo exterior
+en la 6, mobiliario en la 4, personajes en la 7 y piezas de escenario en la 5 (interiores) y la 6
+(exteriores).
+
+### Sesión 3 — Atrezo exterior (`PropsKit`)
 
 Orden: `barrel`, `crate` (un cubo; las dos medidas, 0,7 y 0,9, con escala uniforme), `bench`,
 `street_lamp` (la luz sigue en el kit), `cafe_table`, `signpost` (sólo el poste y los tableros; los
@@ -48,7 +59,7 @@ en GDScript), `car`.
 Se quedan procedurales: `hedge`, `low_wall` (tamaño por parámetro, bordes que evitan caídas) y
 `tree` hasta la sesión 7 (su valor es artístico; conviene rehacerlo a mano, no exportarlo).
 
-## Sesión 4 — Mobiliario (`InteriorKit`)
+### Sesión 4 — Mobiliario (`InteriorKit`)
 
 1. Tamaño fijo: `chair`, `armchair`, `plant`, `floor_lamp`, `ceiling_lamp`, `filing_cabinet`,
    `grandfather_clock`, `back_window`, `painting` (marco; el lienzo es un color por parámetro).
@@ -60,7 +71,7 @@ Se quedan procedurales: `hedge`, `low_wall` (tamaño por parámetro, bordes que 
 
 Se quedan procedurales: suelos, paredes, `rug`, `seal_street_door`.
 
-## Sesión 5 — Personajes
+### Sesión 5 — Personajes
 
 1. Script de Blender (vía B) que genera el cuerpo base con los seis pivotes en su sitio y todas las
    piezas opcionales, partiendo de las medidas de `character_model.gd`.
@@ -70,7 +81,7 @@ Se quedan procedurales: suelos, paredes, `rug`, `seal_street_door`.
    (el escenario con más NPC a la vez).
 5. Sólo después, retoques manuales del cuerpo y las caras.
 
-## Sesión 6 — Arquitectura y piezas de escenario
+### Sesión 6 — Arquitectura y piezas de escenario
 
 - `BuildingKit`: `window`, `door`, `awning`, `chimney`, `column` (su colisión sigue en el kit).
 - `BuildingKit.body` **conserva su colisión** y su huella: la usan el mapa del pueblo y
@@ -80,7 +91,7 @@ Se quedan procedurales: suelos, paredes, `rug`, `seal_street_door`.
   andén. Se extraen primero a funciones con nombre (sin cambiar el resultado) y luego se migran.
 - No se tocan: suelos, paredes, barreras, puntos de aparición, marcadores ni salidas.
 
-## Sesión 7 — Pulido
+### Sesión 7 — Pulido
 
 - Remodelado artístico (vía C) de las piezas que más se ven: árboles, coche, fuente, personajes.
 - Escenas de atrezo independientes (`LocationBase.add_prop`) si se quiere colocar piezas desde el
