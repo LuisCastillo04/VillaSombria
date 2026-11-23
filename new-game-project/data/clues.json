@@ -33,7 +33,24 @@
     "category": "documentos",
     "where": "Vestíbulo de la mansión",
     "description": "Lista de la cena del sábado 16 de octubre: la familia, el notario, el doctor y varios socios del banco. Al final, añadido a mano por Julián: «Srta. Irene Vidal, invitada personal».",
-    "prompt": "Examinar la lista de invitados"
+    "prompt": "Examinar la lista de invitados",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/lista_invitados.png", "center": [1132, 462], "width": 640},
+      "guest_list": {
+        "clip": "res://assets/ui/evidencias/lista_invitados_pinza.svg",
+        "guests": [
+          {"name": "Doña Elena Valdés"},
+          {"name": "Don Marcos Valdés"},
+          {"name": "Lic. Andrés Cortés", "note": "Notario"},
+          {"name": "Dr. Esteban Rivas"},
+          {"name": "Don Mauricio Escalante", "note": "Banco"},
+          {"name": "Don Felipe Aguirre", "note": "Banco"},
+          {"name": "Don Tomás Olmedo", "note": "Banco"}
+        ],
+        "added": {"name": "Srta. Irene Vidal", "note": "invitada personal"}
+      }
+    }
   },
   "reloj_despacho": {
     "name": "Reloj de sobremesa parado",
@@ -48,21 +65,33 @@
     "category": "objetos",
     "where": "Despacho de Julián Valdés",
     "description": "Una copa balón sobre el escritorio. Está limpia y huele a jabón, aunque la licorera de al lado se usó hace poco. Alguien lavó esa copa y volvió a dejarla aquí.",
-    "prompt": "Examinar la copa"
+    "prompt": "Examinar la copa",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/copa_lavada.png", "center": [1170, 462], "width": 585}
+    }
   },
   "huellas_betun": {
     "name": "Huellas de betún",
     "category": "huellas",
     "where": "Despacho de Julián Valdés",
     "description": "Marcas tenues de betún negro sobre la alfombra. Van y vuelven entre el escritorio y la puerta de servicio. Quien las dejó llevaba zapatos recién lustrados y conocía esa entrada.",
-    "prompt": "Examinar las marcas de la alfombra"
+    "prompt": "Examinar las marcas de la alfombra",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/huellas_betun.png", "center": [1190, 330], "width": 470}
+    }
   },
   "billete_tren": {
     "name": "Billete de tren de Elena",
     "category": "objetos",
     "where": "Alcoba de Elena Valdés",
     "description": "Billete de ida a la capital para el tren del domingo 17 a las 07:40, escondido en el tocador. Elena pensaba marcharse sola la misma mañana en que su marido apareció muerto.",
-    "prompt": "Registrar el tocador"
+    "prompt": "Registrar el tocador",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/billete_tren.png", "center": [1160, 440], "width": 620}
+    }
   },
   "carta_amor": {
     "name": "Carta de amor de Marcos",
@@ -84,21 +113,33 @@
     "category": "fotografias",
     "where": "Office del mayordomo",
     "description": "Retrato de una muchacha pálida en el jardín de un edificio blanco. Al dorso: «A papá, con todo mi cariño. Clara. Sanatorio de Santa Clara, 1948».",
-    "prompt": "Examinar la fotografía"
+    "prompt": "Examinar la fotografía",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/foto_clara.png", "center": [1118, 440], "width": 680}
+    }
   },
   "libro_bodega": {
     "name": "Libro de bodega",
     "category": "documentos",
     "where": "Office del mayordomo",
     "description": "Registro de la bodega, llevado con letra pulcra. La última anotación del sábado es de las 22:40: las botellas de cava consumidas. Después de esa hora no consta ningún inventario.",
-    "prompt": "Leer el libro de bodega"
+    "prompt": "Leer el libro de bodega",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/libro_bodega.png", "center": [1134, 455], "width": 575}
+    }
   },
   "llave_reloj": {
     "name": "Llave del reloj del despacho",
     "category": "objetos",
     "where": "Office del mayordomo",
     "description": "Llave de latón colgada en el tablero del office, con una etiqueta: «Despacho». Es la única que permite abrir la esfera del reloj y mover sus agujas sin forzarlas.",
-    "prompt": "Examinar el tablero de llaves"
+    "prompt": "Examinar el tablero de llaves",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/llave_reloj.png", "center": [1135, 430], "width": 640}
+    }
   },
   "pagare_marcos": {
     "name": "Pagaré de Marcos",
