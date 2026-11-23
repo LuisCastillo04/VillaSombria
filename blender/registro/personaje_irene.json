@@ -1,0 +1,123 @@
+{
+	"id": "personaje_irene",
+	"blend": "blender/fuentes/personajes/personaje_irene.blend",
+	"glb": "new-game-project/assets/modelos/personajes/personaje_irene.glb",
+	"fecha": "2026-11-23T02:55:06",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 366,
+	"objetos": {
+		"Irene_BrazoDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Irene_BrazoIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Irene_Cabeza": {
+			"triangulos": 226,
+			"caja_godot": {
+				"min": [
+					-0.42,
+					-0.14,
+					-0.39944
+				],
+				"max": [
+					0.42,
+					0.44,
+					0.39944
+				]
+			}
+		},
+		"Irene_PiernaDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Irene_PiernaIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Irene_Torso": {
+			"triangulos": 44,
+			"caja_godot": {
+				"min": [
+					-0.39643,
+					-0.74,
+					-0.42897
+				],
+				"max": [
+					0.44,
+					0.66,
+					0.42897
+				]
+			}
+		}
+	},
+	"sha256": "e420aa57db9f39d563877d6904cc2cc2482bd0adfccc61e2ca6a9c4d9aa5cbba",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

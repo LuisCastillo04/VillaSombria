@@ -78,4 +78,13 @@ const MODELS := {
 	# Personajes (CharacterModel): un GLB por personaje con un objeto por pivote
 	# («<Objeto>_PiernaIzq», …, «<Objeto>_Cabeza»), cada uno con el origen en su pivote.
 	"personaje_detective": {"categoria": "personajes", "objeto": "Detective", "fiel": true},
+	"personaje_elena": {"categoria": "personajes", "objeto": "Elena", "fiel": true},
+	"personaje_marcos": {"categoria": "personajes", "objeto": "Marcos", "fiel": true},
+	"personaje_lucia": {"categoria": "personajes", "objeto": "Lucia", "fiel": true},
+	"personaje_anselmo": {"categoria": "personajes", "objeto": "Anselmo", "fiel": true},
+	"personaje_irene": {"categoria": "personajes", "objeto": "Irene", "fiel": true},
+	"personaje_ortega": {"categoria": "personajes", "objeto": "Ortega", "fiel": true},
+	"personaje_rosa": {"categoria": "personajes", "objeto": "Rosa", "fiel": true},
+	"personaje_eusebio": {"categoria": "personajes", "objeto": "Eusebio", "fiel": true},
+	"personaje_hilario": {"categoria": "personajes", "objeto": "Hilario", "fiel": true},
 }

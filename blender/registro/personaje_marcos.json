@@ -1,0 +1,123 @@
+{
+	"id": "personaje_marcos",
+	"blend": "blender/fuentes/personajes/personaje_marcos.blend",
+	"glb": "new-game-project/assets/modelos/personajes/personaje_marcos.glb",
+	"fecha": "2026-11-23T02:55:00",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 294,
+	"objetos": {
+		"Marcos_BrazoDer": {
+			"triangulos": 36,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.16
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Marcos_BrazoIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Marcos_Cabeza": {
+			"triangulos": 142,
+			"caja_godot": {
+				"min": [
+					-0.15316,
+					0.0,
+					-0.2
+				],
+				"max": [
+					0.17,
+					0.4,
+					0.19574
+				]
+			}
+		},
+		"Marcos_PiernaDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Marcos_PiernaIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Marcos_Torso": {
+			"triangulos": 44,
+			"caja_godot": {
+				"min": [
+					-0.31,
+					0.0,
+					-0.285
+				],
+				"max": [
+					0.31,
+					0.66,
+					0.26847
+				]
+			}
+		}
+	},
+	"sha256": "a683c19ce3c78eeb79c050114e0aa6d24cb14ed5bf849b8422837353a68e8a72",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

@@ -1,0 +1,123 @@
+{
+	"id": "personaje_anselmo",
+	"blend": "blender/fuentes/personajes/personaje_anselmo.blend",
+	"glb": "new-game-project/assets/modelos/personajes/personaje_anselmo.glb",
+	"fecha": "2026-11-23T02:55:04",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 292,
+	"objetos": {
+		"Anselmo_BrazoDer": {
+			"triangulos": 52,
+			"caja_godot": {
+				"min": [
+					-0.19,
+					-0.68,
+					-0.36
+				],
+				"max": [
+					0.29,
+					0.01,
+					0.12
+				]
+			}
+		},
+		"Anselmo_BrazoIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Anselmo_Cabeza": {
+			"triangulos": 112,
+			"caja_godot": {
+				"min": [
+					-0.17,
+					0.0,
+					-0.2
+				],
+				"max": [
+					0.17,
+					0.3815,
+					0.15299
+				]
+			}
+		},
+		"Anselmo_PiernaDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Anselmo_PiernaIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Anselmo_Torso": {
+			"triangulos": 56,
+			"caja_godot": {
+				"min": [
+					-0.31,
+					-0.6,
+					-0.28
+				],
+				"max": [
+					0.31,
+					0.66,
+					0.26847
+				]
+			}
+		}
+	},
+	"sha256": "fbfd05b62cbb40ae5dd5fb47254ec17fb3163a5ce9c38d9f59299dc32a552017",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

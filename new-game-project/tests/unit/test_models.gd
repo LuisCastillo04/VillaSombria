@@ -133,6 +133,13 @@ func test_each_model_matches_its_procedural_piece() -> void:
 		location.build()
 		location._body.free()
 		location.free()
+	# Los pivotes de cada personaje (CharacterModel dibuja cada uno con ModelCatalog.draw_in).
+	var tool: Node = (load("res://tools/modelos/exportar_referencias.gd") as GDScript).new()
+	for character: Array in tool.characters():
+		var model := CharacterModel.new()
+		model.build(character[1], character[0])
+		model.free()
+	tool.free()
 	ModelCatalog.capturing = false
 	var checked := {}
 	for capture: Dictionary in ModelCatalog.captures:
