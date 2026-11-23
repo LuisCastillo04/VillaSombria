@@ -1,0 +1,213 @@
+{
+	"id": "ventana",
+	"blend": "blender/fuentes/arquitectura/ventana.blend",
+	"glb": "new-game-project/assets/modelos/arquitectura/ventana.glb",
+	"fecha": "2026-11-23T02:31:03",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 768,
+	"objetos": {
+		"Ventana_100x140_luz_postigos": {
+			"triangulos": 84,
+			"caja_godot": {
+				"min": [
+					-0.975,
+					-0.86,
+					-0.01
+				],
+				"max": [
+					0.975,
+					0.8,
+					0.2
+				]
+			}
+		},
+		"Ventana_100x140_postigos": {
+			"triangulos": 84,
+			"caja_godot": {
+				"min": [
+					-0.975,
+					-0.86,
+					-0.01
+				],
+				"max": [
+					0.975,
+					0.8,
+					0.2
+				]
+			}
+		},
+		"Ventana_100x200": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.67,
+					-1.16,
+					-0.01
+				],
+				"max": [
+					0.67,
+					1.1,
+					0.2
+				]
+			}
+		},
+		"Ventana_100x200_luz": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.67,
+					-1.16,
+					-0.01
+				],
+				"max": [
+					0.67,
+					1.1,
+					0.2
+				]
+			}
+		},
+		"Ventana_110x150": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.72,
+					-0.91,
+					-0.01
+				],
+				"max": [
+					0.72,
+					0.85,
+					0.2
+				]
+			}
+		},
+		"Ventana_110x150_luz": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.72,
+					-0.91,
+					-0.01
+				],
+				"max": [
+					0.72,
+					0.85,
+					0.2
+				]
+			}
+		},
+		"Ventana_110x190": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.72,
+					-1.11,
+					-0.01
+				],
+				"max": [
+					0.72,
+					1.05,
+					0.2
+				]
+			}
+		},
+		"Ventana_110x190_luz": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.72,
+					-1.11,
+					-0.01
+				],
+				"max": [
+					0.72,
+					1.05,
+					0.2
+				]
+			}
+		},
+		"Ventana_120x170": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.77,
+					-1.01,
+					-0.01
+				],
+				"max": [
+					0.77,
+					0.95,
+					0.2
+				]
+			}
+		},
+		"Ventana_120x170_luz": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.77,
+					-1.01,
+					-0.01
+				],
+				"max": [
+					0.77,
+					0.95,
+					0.2
+				]
+			}
+		},
+		"Ventana_90x130": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.62,
+					-0.81,
+					-0.01
+				],
+				"max": [
+					0.62,
+					0.75,
+					0.2
+				]
+			}
+		},
+		"Ventana_90x130_luz": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-0.62,
+					-0.81,
+					-0.01
+				],
+				"max": [
+					0.62,
+					0.75,
+					0.2
+				]
+			}
+		}
+	},
+	"sha256": "7424a5d7038844547ef2d55fd6d5c6e5ba074eaedcbde05331ee5c0d611e7e23",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

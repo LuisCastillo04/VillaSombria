@@ -22,6 +22,12 @@ const MODELS := {
 	"coche": {"categoria": "atrezo", "objeto": "Coche", "fiel": true},
 	"quiosco": {"categoria": "atrezo", "objeto": "Quiosco", "fiel": true},
 	"poste_indicador": {"categoria": "atrezo", "objeto": "PosteIndicador", "fiel": true},
+	# Detalles de fachada (BuildingKit). El cuerpo de los edificios sigue procedural (huella del mapa).
+	"ventana": {"categoria": "arquitectura", "objeto": "Ventana", "fiel": true},
+	"puerta": {"categoria": "arquitectura", "objeto": "Puerta", "fiel": true},
+	"toldo": {"categoria": "arquitectura", "objeto": "Toldo", "fiel": true},
+	"chimenea_tejado": {"categoria": "arquitectura", "objeto": "ChimeneaTejado", "fiel": true},
+	"columna": {"categoria": "arquitectura", "objeto": "Columna", "fiel": true},
 	# Mobiliario (InteriorKit)
 	"silla": {"categoria": "mobiliario", "objeto": "Silla", "fiel": true},
 	"sillon": {"categoria": "mobiliario", "objeto": "Sillon", "fiel": true},

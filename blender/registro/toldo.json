@@ -1,0 +1,48 @@
+{
+	"id": "toldo",
+	"blend": "blender/fuentes/arquitectura/toldo.blend",
+	"glb": "new-game-project/assets/modelos/arquitectura/toldo.glb",
+	"fecha": "2026-11-23T02:31:07",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 320,
+	"objetos": {
+		"Toldo_1000x170": {
+			"triangulos": 320,
+			"caja_godot": {
+				"min": [
+					-5.0,
+					-0.81,
+					0.1
+				],
+				"max": [
+					5.0,
+					0.0,
+					1.715
+				]
+			}
+		}
+	},
+	"sha256": "d86fbe88f5aeb2596cab0bf3b28854a8b43a2f247c5e8ec9b13bf3b33ff1d680",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}
