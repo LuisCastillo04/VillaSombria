@@ -26,6 +26,23 @@ def leer(ruta):
         return json.load(archivo)
 
 
+def usado_por(id_modelo):
+    """Scripts que dibujan el modelo (los que pasan su id a ModelCatalog.draw o draw_in)."""
+    if id_modelo.startswith("personaje_"):
+        return ["scripts/actors/character_model.gd"]
+    encontrados = []
+    carpeta = os.path.join(PROYECTO, "scripts")
+    for raiz, _, archivos in os.walk(carpeta):
+        for nombre in archivos:
+            if nombre.endswith(".gd"):
+                ruta = os.path.join(raiz, nombre)
+                with open(ruta, encoding="utf-8") as archivo:
+                    lineas = archivo.read().splitlines()
+                if any("ModelCatalog.draw" in l and '"%s"' % id_modelo in l for l in lineas):
+                    encontrados.append(os.path.relpath(ruta, PROYECTO).replace("\\", "/"))
+    return sorted(encontrados)
+
+
 def modelos():
     with open(REGISTRO_GD, encoding="utf-8") as archivo:
         texto = archivo.read()
@@ -54,7 +71,8 @@ def main():
         if faltan:
             estado = "incompleto (falta " + ", ".join(faltan) + ")"
         fiel = modelo["fiel"].strip('"')
-        filas.append((categoria, id_modelo, len(variantes), usos, ", ".join(escenarios), triangulos, colisiones,
+        scripts = ", ".join("`%s`" % os.path.basename(u) for u in usado_por(id_modelo)) or "—"
+        filas.append((categoria, id_modelo, len(variantes), usos, ", ".join(escenarios), scripts, triangulos, colisiones,
                       "sí" if tinte else "—", "sí" if brillo else "—", {"true": "exacto", "false": "retocado"}.get(fiel, fiel), estado))
         total_tri += triangulos
         total_usos += usos
@@ -67,9 +85,12 @@ def main():
     print("Cada modelo tiene su fuente en `blender/fuentes/<categoría>/<id>.blend`, su GLB en")
     print("`new-game-project/assets/modelos/<categoría>/<id>.glb` y su respaldo procedural en el kit o")
     print("el escenario que lo dibuja (`ModelCatalog.draw`). Triángulos: de todas las variantes, una vez.")
+    print("Validación de todos: `tools/modelos/validar_modelos.tscn` y `tests/unit/test_models.gd`")
+    print("(los personajes, además, `tests/unit/test_personajes.gd`). Estado «migrado» = existen el .blend,")
+    print("el GLB y su .import.")
     print()
-    print("| Categoría | Id | Variantes | Usos | Dónde | Triángulos | Colisiones (kit) | Tinte | Brillo | Fidelidad | Estado |")
-    print("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
+    print("| Categoría | Id | Variantes | Usos | Dónde | Usado por (con su respaldo procedural) | Triángulos | Colisiones (kit) | Tinte | Brillo | Fidelidad | Estado |")
+    print("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |")
     for fila in filas:
         print("| " + " | ".join(str(c) for c in fila) + " |")
     print()

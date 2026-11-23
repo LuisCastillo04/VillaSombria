@@ -95,7 +95,8 @@ func validate(id: String) -> void:
 		total += triangles
 		if faithful and triangles != int(expected["triangulos"]):
 			problems.append("%s: %d triángulos y la pieza procedural %d (el modelo es «fiel»)" % [object_name, triangles, expected["triangulos"]])
-		elif triangles != int(expected["triangulos"]):
+		elif triangles != int(expected["triangulos"]) and not fidelity is String:
+			# Un modelo «optimizado» tiene menos triángulos a propósito: lo comprueba su prueba.
 			notes.append("%s: %d triángulos (procedural %d)" % [object_name, triangles, expected["triangulos"]])
 		var box := _box(surfaces)
 		var low := _vector(expected["caja"]["min"])
