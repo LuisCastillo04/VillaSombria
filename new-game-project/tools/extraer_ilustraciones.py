@@ -41,8 +41,12 @@ OUTPUT = ROOT / "assets" / "ui" / "evidencias"
 # t0/t1: diferencia con el papel a partir de la cual el píxel empieza a verse y es opaco.
 # solid: rellenar los huecos del contorno; keep: huecos que deben seguir transparentes (x, y).
 # min_area: manchas sueltas más pequeñas que esto se descartan (motas del papel).
-# reach: lo tenue (sombras, cercos) sólo se conserva hasta esa distancia de lo bien marcado; así
-# las manchas del papel de la referencia no se cuelan pegadas a la sombra del objeto.
+# reach: lo tenue (la sombra) sólo se conserva hasta esa distancia del objeto principal (la mayor
+# mancha bien marcada); más lejos sólo queda lo bien marcado (gotas, cercos de café). Así las
+# manchas del papel de la referencia no se cuelan junto al objeto.
+# outline: polígono (x, y) que contiene el objeto, opaco por dentro; a su alrededor, hasta `reach`,
+# lo que oscurece el papel es su sombra y se guarda como tinta de sombra. Para objetos del color
+# del papel sobre un papel muy manchado (el billete).
 # rough: diferencia que marca qué no es papel al modelar el pergamino.
 # exclude: rectángulos (x0, y0, x1, y1) de la interfaz que asoman en el recuadro (el final del
 # título, su subrayado rojo, letras de la descripción) y nunca forman parte de la ilustración.
@@ -67,7 +71,9 @@ ITEMS = {
     },
     "billete_tren": {
         "ref": "billete_tren.png", "box": (815, 250, 1455, 755),
-        "t0": 12.0, "t1": 40.0, "solid": True, "min_area": 160, "reach": 16,
+        "t0": 12.0, "t1": 40.0, "solid": True, "min_area": 160, "reach": 18,
+        # Polígono que contiene el billete (sin su sombra).
+        "outline": [(852, 390), (1402, 296), (1452, 600), (902, 716)],
         "exclude": [(800, 240, 972, 332), (800, 332, 852, 640)],
     },
     "libro_bodega": {
@@ -90,6 +96,8 @@ ITEMS = {
 }
 
 MARGIN = 48
+# Tinta de las sombras proyectadas (ver `reach`).
+SHADOW_INK = np.array([34.0, 22.0, 12.0])
 
 
 def push_pull(color: np.ndarray, weight: np.ndarray) -> np.ndarray:
@@ -200,6 +208,34 @@ def flat_ink(image: np.ndarray, paper: np.ndarray, diff: np.ndarray, inner: np.n
     return alpha, alpha[..., None] * colour + (1.0 - alpha[..., None]) * paper
 
 
+def outline_object(image: np.ndarray, paper: np.ndarray, diff: np.ndarray, alpha: np.ndarray, region: np.ndarray, cfg: dict) -> tuple:
+    """Objeto macizo dentro de `region` (su polígono aproximado), opaco por dentro, con su sombra
+    alrededor como oscurecimiento puro. Fuera del objeto sólo cuenta lo que oscurece el papel
+    (sombra, gotas): lo que lo aclara es papel de la referencia mal modelado. Devuelve la opacidad
+    y el peso de la tinta de sombra."""
+    shape = diff.shape
+    body = ndimage.binary_closing((alpha > 0.45) & region, iterations=3) & region
+    labels, count = ndimage.label(body)
+    if not count:
+        return alpha, None
+    areas = ndimage.sum(np.ones(shape), labels, index=np.arange(1, count + 1))
+    body = ndimage.binary_fill_holes(labels == int(np.argmax(areas)) + 1)
+    body = ndimage.binary_erosion(body, iterations=1)
+    inside = ndimage.gaussian_filter(body.astype(float), 0.8)
+    near = ndimage.gaussian_filter(ndimage.binary_dilation(body, iterations=cfg["reach"]).astype(float), 4.0)
+    darker = paper.mean(axis=-1) - image.mean(axis=-1)
+    shade = np.clip(darker / np.maximum(paper.mean(axis=-1) - SHADOW_INK.mean(), 1.0), 0.0, 0.8)
+    shade = ndimage.gaussian_filter(shade, 1.2) * near
+    far = smoothstep(30.0, 56.0, darker) * (1.0 - near)
+    labels, count = ndimage.label(far > 0.12)
+    if count:
+        areas = ndimage.sum(np.ones(shape), labels, index=np.arange(1, count + 1))
+        far[np.isin(labels, np.where(areas < cfg["min_area"])[0] + 1)] = 0.0
+    outside = 1.0 - inside
+    result = inside + np.maximum(shade, far) * outside
+    return result, np.where(shade > far, outside, 0.0)
+
+
 def extract(item_id: str, cfg: dict) -> None:
     source = np.asarray(Image.open(REFERENCES / cfg["ref"]).convert("RGB")).astype(float)
     h, w, _ = source.shape
@@ -228,10 +264,16 @@ def extract(item_id: str, cfg: dict) -> None:
         alpha, image = flat_ink(image, paper, diff, inner, cfg)
     else:
         alpha = smoothstep(cfg["t0"], cfg["t1"], diff)
-        if "reach" in cfg:
-            strong = ndimage.binary_opening(diff > 48.0, iterations=1)
-            near = ndimage.binary_dilation(strong, iterations=cfg["reach"])
-            alpha *= ndimage.gaussian_filter(near.astype(float), 4.0)
+        if "reach" in cfg and not cfg.get("outline"):
+            strong = ndimage.binary_opening(diff > 48.0, iterations=1) & inner
+            labels, count = ndimage.label(strong)
+            if count:
+                areas = ndimage.sum(np.ones(shape), labels, index=np.arange(1, count + 1))
+                main_body = labels == int(np.argmax(areas)) + 1
+                main_body = ndimage.binary_fill_holes(ndimage.binary_closing(main_body, iterations=4))
+                near = ndimage.gaussian_filter(ndimage.binary_dilation(main_body, iterations=cfg["reach"]).astype(float), 4.0)
+                far = smoothstep(30.0, 56.0, diff)
+                alpha = alpha * near + far * (1.0 - near)
 
     # Motas sueltas fuera.
     labels, count = ndimage.label(alpha > 0.12)
@@ -240,8 +282,18 @@ def extract(item_id: str, cfg: dict) -> None:
         small = np.isin(labels, np.where(areas < cfg["min_area"])[0] + 1)
         alpha[small] = 0.0
 
-    if cfg.get("solid"):
+    shadow_weight = None
+    if cfg.get("outline"):
+        region = polygon_mask(shape, [(x - cx0, y - cy0) for x, y in cfg["outline"]])
+        alpha, shadow_weight = outline_object(image, paper, diff, alpha, region, cfg)
+    elif cfg.get("solid"):
+        # Sólo los huecos del objeto principal: el papel que encierran el objeto, su sombra y
+        # unas gotas de café sigue siendo papel.
         body = ndimage.binary_closing(alpha > 0.45, iterations=3)
+        labels, count = ndimage.label(body)
+        if count:
+            areas = ndimage.sum(np.ones(shape), labels, index=np.arange(1, count + 1))
+            body = labels == int(np.argmax(areas)) + 1
         filled = ndimage.binary_fill_holes(body)
         holes = filled & ~body
         hole_labels, _ = ndimage.label(holes)
@@ -263,6 +315,8 @@ def extract(item_id: str, cfg: dict) -> None:
     safe = np.maximum(alpha, 1e-3)[..., None]
     fore = np.clip((image - (1.0 - alpha[..., None]) * paper) / safe, 0.0, 255.0)
     fore = np.where(alpha[..., None] > 0.004, fore, paper)
+    if shadow_weight is not None:
+        fore = fore * (1.0 - shadow_weight[..., None]) + SHADOW_INK * shadow_weight[..., None]
 
     ys, xs = np.where(alpha > 0.01)
     pad = 4
