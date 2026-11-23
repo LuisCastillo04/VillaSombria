@@ -1,0 +1,48 @@
+{
+	"id": "portico_archivo",
+	"blend": "blender/fuentes/escenario/portico_archivo.blend",
+	"glb": "new-game-project/assets/modelos/escenario/portico_archivo.glb",
+	"fecha": "2026-11-23T02:31:49",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 29,
+	"objetos": {
+		"PorticoArchivo": {
+			"triangulos": 29,
+			"caja_godot": {
+				"min": [
+					-4.6,
+					0.0,
+					-0.1
+				],
+				"max": [
+					4.6,
+					5.9,
+					1.72
+				]
+			}
+		}
+	},
+	"sha256": "95b179893fd6b10a374ee67920b72fcd24d5ccdcc59905eda0d0851f0041e4a4",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

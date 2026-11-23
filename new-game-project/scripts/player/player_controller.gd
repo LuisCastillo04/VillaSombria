@@ -37,7 +37,7 @@ var camera_yaw := deg_to_rad(45.0)
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	model.build(LOOK)
+	model.build(LOOK, "detective")
 
 
 func teleport(where: Vector3, facing_yaw: float = 0.0) -> void:

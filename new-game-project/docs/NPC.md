@@ -16,6 +16,9 @@ escenario, dónde se configuran y cómo se prueba. Rama `fix/npcs-colisiones-esc
 | NPC demasiado estáticos | No había comportamiento ambiental | Estados, perfiles por personaje y rutinas con paseos, visitas y rondas |
 | Al entrar por primera vez en el café, el sargento Ortega hablaba sin estar allí | La escena «llamada» era una llamada de teléfono y su rutina lo tenía en la mansión desde las 8:00. Rosa sí estaba, pero detrás de la barra, a 9 m: durante la escena la tapaban las siluetas de la conversación, que cubren los lados y la franja de abajo | Hasta la llamada, Ortega espera junto a la puerta del café y Rosa le hace compañía (tramos con `if`). Intervienen en persona (`cast`), se vuelven hacia el detective y, al terminar, Ortega sale por la puerta hacia la mansión y Rosa vuelve a la barra |
 | Una cómoda en mitad del cuarto de Lucía | Estaba a 0,63 m de la pared del fondo, justo delante de la puerta de la alcoba, y dejaba un paso de 0,63 m | Contra la pared del fondo, entre la esquina y esa puerta |
+| El árbol de otoño de la plaza se montaba sobre el quiosco | Estaba en (−4,8; 10,0), a 0,45 m del mostrador: la copa tapaba el toldo y el tronco cortaba el paso delante de los periódicos | En (−2,0; 0,3), entre el banco oeste y la farola del norte, dentro de una jardinera octogonal de piedra con arbustos y flores (`PropsKit.planter`, modelo `jardinera`). Ocho cuñas de colisión cubren el octógono: se rodea sin atravesarla y la navegación no deja huecos dentro |
+| Una caja suelta junto a la cama de la pensión del café | La mesilla estaba en (−9,6; −3,2), en mitad del cuarto y junto al paso del tabique; la cama, a 1,1 m de la pared | La cama, con el cabecero contra la pared del fondo (z −3,6 → −4,65); la mesilla, a su derecha y contra la misma pared, apoyada en el suelo (antes flotaba 1 cm). Silla nueva (modelo `silla`) delante de la cómoda, que hace de escritorio. El punto de descanso y el de aparición «cama» se mueven con la cama |
+| La mesilla del cuarto de Lucía, en mitad del cuarto | Estaba en (−11,4; 4,6), a 1 m del costado de la cama y a 2,4 m de la pared | En (−13,45; 5,45): contra la pared del fondo, junto al cabecero y a 0,2 m de la cama, con su misal. La pista de la carta va delante de ella y Lucía la mira desde su puesto |
 
 ## Límites de los escenarios
 
@@ -262,6 +265,7 @@ comparar en este portátil: lanzado desde la terminal se queda en 30 con las dos
 | `test_fall_guard` | Punto seguro sólo en suelo válido, caída, salida del área, movimiento tras el rescate, bucles, guardar en plena caída y cargar una posición inválida |
 | `test_location_navigation` | Malla lista en cada escenario, marcadores sobre ella, muebles fuera, nada fuera del área, estancias unidas por sus puertas sin atravesar paredes, cómoda del cuarto de Lucía contra la pared con el centro y la puerta de la alcoba despejados, mapas independientes |
 | `test_npc_layout` | Cada media hora de los tres días, antes y después de la llamada del café, ningún NPC se para junto al puesto de otro; puntos libres, sobre la malla, lejos de puertas y pistas; orientación; comportamientos válidos y variados |
+| `test_furniture_layout` | Árbol lejos del quiosco y paso libre delante del mostrador; jardinera infranqueable, rodeable y fuera de la malla, y dibujada en el mapa; cama, mesilla y silla de la pensión con colisión, sin meterse en otro mueble ni en la pared, contra la pared y junto a la cama, y la cama al alcance desde la puerta; mesilla de Lucía contra la pared y junto al cabecero, con la pista del misal accesible |
 | `test_cafe_first_visit` | Con la escena de juego real: rutinas antes y después de la llamada y tramos condicionados con respaldo; al entrar, Rosa y Ortega en la sala, sin copias, en suelo libre, a la vista y no tapados por la interfaz; se detienen y miran al inspector; turnos de palabra; texto sin teléfono; Ortega sale por la puerta sin saltos ni atravesar nada y Rosa vuelve a la barra; visitas posteriores sin repetir la escena y con un solo Ortega en la mansión; cierre anticipado; guardar mientras sale |
 | `test_npc_leave` | Salida por la puerta de la calle cuando cambia la rutina (sin saltos, sin atravesar nada, sin hablarle mientras), vuelta atrás si la rutina lo trae de nuevo, salida tapada y escenario sin salidas |
 | `test_npc` | Rutinas (quien se va sale andando), rondas que rodean la fuente, paseos acotados, sin solaparse, camino cortado sin teletransporte, caídas, visitas con preguntas pendientes, coste de navegación, conversación, café sin atravesar muebles, paseos sin cambiar de estancia |
@@ -287,6 +291,12 @@ comparar en este portátil: lanzado desde la terminal se queda en 30 con las dos
    sargento. En la mansión, Ortega está en el vestíbulo y no se presenta otra vez.
 7. **Cuarto de Lucía** (mansión, a la izquierda del vestíbulo): la cómoda está contra la pared del
    fondo, a la izquierda de la puerta de la alcoba; se cruza de una puerta a otra en línea recta.
+   La mesilla está junto al cabecero, contra la pared, y «Examinar el misal de la mesilla»
+   aparece al ponerse delante de ella.
+8. **Plaza:** el árbol de otoño está en su jardinera, entre el banco oeste y la farola del norte;
+   se rodea sin atravesar el bordillo y delante del quiosco no hay nada que estorbe.
+9. **Pensión del café:** la cama tiene el cabecero contra la pared, la mesilla a su derecha y una
+   silla delante de la cómoda; al despertar, «Acostarse hasta mañana» está al alcance.
 
 ## Limitaciones
 

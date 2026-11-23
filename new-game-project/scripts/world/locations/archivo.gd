@@ -37,10 +37,13 @@ func _build_walls() -> void:
 
 
 func _build_counter() -> void:
-	solid(Vector3(0.0, 0.55, -2.6), Vector3(6.0, 1.1, 0.7), Palette.WOOD_DARK)
-	batch.box(Vector3(0.0, 1.13, -2.6), Vector3(6.2, 0.06, 0.86), Palette.WOOD)
-	batch.box(Vector3(-1.8, 1.24, -2.6), Vector3(0.7, 0.16, 0.5), Palette.PAPER.darkened(0.1))
-	batch.box(Vector3(1.6, 1.2, -2.6), Vector3(0.5, 0.08, 0.36), Palette.WINE.darkened(0.2))
+	ModelCatalog.draw(self, "mostrador_archivo", Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, -2.6)), func(_tint: Color) -> void:
+		batch.box(Vector3(0.0, 0.55, -2.6), Vector3(6.0, 1.1, 0.7), Palette.WOOD_DARK)
+		batch.box(Vector3(0.0, 1.13, -2.6), Vector3(6.2, 0.06, 0.86), Palette.WOOD)
+	)
+	collider(Vector3(0.0, 0.55, -2.6), Vector3(6.0, 1.1, 0.7))
+	_papers(Vector3(-1.8, 1.24, -2.6), Vector3(0.7, 0.16, 0.5), Palette.PAPER.darkened(0.1))
+	_book(Vector3(1.6, 1.2, -2.6), Vector3(0.5, 0.08, 0.36), Palette.WINE.darkened(0.2))
 	InteriorKit.bookshelf(self, Vector3(-3.0, 0.0, -6.8), 4.0, 3.0)
 	InteriorKit.bookshelf(self, Vector3(3.0, 0.0, -6.8), 4.0, 3.0)
 	for x: float in [-7.5, -6.4, 6.4, 7.5]:
@@ -60,9 +63,21 @@ func _build_reading_room() -> void:
 	InteriorKit.table(self, Vector3(-5.8, 0.0, 1.4), Vector3(3.6, 0.8, 1.3), Palette.WOOD)
 	for x: float in [-7.0, -5.8, -4.6]:
 		InteriorKit.chair(self, Vector3(x, 0.0, 0.3), 180.0)
-	batch.box(Vector3(-6.6, 0.84, 1.4), Vector3(0.5, 0.05, 0.7), Palette.PAPER.darkened(0.15))
-	batch.box(Vector3(-4.8, 0.86, 1.3), Vector3(0.44, 0.1, 0.6), Palette.WINE.darkened(0.25))
+	_papers(Vector3(-6.6, 0.84, 1.4), Vector3(0.5, 0.05, 0.7), Palette.PAPER.darkened(0.15))
+	_book(Vector3(-4.8, 0.86, 1.3), Vector3(0.44, 0.1, 0.6), Palette.WINE.darkened(0.25))
 	InteriorKit.floor_lamp(self, Vector3(-3.6, 0.0, 0.6), 2.2)
 	InteriorKit.back_window(self, Vector3(-9.86, 2.1, 1.5), Vector2(1.6, 2.0), 90.0)
 	InteriorKit.painting(self, Vector3(-9.86, 2.3, -3.6), Vector2(1.6, 1.0), Color("4a5a55"), 90.0)
 	InteriorKit.ceiling_lamp(self, Vector3(-5.8, 2.9, 2.4), 2.6, 7.5)
+
+
+## Papeles, libros y objetos pequeños sobre los muebles. Las medidas son la variante del modelo y
+## el color, su tinte: así comparten un único modelo de Blender.
+func _papers(center: Vector3, size: Vector3, color: Color) -> void:
+	var procedural := func(tint: Color) -> void: batch.box(center, size, tint)
+	ModelCatalog.draw(self, "papeles", Transform3D(Basis.IDENTITY, center), procedural, ModelCatalog.size_key(size), color)
+
+
+func _book(center: Vector3, size: Vector3, color: Color) -> void:
+	var procedural := func(tint: Color) -> void: batch.box(center, size, tint)
+	ModelCatalog.draw(self, "libro", Transform3D(Basis.IDENTITY, center), procedural, ModelCatalog.size_key(size), color)

@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://tools/modelos/huella_escenarios.gd" id="1"]
+
+[node name="HuellaEscenarios" type="Node"]
+script = ExtResource("1")

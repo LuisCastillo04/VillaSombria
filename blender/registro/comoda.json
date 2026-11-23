@@ -1,0 +1,93 @@
+{
+	"id": "comoda",
+	"blend": "blender/fuentes/mobiliario/comoda.blend",
+	"glb": "new-game-project/assets/modelos/mobiliario/comoda.glb",
+	"fecha": "2026-11-23T01:54:42",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 216,
+	"objetos": {
+		"Comoda_140": {
+			"triangulos": 48,
+			"caja_godot": {
+				"min": [
+					-0.73,
+					0.0,
+					-0.27
+				],
+				"max": [
+					0.73,
+					0.88,
+					0.27
+				]
+			}
+		},
+		"Comoda_160": {
+			"triangulos": 48,
+			"caja_godot": {
+				"min": [
+					-0.83,
+					0.0,
+					-0.27
+				],
+				"max": [
+					0.83,
+					0.88,
+					0.27
+				]
+			}
+		},
+		"Comoda_180": {
+			"triangulos": 48,
+			"caja_godot": {
+				"min": [
+					-0.93,
+					0.0,
+					-0.27
+				],
+				"max": [
+					0.93,
+					0.88,
+					0.27
+				]
+			}
+		},
+		"Comoda_200_espejo": {
+			"triangulos": 72,
+			"caja_godot": {
+				"min": [
+					-1.03,
+					0.0,
+					-0.27
+				],
+				"max": [
+					1.03,
+					2.0,
+					0.27
+				]
+			}
+		}
+	},
+	"sha256": "c1c42f0d840279803b7b3191eec96f868f46545d1828f821183e2df53d71be10",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

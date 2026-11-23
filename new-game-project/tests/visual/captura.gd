@@ -11,6 +11,8 @@ extends Node
 ##   --seed=todo           concede todas las pistas y testimonios
 ##   --pistas=a,b          concede sólo esas pistas, testimonios o deducciones (en ese orden)
 ##   --hipotesis=id=valoración[=nota],...   anota hipótesis antes de abrir el tablero
+##   --flags=a,b           marca esos hechos de la historia antes de entrar en el escenario
+##                         (llamada_atendida: el café sin la escena de la primera visita)
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
 ##   --escena=id           reproduce una escena narrativa de escenas.json y la captura
 ##   --pasos=a,a,2         con --dialogue-shots o --escena, antes de capturar: «a» avanza una
@@ -83,6 +85,9 @@ func _ready() -> void:
 		for entry: String in (args["hipotesis"] as String).split(","):
 			var parts := entry.split("=")
 			Investigation.set_hypothesis(parts[0], parts[1], parts[2] if parts.size() > 2 else "")
+	if args.has("flags"):
+		for flag: String in (args["flags"] as String).split(","):
+			GameState.set_flag(flag)
 	if args.has("location"):
 		await game.go_to(args["location"], args.get("spawn", ""))
 	var out: String = args.get("out", "user://captura.png")

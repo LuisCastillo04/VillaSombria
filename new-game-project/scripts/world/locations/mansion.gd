@@ -6,6 +6,8 @@ extends LocationBase
 const WALL_COLOR := Color("4a3a33")
 const WALL_DARK := Color("3a2e2c")
 const FABRIC := Color("5a2a30")
+## Mesilla de noche del cuarto de Lucía (centro de su base).
+const LUCIA_NIGHTSTAND := Vector3(-13.45, 0.0, 5.45)
 
 
 func build() -> void:
@@ -72,18 +74,26 @@ func _build_study() -> void:
 	InteriorKit.bookshelf(self, Vector3(8.2, 0.0, -8.8), 3.2)
 	InteriorKit.bookshelf(self, Vector3(12.0, 0.0, -8.8), 3.2)
 	InteriorKit.desk(self, Vector3(11.0, 0.0, -6.4), Vector3(2.5, 0.78, 1.1))
-	batch.box(Vector3(10.2, 0.92, -6.5), Vector3(0.14, 0.2, 0.14), Color("6a3b1e"))
-	batch.cylinder(Vector3(12.0, 0.84, -6.3), 0.06, 0.09, 0.18, Color("c4d0dc"), 7)
+	ModelCatalog.draw(self, "tintero", Transform3D(Basis.IDENTITY, Vector3(10.2, 0.82, -6.5)), func(_tint: Color) -> void:
+		batch.box(Vector3(10.2, 0.92, -6.5), Vector3(0.14, 0.2, 0.14), Color("6a3b1e"))
+	)
+	ModelCatalog.draw(self, "copa", Transform3D(Basis.IDENTITY, Vector3(12.0, 0.84, -6.3)), func(_tint: Color) -> void:
+		batch.cylinder(Vector3(12.0, 0.84, -6.3), 0.06, 0.09, 0.18, Color("c4d0dc"), 7)
+	)
 	InteriorKit.chair(self, Vector3(11.0, 0.0, -7.5), 0.0, Palette.WINE.darkened(0.2))
 	InteriorKit.armchair(self, Vector3(8.0, 0.0, -3.0), 45.0, Palette.WINE.darkened(0.15))
 	# Reloj caído y cristales rotos junto al sillón.
-	batch.box(Vector3(9.3, 0.1, -3.9), Vector3(0.5, 0.18, 0.34), Color("8a6a3a"), 0.4)
-	for offset: Vector3 in [Vector3(0.3, 0.02, 0.2), Vector3(-0.2, 0.02, 0.3), Vector3(0.1, 0.02, -0.3)]:
-		batch.box(Vector3(9.3, 0.0, -3.9) + offset, Vector3(0.08, 0.02, 0.05), Color("b9c6d4"), 0.7)
+	ModelCatalog.draw(self, "reloj_caido", Transform3D(Basis.IDENTITY, Vector3(9.3, 0.0, -3.9)), func(_tint: Color) -> void:
+		batch.box(Vector3(9.3, 0.1, -3.9), Vector3(0.5, 0.18, 0.34), Color("8a6a3a"), 0.4)
+		for offset: Vector3 in [Vector3(0.3, 0.02, 0.2), Vector3(-0.2, 0.02, 0.3), Vector3(0.1, 0.02, -0.3)]:
+			batch.box(Vector3(9.3, 0.0, -3.9) + offset, Vector3(0.08, 0.02, 0.05), Color("b9c6d4"), 0.7)
+	)
 	# Huellas de betún hacia la puerta de servicio.
-	for index in 5:
-		var step := Vector3(11.0 - 0.15 * float(index % 2), 0.045, -2.0 - 0.62 * float(index))
-		batch.box(step, Vector3(0.14, 0.012, 0.28), Color("0b0b0d"))
+	ModelCatalog.draw(self, "huellas_betun", Transform3D(Basis.IDENTITY, Vector3(11.0, 0.0, -2.0)), func(_tint: Color) -> void:
+		for index in 5:
+			var step := Vector3(11.0 - 0.15 * float(index % 2), 0.045, -2.0 - 0.62 * float(index))
+			batch.box(step, Vector3(0.14, 0.012, 0.28), Color("0b0b0d"))
+	)
 	InteriorKit.ceiling_lamp(self, Vector3(10.0, 3.0, -5.0), 3.0, 8.0, true)
 	add_interactable(ClueObject.new("reloj_despacho"), Vector3(9.3, 0.0, -3.9))
 	add_interactable(ClueObject.new("copa_lavada"), Vector3(12.0, 0.6, -6.0))
@@ -102,19 +112,22 @@ func _build_bedroom() -> void:
 
 func _build_maid_room() -> void:
 	InteriorKit.bed(self, Vector3(-12.6, 0.0, 6.6), 90.0, Color("3f4a55"), Vector2(1.2, 2.0))
-	InteriorKit.table(self, Vector3(-11.4, 0.0, 4.6), Vector3(0.7, 0.6, 0.7), Palette.WOOD)
-	batch.box(Vector3(-11.4, 0.66, 4.6), Vector3(0.22, 0.08, 0.3), Palette.INK)
+	# Mesilla de noche (con el misal de la carta) contra la pared del fondo, junto al cabecero y a
+	# 0,2 m del costado de la cama. Antes estaba en (-11,4; 4,6), en mitad del cuarto.
+	InteriorKit.table(self, LUCIA_NIGHTSTAND, Vector3(0.7, 0.6, 0.7), Palette.WOOD)
+	_book(LUCIA_NIGHTSTAND + Vector3(0.0, 0.66, 0.0), Vector3(0.22, 0.08, 0.3), Palette.INK)
 	# Cómoda contra la pared del fondo, entre la esquina y la puerta de la alcoba. Antes estaba
 	# suelta en mitad del cuarto, delante de esa puerta, y estrechaba el paso a 0,6 m.
 	InteriorKit.dresser(self, Vector3(-12.0, 0.0, -0.6), 1.6, false)
 	InteriorKit.ceiling_lamp(self, Vector3(-9.5, 2.8, 4.0), 2.2, 7.0)
-	add_interactable(ClueObject.new("carta_amor"), Vector3(-10.6, 0.0, 4.6))
+	# Delante de la mesilla, del lado del cuarto: donde se pone quien la examina.
+	add_interactable(ClueObject.new("carta_amor"), LUCIA_NIGHTSTAND + Vector3(0.85, 0.0, -0.1))
 
 
 func _build_hall() -> void:
 	InteriorKit.rug(self, Vector3(0.5, 0.0, 4.0), Vector2(3.0, 9.0), Palette.CARPET.darkened(0.1))
 	InteriorKit.table(self, Vector3(3.8, 0.0, 7.6), Vector3(1.6, 0.86, 0.6), Palette.WOOD_DARK)
-	batch.box(Vector3(3.6, 0.9, 7.6), Vector3(0.4, 0.015, 0.5), Palette.PAPER)
+	_papers(Vector3(3.6, 0.9, 7.6), Vector3(0.4, 0.015, 0.5), Palette.PAPER)
 	InteriorKit.grandfather_clock(self, Vector3(-4.4, 0.0, 7.6), 90.0)
 	InteriorKit.plant(self, Vector3(-4.3, 0.0, 0.0))
 	InteriorKit.plant(self, Vector3(5.3, 0.0, 0.0))
@@ -125,18 +138,34 @@ func _build_hall() -> void:
 
 func _build_office() -> void:
 	InteriorKit.table(self, Vector3(8.2, 0.0, 7.4), Vector3(2.2, 0.86, 1.0), Palette.WOOD)
-	batch.box(Vector3(7.8, 0.91, 7.4), Vector3(0.5, 0.05, 0.7), Palette.WINE.darkened(0.3))
+	_book(Vector3(7.8, 0.91, 7.4), Vector3(0.5, 0.05, 0.7), Palette.WINE.darkened(0.3))
 	InteriorKit.bookshelf(self, Vector3(13.7, 0.0, 3.0), 3.0, 2.0, -90.0)
 	InteriorKit.dresser(self, Vector3(8.6, 0.0, -0.6), 1.8, false)
-	batch.box(Vector3(8.6, 1.08, -0.7), Vector3(0.3, 0.42, 0.04), Palette.PAPER)
+	ModelCatalog.draw(self, "foto", Transform3D(Basis.IDENTITY, Vector3(8.6, 0.87, -0.7)), func(_tint: Color) -> void:
+		batch.box(Vector3(8.6, 1.08, -0.7), Vector3(0.3, 0.42, 0.04), Palette.PAPER)
+	)
 	# Tablero de llaves junto a la puerta de servicio.
-	batch.box(Vector3(12.9, 1.0, -0.86), Vector3(1.3, 0.8, 0.05), Palette.WOOD_DARK)
-	for x: float in [12.5, 12.8, 13.1, 13.4]:
-		batch.box(Vector3(x, 1.0, -0.82), Vector3(0.06, 0.2, 0.02), Palette.AMBER_SOFT)
+	ModelCatalog.draw(self, "tablero_llaves", Transform3D(Basis.IDENTITY, Vector3(12.9, 1.0, -0.86)), func(_tint: Color) -> void:
+		batch.box(Vector3(12.9, 1.0, -0.86), Vector3(1.3, 0.8, 0.05), Palette.WOOD_DARK)
+		for x: float in [12.5, 12.8, 13.1, 13.4]:
+			batch.box(Vector3(x, 1.0, -0.82), Vector3(0.06, 0.2, 0.02), Palette.AMBER_SOFT)
+	)
 	InteriorKit.ceiling_lamp(self, Vector3(10.0, 2.8, 4.0), 2.8, 8.0)
 	add_interactable(ClueObject.new("foto_clara"), Vector3(8.6, 0.0, 0.5))
 	add_interactable(ClueObject.new("libro_bodega"), Vector3(7.7, 0.0, 6.2))
 	add_interactable(ClueObject.new("llave_reloj"), Vector3(12.9, 0.0, 0.3))
+
+
+## Papeles, libros y objetos pequeños sobre los muebles. Las medidas son la variante del modelo y
+## el color, su tinte: así comparten un único modelo de Blender.
+func _papers(center: Vector3, size: Vector3, color: Color) -> void:
+	var procedural := func(tint: Color) -> void: batch.box(center, size, tint)
+	ModelCatalog.draw(self, "papeles", Transform3D(Basis.IDENTITY, center), procedural, ModelCatalog.size_key(size), color)
+
+
+func _book(center: Vector3, size: Vector3, color: Color) -> void:
+	var procedural := func(tint: Color) -> void: batch.box(center, size, tint)
+	ModelCatalog.draw(self, "libro", Transform3D(Basis.IDENTITY, center), procedural, ModelCatalog.size_key(size), color)
 
 
 func _register_points() -> void:
@@ -159,6 +188,6 @@ func _register_points() -> void:
 	add_marker("alcoba_elena", Vector3(-9.5, 0.0, -4.6))
 	face_marker("alcoba_elena", Vector3(-9.6, 0.0, -9.0))
 	add_marker("cuarto_lucia", Vector3(-8.0, 0.0, 5.6))
-	face_marker("cuarto_lucia", Vector3(-11.4, 0.0, 4.6))
+	face_marker("cuarto_lucia", LUCIA_NIGHTSTAND)
 	add_marker("office", Vector3(9.6, 0.0, 4.0))
 	face_marker("office", Vector3(8.2, 0.0, 7.4))

@@ -1,0 +1,48 @@
+{
+	"id": "banco",
+	"blend": "blender/fuentes/atrezo/banco.blend",
+	"glb": "new-game-project/assets/modelos/atrezo/banco.glb",
+	"fecha": "2026-11-23T02:30:54",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 108,
+	"objetos": {
+		"Banco": {
+			"triangulos": 108,
+			"caja_godot": {
+				"min": [
+					-0.9,
+					0.0,
+					-0.23
+				],
+				"max": [
+					0.9,
+					0.91,
+					0.23
+				]
+			}
+		}
+	},
+	"sha256": "4a3de4e47219de05abd61a460e5e5fd8b311e3edd964ec16500c98ffb7bfd03a",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

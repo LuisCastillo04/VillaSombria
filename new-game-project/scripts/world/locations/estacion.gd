@@ -34,9 +34,16 @@ func _build_tracks() -> void:
 
 
 func _build_train() -> void:
-	var dark := Color("14171d")
-	# Locomotora de vapor.
 	var engine := Vector3(16.0, 0.0, -7.0)
+	ModelCatalog.draw(self, "locomotora", Transform3D(Basis.IDENTITY, engine), func(_tint: Color) -> void: _engine_mesh(engine))
+	var car := Vector3(2.0, 0.0, -7.0)
+	ModelCatalog.draw(self, "vagon", Transform3D(Basis.IDENTITY, car), func(_tint: Color) -> void: _carriage_mesh(car))
+	add_point_light(car + Vector3(0.0, 2.4, 3.0), Palette.WINDOW_WARM, 2.6, 8.0)
+
+
+## Locomotora de vapor.
+func _engine_mesh(engine: Vector3) -> void:
+	var dark := Color("14171d")
 	batch.box(engine + Vector3(-2.5, 2.0, 0.0), Vector3(3.0, 2.8, 2.5), dark)
 	batch.box(engine + Vector3(-2.5, 3.5, 0.0), Vector3(3.3, 0.14, 2.8), Palette.INK)
 	batch.box(engine + Vector3(-2.4, 2.5, 1.27), Vector3(1.0, 0.9, 0.04), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
@@ -49,8 +56,11 @@ func _build_train() -> void:
 	batch.box(engine + Vector3(0.0, 0.5, 0.0), Vector3(8.6, 0.32, 2.3), dark)
 	for x: float in [-3.0, -1.0, 1.0, 3.0]:
 		_wheel(engine + Vector3(x, 0.6, 1.2), 0.6)
-	# Vagón de pasajeros.
-	var car := Vector3(2.0, 0.0, -7.0)
+
+
+## Vagón de pasajeros.
+func _carriage_mesh(car: Vector3) -> void:
+	var dark := Color("14171d")
 	batch.box(car + Vector3(0.0, 1.9, 0.0), Vector3(11.0, 2.3, 2.5), Color("2a1f22"))
 	batch.box(car + Vector3(0.0, 3.14, 0.0), Vector3(11.2, 0.2, 2.8), Palette.ROOF)
 	batch.box(car + Vector3(0.0, 0.5, 0.0), Vector3(10.6, 0.3, 2.2), dark)
@@ -58,7 +68,6 @@ func _build_train() -> void:
 		batch.box(car + Vector3(x, 2.2, 1.26), Vector3(1.1, 0.9, 0.03), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
 	for x: float in [-4.0, -2.8, 2.8, 4.0]:
 		_wheel(car + Vector3(x, 0.45, 1.2), 0.4)
-	add_point_light(car + Vector3(0.0, 2.4, 3.0), Palette.WINDOW_WARM, 2.6, 8.0)
 
 
 func _wheel(center: Vector3, radius: float) -> void:
@@ -74,13 +83,15 @@ func _build_station_house() -> void:
 	BuildingKit.body(self, 10.5, 4.6, 6.0, Palette.PLASTER_WARM, Palette.ROOF_RED, 2.0)
 	BuildingKit.window(self, -3.8, 2.1, 1.2, 1.7, true)
 	BuildingKit.window(self, 3.8, 2.1, 1.2, 1.7, false)
-	# Taquilla con su ventanilla y su repisa.
-	batch.box(Vector3(0.0, 1.6, 0.05), Vector3(3.2, 2.2, 0.12), Palette.WOOD_DARK)
-	batch.box(Vector3(0.0, 1.7, 0.12), Vector3(2.2, 1.1, 0.04), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
-	batch.box(Vector3(0.0, 1.02, 0.34), Vector3(3.0, 0.08, 0.56), Palette.WOOD_LIGHT)
-	batch.box(Vector3(0.0, 3.1, 0.1), Vector3(3.6, 0.5, 0.06), Palette.WOOD_DARK)
+	# Taquilla con su ventanilla, su repisa y los tableros de los rótulos.
+	ModelCatalog.draw(self, "taquilla", Transform3D.IDENTITY, func(_tint: Color) -> void:
+		batch.box(Vector3(0.0, 1.6, 0.05), Vector3(3.2, 2.2, 0.12), Palette.WOOD_DARK)
+		batch.box(Vector3(0.0, 1.7, 0.12), Vector3(2.2, 1.1, 0.04), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
+		batch.box(Vector3(0.0, 1.02, 0.34), Vector3(3.0, 0.08, 0.56), Palette.WOOD_LIGHT)
+		batch.box(Vector3(0.0, 3.1, 0.1), Vector3(3.6, 0.5, 0.06), Palette.WOOD_DARK)
+		batch.box(Vector3(0.0, 4.15, 0.1), Vector3(6.6, 0.55, 0.06), Palette.PAPER.darkened(0.25))
+	)
 	add_sign("TAQUILLA Y TELÉGRAFO", Vector3(0.0, 3.1, 0.15), 0.26, Palette.AMBER_SOFT)
-	batch.box(Vector3(0.0, 4.15, 0.1), Vector3(6.6, 0.55, 0.06), Palette.PAPER.darkened(0.25))
 	add_sign("VILLA SOMBRÍA", Vector3(0.0, 4.15, 0.15), 0.4, Palette.INK)
 	add_point_light(Vector3(0.0, 2.8, 1.7), Palette.WINDOW_WARM, 2.6, 6.5)
 	BuildingKit.end(self)
@@ -88,11 +99,14 @@ func _build_station_house() -> void:
 
 func _build_platform() -> void:
 	# Marquesina sobre el andén.
+	ModelCatalog.draw(self, "marquesina", Transform3D(Basis.IDENTITY, Vector3(0.0, 0.0, -2.8)), func(_tint: Color) -> void:
+		for x: float in [-6.0, 0.0, 6.0]:
+			batch.cylinder(Vector3(x, 0.0, -2.8), 0.09, 0.09, 3.3, Palette.IRON, 6)
+		batch.box(Vector3(0.0, 3.4, -3.0), Vector3(15.0, 0.1, 2.2), Palette.ROOF)
+		batch.box(Vector3(0.0, 3.3, -2.0), Vector3(15.0, 0.2, 0.08), Palette.WOOD_DARK)
+	)
 	for x: float in [-6.0, 0.0, 6.0]:
-		batch.cylinder(Vector3(x, 0.0, -2.8), 0.09, 0.09, 3.3, Palette.IRON, 6)
 		collider(Vector3(x, 1.5, -2.8), Vector3(0.22, 3.0, 0.22))
-	batch.box(Vector3(0.0, 3.4, -3.0), Vector3(15.0, 0.1, 2.2), Palette.ROOF)
-	batch.box(Vector3(0.0, 3.3, -2.0), Vector3(15.0, 0.2, 0.08), Palette.WOOD_DARK)
 	PropsKit.bench(self, Vector3(-3.0, 0.0, -2.8), 0.0)
 	PropsKit.bench(self, Vector3(3.0, 0.0, -2.8), 0.0)
 	PropsKit.street_lamp(self, Vector3(-9.0, 0.0, -2.6))
@@ -103,11 +117,13 @@ func _build_platform() -> void:
 	PropsKit.crate(self, Vector3(-5.5, 0.0, 6.4), 0.7, 40.0)
 	PropsKit.barrel(self, Vector3(-4.6, 0.0, 6.6))
 	# Reloj de andén, puntual como su jefe de estación.
-	batch.cylinder(Vector3(10.6, 0.0, 0.2), 0.08, 0.08, 3.0, Palette.IRON, 6)
-	var saved := batch.xform
-	batch.xform = Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3(10.6, 3.1, 0.25))
-	batch.cylinder(Vector3.ZERO, 0.42, 0.42, 0.08, Palette.AMBER_SOFT, 10, MeshBatcher.Layer.GLOW)
-	batch.xform = saved
+	ModelCatalog.draw(self, "reloj_anden", Transform3D(Basis.IDENTITY, Vector3(10.6, 0.0, 0.2)), func(_tint: Color) -> void:
+		batch.cylinder(Vector3(10.6, 0.0, 0.2), 0.08, 0.08, 3.0, Palette.IRON, 6)
+		var saved := batch.xform
+		batch.xform = Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3(10.6, 3.1, 0.25))
+		batch.cylinder(Vector3.ZERO, 0.42, 0.42, 0.08, Palette.AMBER_SOFT, 10, MeshBatcher.Layer.GLOW)
+		batch.xform = saved
+	)
 	collider(Vector3(10.6, 1.5, 0.2), Vector3(0.2, 3.0, 0.2))
 
 

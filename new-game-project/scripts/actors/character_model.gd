@@ -2,6 +2,11 @@ class_name CharacterModel
 extends Node3D
 ## Personaje low-poly procedural. El aspecto se describe con un diccionario, de modo
 ## que el detective y todos los NPC comparten el mismo código y la misma animación.
+##
+## Mallas de Blender: si `build` recibe el id del personaje y hay un modelo `personaje_<id>` en
+## `ModelCatalog`, cada uno de los seis pivotes toma su malla del objeto `<Objeto>_<Pivote>` del
+## GLB; si no, la dibuja el código de siempre. Los pivotes, sus nombres y posiciones, la
+## animación y toda la interfaz pública son los mismos en los dos casos.
 
 ## Un pie apoya en el suelo (medio ciclo del paso). Lo usa el sonido de los pasos del detective.
 signal stepped
@@ -37,16 +42,23 @@ var _clock := 0.0
 var _talking := false
 var _head_turn := 0.0
 var _head_tilt := 0.0
+## Id del modelo de Blender del personaje («personaje_<id>»), o vacío si no tiene.
+var _model_id := ""
+## Pivotes que se han dibujado con el modelo de Blender en el último `build` (0 a 6).
+var _model_parts := 0
 
 
-## Reconstruye el modelo a partir de una descripción parcial de aspecto.
-func build(look: Dictionary) -> void:
+## Reconstruye el modelo a partir de una descripción parcial de aspecto. `character_id` (el id de
+## `characters.json`, o «detective») permite usar su modelo de Blender si lo hay.
+func build(look: Dictionary, character_id: String = "") -> void:
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
 	var data := DEFAULT_LOOK.duplicate()
 	data.merge(look, true)
 	scale = Vector3.ONE * float(data["height"])
+	_model_id = model_id_for(character_id)
+	_model_parts = 0
 
 	_left_leg = _make_part("PiernaIzq", Vector3(-0.11, HIP_HEIGHT, 0.0), _build_leg.bind(data))
 	_right_leg = _make_part("PiernaDer", Vector3(0.11, HIP_HEIGHT, 0.0), _build_leg.bind(data))
@@ -124,9 +136,28 @@ func _make_part(part_name: String, offset: Vector3, builder: Callable) -> Node3D
 	add_child(pivot)
 	var batch := MeshBatcher.new(part_name.hash())
 	batch.color_jitter = 0.012
-	builder.call(batch)
+	if _model_id.is_empty():
+		builder.call(batch)
+	else:
+		var procedural := func(_tint: Color) -> void: builder.call(batch)
+		if ModelCatalog.draw_in(batch, _model_id, Transform3D.IDENTITY, procedural, part_name, Color.WHITE, offset):
+			_model_parts += 1
 	batch.attach_to(pivot, "Malla")
 	return pivot
+
+
+## Modelo de Blender de un personaje, si está registrado (o se están capturando referencias).
+static func model_id_for(character_id: String) -> String:
+	if character_id.is_empty():
+		return ""
+	var id := "personaje_" + character_id
+	return id if ModelCatalog.MODELS.has(id) or ModelCatalog.capturing else ""
+
+
+## Id del modelo de Blender con el que se dibujó el personaje en el último `build`, o vacío si
+## alguno de sus pivotes salió del código procedural.
+func get_model_id() -> String:
+	return _model_id if _model_parts == 6 else ""
 
 
 func _build_leg(batch: MeshBatcher, data: Dictionary) -> void:

@@ -1,0 +1,48 @@
+{
+	"id": "silla",
+	"blend": "blender/fuentes/mobiliario/silla.blend",
+	"glb": "new-game-project/assets/modelos/mobiliario/silla.glb",
+	"fecha": "2026-11-23T01:54:31",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 72,
+	"objetos": {
+		"Silla": {
+			"triangulos": 72,
+			"caja_godot": {
+				"min": [
+					-0.25,
+					0.0,
+					-0.25
+				],
+				"max": [
+					0.25,
+					1.11,
+					0.25
+				]
+			}
+		}
+	},
+	"sha256": "50f43071c99e87f7dd5d21d69c8ca13cd4c8493de700eb7cb31171a8f5ce67ea",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

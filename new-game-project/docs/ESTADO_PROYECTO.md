@@ -45,6 +45,7 @@ Las fases 0 a 10 están implementadas y el caso se puede jugar de principio a fi
 | NPC, colisiones y límites de los escenarios | Hecho | Recorrido de cada escenario con la cápsula del detective (suelo y área), puertas con teclas reales, red de seguridad, navegación en los cinco escenarios, reparto de las rutinas cada media hora de los tres días, NPC en movimiento con la escena de juego real (paseos, rondas, mobiliario, convivencia, atención, conversación, guardar y cargar), mediciones de física y carga frente a `main` y capturas del café, la mansión, la puerta del café y la estación; ver [NPC.md](NPC.md) |
 | Llegada al café con Rosa y el sargento, salidas de los NPC y cómoda del cuarto de Lucía | Hecho | Con la escena de juego real: Rosa y Ortega en la sala al entrar, a la vista por encima de la interfaz y de cara al inspector, turnos de palabra, salida de Ortega por la puerta, Rosa de vuelta a la barra, visitas posteriores, guardar mientras sale; salidas genéricas de los NPC; cómoda contra la pared con el cuarto despejado; capturas de la escena, de la salida fotograma a fotograma y del cuarto; ver [NPC.md](NPC.md) |
 | Interfaces de evidencias | Hecho | Pruebas con la escena de juego real (plantillas y textos de la carta, el periódico y el reloj, las diecinueve pruebas, «Evidencia obtenida» y su duración, cierre anticipado, relectura, guardar y cargar, tecla mantenida, Esc, ratón, bloqueo y HUD, proporciones y tamaños de letra), mutaciones de las pruebas del aviso y de la tecla, y capturas a 1280×720, 1920×1080 y 1024×768 comparadas con las referencias; ver [EVIDENCIAS.md](EVIDENCIAS.md) |
+| Posición del mobiliario en la plaza, la pensión del café y el cuarto de Lucía | Hecho | Árbol de otoño fuera del quiosco, en una jardinera octogonal nueva (modelo de Blender `jardinera`); cama de la pensión contra la pared con la mesilla a su lado y una silla ante la cómoda; mesilla de Lucía contra la pared, junto al cabecero. Pruebas de colisiones, holguras, navegación y alcance de la cama y de las pistas, y capturas antes y después a 1920×1080; ver [NPC.md](NPC.md#qué-se-corrigió) |
 
 Diferencias con el encargo:
 
@@ -68,6 +69,10 @@ de las ranuras, modos de pantalla y cierre con la X y con Alt + F4, correctos. E
 también salió correcto el paso «Importación», que en la carpeta habitual falla por el `Code.exe` del
 editor (ver Problemas conocidos).
 
+Tras recolocar el mobiliario (rama `fix/posicionamiento-escenarios`), `verificar.ps1` sin ventana en
+una copia aparte de la rama: importación, arranque, 551 pruebas correctas y 0 fallos, y los siete
+reinicios en procesos separados, todo correcto.
+
 | Archivo | Cubre |
 | --- | --- |
 | `test_player` | Movimiento relativo a la cámara, colisiones, interacción, bloqueos |
@@ -78,6 +83,7 @@ editor (ver Problemas conocidos).
 | `test_data_integrity` | Referencias de los datos, rutinas sin huecos, siluetas |
 | `test_npc` | Rutinas, rondas, paseos, convivencia, camino cortado, caídas, visitas, coste de navegación, conversación, mobiliario del café, estancias |
 | `test_npc_layout` | Reparto de las rutinas cada media hora, puntos de parada libres, orientación y comportamientos |
+| `test_furniture_layout` | Árbol de la plaza en su jardinera y quiosco despejado; cama, mesilla y silla de la pensión del café; mesilla del cuarto de Lucía: colisiones, sin meterse en otro mueble ni en la pared, pegadas a lo que deben, y la cama y las pistas al alcance |
 | `test_npc_interaction` | NPC en movimiento con la escena de juego real: atención, conversación, rodeos, alcance y guardado |
 | `test_npc_leave` | Salida de los NPC por la puerta cuando cambia su rutina, vuelta atrás, salida tapada y escenario sin salidas |
 | `test_cafe_first_visit` | Primera entrada al café con la escena de juego real: Rosa y el sargento presentes, visibles y de cara al inspector, turnos de palabra, salida de Ortega, Rosa a la barra, visitas posteriores, guardar mientras sale |

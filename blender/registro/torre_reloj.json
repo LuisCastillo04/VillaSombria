@@ -1,0 +1,48 @@
+{
+	"id": "torre_reloj",
+	"blend": "blender/fuentes/escenario/torre_reloj.blend",
+	"glb": "new-game-project/assets/modelos/escenario/torre_reloj.glb",
+	"fecha": "2026-11-23T02:31:51",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 96,
+	"objetos": {
+		"TorreReloj": {
+			"triangulos": 96,
+			"caja_godot": {
+				"min": [
+					-1.45,
+					6.1,
+					-1.45
+				],
+				"max": [
+					1.45,
+					11.2,
+					1.45
+				]
+			}
+		}
+	},
+	"sha256": "e63a9a2c644b3b5441e1c5307a772c4477e97b5da9ea69874b0bac7c2582da9c",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

@@ -1,0 +1,123 @@
+{
+	"id": "personaje_lucia",
+	"blend": "blender/fuentes/personajes/personaje_lucia.blend",
+	"glb": "new-game-project/assets/modelos/personajes/personaje_lucia.glb",
+	"fecha": "2026-11-23T02:55:02",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 330,
+	"objetos": {
+		"Lucia_BrazoDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Lucia_BrazoIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.065,
+					-0.655,
+					-0.075
+				],
+				"max": [
+					0.065,
+					0.01,
+					0.075
+				]
+			}
+		},
+		"Lucia_Cabeza": {
+			"triangulos": 166,
+			"caja_godot": {
+				"min": [
+					-0.15316,
+					-0.17,
+					-0.2
+				],
+				"max": [
+					0.17,
+					0.405,
+					0.205
+				]
+			}
+		},
+		"Lucia_PiernaDer": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Lucia_PiernaIzq": {
+			"triangulos": 24,
+			"caja_godot": {
+				"min": [
+					-0.08,
+					-0.84,
+					-0.19
+				],
+				"max": [
+					0.08,
+					0.0,
+					0.09
+				]
+			}
+		},
+		"Lucia_Torso": {
+			"triangulos": 68,
+			"caja_godot": {
+				"min": [
+					-0.39643,
+					-0.75,
+					-0.42897
+				],
+				"max": [
+					0.44,
+					0.66,
+					0.42897
+				]
+			}
+		}
+	},
+	"sha256": "c145eaad8d43b9b60f373cbaafe079597795df7fdae73316ba12a221c16308ca",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

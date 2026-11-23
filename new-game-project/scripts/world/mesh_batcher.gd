@@ -17,13 +17,17 @@ class Buffers:
 var xform := Transform3D.IDENTITY
 ## Variación de brillo por cara. Rompe la uniformidad de las superficies grandes.
 var color_jitter := 0.035
+## Si está activo, cada cara añadida también se anota en `recorded` (puntos ya orientados, color
+## sin variación y capa). Lo usa la exportación de referencias para llevar piezas a Blender.
+var recording := false
+var recorded: Array[Dictionary] = []
 
 var _buffers: Dictionary = {}
-var _rng := RandomNumberGenerator.new()
+var _seed := 7
 
 
 func _init(random_seed: int = 7) -> void:
-	_rng.seed = random_seed
+	_seed = random_seed
 
 
 func is_empty() -> bool:
@@ -42,13 +46,9 @@ func face(points: PackedVector3Array, color: Color, outward: Vector3, layer: Lay
 	if normal.dot(world_outward) < 0.0:
 		world_points.reverse()
 		normal = -normal
-	var shade := _rng.randf_range(-color_jitter, color_jitter) if layer == Layer.OPAQUE else 0.0
-	var tinted := Color(
-		clampf(color.r + shade, 0.0, 1.0),
-		clampf(color.g + shade, 0.0, 1.0),
-		clampf(color.b + shade, 0.0, 1.0),
-		color.a
-	)
+	if recording:
+		recorded.append({"points": world_points.duplicate(), "color": color, "layer": layer})
+	var tinted := shaded(color, _centroid(world_points)) if layer == Layer.OPAQUE else color
 	var buffers := _get_buffers(layer)
 	# Godot considera cara frontal el orden horario, de ahí el recorrido invertido.
 	for index in range(1, world_points.size() - 1):
@@ -194,6 +194,55 @@ func sphere(
 				face(PackedVector3Array([a, b, c, d]), color, outward, layer)
 
 
+## Añade triángulos ya hechos (un modelo importado, ver `ModelCatalog`) bajo
+## `xform * transform`. Cada elemento de `surfaces` es un diccionario con `layer`, `vertices`,
+## `normals` y `colors` (triángulos sin índices, en el orden de caras frontales de Godot) y
+## `centers`: el centro del polígono al que pertenece cada vértice. La capa opaca recibe la
+## misma variación de tono que `face`, calculada con ese centro: un modelo idéntico a una pieza
+## procedural se dibuja idéntico. En las superficies con `tinted` el color es un factor que se
+## multiplica por `tint` (el color que el kit pasa a la pieza).
+func add_surfaces(surfaces: Array, transform: Transform3D = Transform3D.IDENTITY, tint: Color = Color.WHITE) -> void:
+	var full := xform * transform
+	var normal_basis := full.basis.inverse().transposed()
+	var mirrored := full.basis.determinant() < 0.0
+	for surface: Dictionary in surfaces:
+		var layer: Layer = surface["layer"]
+		var vertices: PackedVector3Array = surface["vertices"]
+		var normals: PackedVector3Array = surface["normals"]
+		var colors: PackedColorArray = surface["colors"]
+		var centers: PackedVector3Array = surface["centers"]
+		var tinted: bool = surface.get("tinted", false)
+		var buffers := _get_buffers(layer)
+		var count := vertices.size() - vertices.size() % 3
+		var shade_faces := layer == Layer.OPAQUE and color_jitter > 0.0
+		for start in range(0, count, 3):
+			# El centro del polígono es el mismo para los tres vértices: un tono por triángulo.
+			var shade := shade_offset(full * centers[start]) if shade_faces else 0.0
+			var flat := normals[start] == normals[start + 1] and normals[start] == normals[start + 2]
+			var face_normal := (normal_basis * normals[start]).normalized()
+			# Un espejo invierte el sentido de giro: se recorre el triángulo al revés.
+			for corner: int in ([0, 2, 1] if mirrored else [0, 1, 2]):
+				var index := start + corner
+				buffers.vertices.append(full * vertices[index])
+				buffers.normals.append(face_normal if flat else (normal_basis * normals[index]).normalized())
+				var color := colors[index]
+				if tinted:
+					color = Color(color.r * tint.r, color.g * tint.g, color.b * tint.b, color.a)
+				if shade_faces:
+					color = Color(clampf(color.r + shade, 0.0, 1.0), clampf(color.g + shade, 0.0, 1.0), clampf(color.b + shade, 0.0, 1.0), color.a)
+				buffers.colors.append(color)
+
+
+## Capa del lote que corresponde a un material de un modelo, por su nombre.
+static func layer_for_material(material_name: String) -> Layer:
+	match material_name:
+		"vs_brillo":
+			return Layer.GLOW
+		"vs_suelo":
+			return Layer.GROUND
+	return Layer.OPAQUE
+
+
 func build_mesh(layer: Layer = Layer.OPAQUE) -> ArrayMesh:
 	if not _buffers.has(layer):
 		return null
@@ -239,6 +288,49 @@ func _sphere_point(
 	var angle := TAU * float(side) / float(sides)
 	var unit := Vector3(sin(polar) * cos(angle), cos(polar), sin(polar) * sin(angle))
 	return center + unit * radius * stretch
+
+
+## Color de una cara con su variación de brillo. La variación sale del centro de la cara (en el
+## espacio del escenario) y de la semilla, no del orden en que se añaden las caras: quitar,
+## añadir o sustituir una pieza no cambia el tono de las demás.
+func shaded(color: Color, center: Vector3) -> Color:
+	if color_jitter <= 0.0:
+		return color
+	var shade := shade_offset(center)
+	return Color(
+		clampf(color.r + shade, 0.0, 1.0),
+		clampf(color.g + shade, 0.0, 1.0),
+		clampf(color.b + shade, 0.0, 1.0),
+		color.a
+	)
+
+
+## Cuánto se aclara (o se oscurece, si es negativo) una cara con ese centro.
+func shade_offset(center: Vector3) -> float:
+	return lerpf(-color_jitter, color_jitter, float(_hash_point(center)) / 4294967295.0)
+
+
+static func _centroid(points: PackedVector3Array) -> Vector3:
+	var sum := Vector3.ZERO
+	for point in points:
+		sum += point
+	return sum / float(points.size())
+
+
+## Resume un punto en un entero de 32 bits. La rejilla es de 1 cm desplazada 0,37 cm: las
+## medidas del juego (múltiplos de medio milímetro) nunca caen en el borde de una celda, así
+## que los errores de coma flotante (un modelo exportado y vuelto a leer) no cambian la celda.
+func _hash_point(point: Vector3) -> int:
+	var hashed := _mix(_seed & 0xFFFFFFFF)
+	for value: float in [point.x, point.y, point.z]:
+		hashed = _mix(hashed ^ (floori(value * 100.0 + 0.37) & 0xFFFFFFFF))
+	return hashed
+
+
+static func _mix(value: int) -> int:
+	value = (((value >> 16) ^ value) * 0x45d9f3b) & 0xFFFFFFFF
+	value = (((value >> 16) ^ value) * 0x45d9f3b) & 0xFFFFFFFF
+	return (value >> 16) ^ value
 
 
 func _get_buffers(layer: Layer) -> Buffers:

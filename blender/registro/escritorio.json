@@ -1,0 +1,48 @@
+{
+	"id": "escritorio",
+	"blend": "blender/fuentes/mobiliario/escritorio.blend",
+	"glb": "new-game-project/assets/modelos/mobiliario/escritorio.glb",
+	"fecha": "2026-11-23T01:54:35",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 60,
+	"objetos": {
+		"Escritorio_250x78x110": {
+			"triangulos": 60,
+			"caja_godot": {
+				"min": [
+					-1.3,
+					0.0,
+					-0.6
+				],
+				"max": [
+					1.3,
+					0.836,
+					0.6
+				]
+			}
+		}
+	},
+	"sha256": "318f8a2ae6c77971f389ba5dea6195b468643db60f16c40dbf6b21d6f6a78154",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

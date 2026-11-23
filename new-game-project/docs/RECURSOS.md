@@ -10,7 +10,7 @@ Todo el contenido actual se genera en el propio repositorio:
 
 | Recurso | Origen |
 | --- | --- |
-| Geometría y escenarios | Primitivas generadas por código (`scripts/world/`) |
+| Geometría y escenarios | Primitivas generadas por código (`scripts/world/`); las piezas migradas se dibujan con modelos propios de Blender (`assets/modelos/`), con el código como alternativa |
 | Personajes 3D | Modelo procedural (`scripts/actors/character_model.gd`) |
 | Siluetas de los interrogatorios | SVG generados con `tools/generar_siluetas.py` |
 | Grabados sepia del expediente | SVG generados con `tools/generar_grabados.py` |
@@ -49,6 +49,16 @@ No forman parte del contenido del juego.
   la introducción, la confrontación y el epílogo.
 - **Ubicación sugerida:** `assets/voces/`.
 
+### Modelos 3D hechos en Blender (en curso)
+
+- **Estado:** 69 modelos en el juego desde el 2026-11-23 (atrezo, mobiliario, fachadas, piezas
+  de los escenarios y los diez personajes; el último, la jardinera del árbol de la plaza). Lista en
+  [blender/INVENTARIO_MODELOS.md](blender/INVENTARIO_MODELOS.md) y en `ModelRegistry.MODELS`.
+- **Origen:** modelos propios, hechos en Blender 5.3 a partir de las piezas procedurales de hoy.
+- **Integración:** GLB en `assets/modelos/<categoría>/`, fusionados en el lote de cada escenario;
+  el código procedural se conserva como alternativa.
+- **Fuentes editables:** `.blend` en `VillaSombria/blender/fuentes/`, fuera del proyecto Godot.
+
 ## Condiciones que hay que comprobar
 
 Antes de usar estos recursos en la entrega o en una publicación:
@@ -64,6 +74,7 @@ Añade una fila por recurso o lote de recursos.
 
 | Archivo o carpeta | Herramienta | Fecha | Autor de la indicación | Condiciones |
 | --- | --- | --- | --- | --- |
+| `assets/modelos/` y `blender/fuentes/` (modelos 3D) | Blender 5.3 (exportador glTF 5.3.43) con los scripts de `blender/scripts/`, a partir de las piezas procedurales del propio juego; escrito con Claude Code (Anthropic) | 23/11/2026 | Los autores | Originales del proyecto. Cada GLB tiene su `.blend` de origen y su registro de exportación en `blender/registro/`. Blender no hace falta para abrir ni jugar el proyecto |
 | `assets/audio/` (115 archivos) | Sintetizador propio en Python (`tools/generar_audio.py` y `tools/sintesis/`, con NumPy, SciPy y FFmpeg), escrito y compuesto con Claude Code (Anthropic) | 22/11/2026 | Los autores | Originales del proyecto: síntesis sin muestras grabadas ni recursos de terceros. NumPy y SciPy (BSD) y FFmpeg (LGPL) sólo se usan para generarlos; no forman parte del juego |
 
 ## Créditos previstos
