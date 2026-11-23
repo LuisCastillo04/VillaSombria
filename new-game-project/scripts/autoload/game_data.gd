@@ -31,6 +31,7 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	MaterialLibrary.clear()
+	ModelCatalog.clear()
 	UiTheme.clear()
 
 

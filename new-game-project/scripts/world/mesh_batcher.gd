@@ -17,6 +17,10 @@ class Buffers:
 var xform := Transform3D.IDENTITY
 ## Variación de brillo por cara. Rompe la uniformidad de las superficies grandes.
 var color_jitter := 0.035
+## Si está activo, cada cara añadida también se anota en `recorded` (puntos ya orientados, color
+## sin variación y capa). Lo usa la exportación de referencias para llevar piezas a Blender.
+var recording := false
+var recorded: Array[Dictionary] = []
 
 var _buffers: Dictionary = {}
 var _seed := 7
@@ -42,6 +46,8 @@ func face(points: PackedVector3Array, color: Color, outward: Vector3, layer: Lay
 	if normal.dot(world_outward) < 0.0:
 		world_points.reverse()
 		normal = -normal
+	if recording:
+		recorded.append({"points": world_points.duplicate(), "color": color, "layer": layer})
 	var tinted := shaded(color, _centroid(world_points)) if layer == Layer.OPAQUE else color
 	var buffers := _get_buffers(layer)
 	# Godot considera cara frontal el orden horario, de ahí el recorrido invertido.
@@ -186,6 +192,46 @@ func sphere(
 				face(PackedVector3Array([a, b, c]), color, outward, layer)
 			else:
 				face(PackedVector3Array([a, b, c, d]), color, outward, layer)
+
+
+## Añade triángulos ya hechos (un modelo importado, ver `ModelCatalog`) bajo
+## `xform * transform`. Cada elemento de `surfaces` es un diccionario con `layer`, `vertices`,
+## `normals` y `colors` (triángulos sin índices, en el orden de caras frontales de Godot) y
+## `centers`: el centro del polígono al que pertenece cada vértice. La capa opaca recibe la
+## misma variación de tono que `face`, calculada con ese centro: un modelo idéntico a una pieza
+## procedural se dibuja idéntico.
+func add_surfaces(surfaces: Array, transform: Transform3D = Transform3D.IDENTITY) -> void:
+	var full := xform * transform
+	var normal_basis := full.basis.inverse().transposed()
+	var mirrored := full.basis.determinant() < 0.0
+	for surface: Dictionary in surfaces:
+		var layer: Layer = surface["layer"]
+		var vertices: PackedVector3Array = surface["vertices"]
+		var normals: PackedVector3Array = surface["normals"]
+		var colors: PackedColorArray = surface["colors"]
+		var centers: PackedVector3Array = surface["centers"]
+		var buffers := _get_buffers(layer)
+		var count := vertices.size() - vertices.size() % 3
+		for start in range(0, count, 3):
+			# Un espejo invierte el sentido de giro: se recorre el triángulo al revés.
+			var order := [start, start + 2, start + 1] if mirrored else [start, start + 1, start + 2]
+			for index: int in order:
+				buffers.vertices.append(full * vertices[index])
+				buffers.normals.append((normal_basis * normals[index]).normalized())
+				var color := colors[index]
+				if layer == Layer.OPAQUE:
+					color = shaded(color, full * centers[index])
+				buffers.colors.append(color)
+
+
+## Capa del lote que corresponde a un material de un modelo, por su nombre.
+static func layer_for_material(material_name: String) -> Layer:
+	match material_name:
+		"vs_brillo":
+			return Layer.GLOW
+		"vs_suelo":
+			return Layer.GROUND
+	return Layer.OPAQUE
 
 
 func build_mesh(layer: Layer = Layer.OPAQUE) -> ArrayMesh:
