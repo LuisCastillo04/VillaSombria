@@ -8,14 +8,8 @@ const CAFE_SEAT_ANGLES: Array[float] = [0.5, 3.6]
 
 
 static func street_lamp(location: LocationBase, where: Vector3, shadows: bool = false) -> void:
-	var batch := location.batch
-	batch.cylinder(where, 0.18, 0.13, 0.3, Palette.IRON, 6)
-	batch.cylinder(where + Vector3.UP * 0.3, 0.075, 0.055, 3.0, Palette.IRON, 6)
-	batch.box(where + Vector3.UP * 3.3, Vector3(0.42, 0.05, 0.42), Palette.IRON)
-	batch.cylinder(
-		where + Vector3.UP * 3.34, 0.13, 0.2, 0.44, Palette.AMBER_SOFT, 6, MeshBatcher.Layer.GLOW
-	)
-	batch.cylinder(where + Vector3.UP * 3.78, 0.26, 0.04, 0.2, Palette.IRON, 6)
+	var procedural := func(_tint: Color) -> void: _street_lamp_mesh(location.batch, where)
+	ModelCatalog.draw(location, "farola", Transform3D(Basis.IDENTITY, where), procedural)
 	location.collider(where + Vector3.UP * 1.5, Vector3(0.3, 3.0, 0.3))
 	location.add_point_light(where + Vector3.UP * 3.3, Color("ffb765"), 5.0, 9.5, shadows)
 
@@ -23,21 +17,22 @@ static func street_lamp(location: LocationBase, where: Vector3, shadows: bool = 
 static func bench(location: LocationBase, where: Vector3, yaw_degrees: float = 0.0) -> void:
 	var previous := location.batch.xform
 	location.batch.xform = previous * Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_degrees)), where)
-	var batch := location.batch
-	for x: float in [-0.75, 0.75]:
-		batch.box(Vector3(x, 0.22, 0.0), Vector3(0.08, 0.44, 0.46), Palette.IRON)
-		batch.box(Vector3(x, 0.66, -0.2), Vector3(0.08, 0.5, 0.06), Palette.IRON)
-	for z: float in [-0.14, 0.0, 0.14]:
-		batch.box(Vector3(0.0, 0.46, z), Vector3(1.8, 0.05, 0.12), Palette.WOOD)
-	for y: float in [0.68, 0.84]:
-		batch.box(Vector3(0.0, y, -0.2), Vector3(1.8, 0.1, 0.04), Palette.WOOD)
+	var procedural := func(_tint: Color) -> void: _bench_mesh(location.batch)
+	ModelCatalog.draw(location, "banco", Transform3D.IDENTITY, procedural)
 	location.collider(Vector3(0.0, 0.45, 0.0), Vector3(1.9, 0.9, 0.5))
 	location.batch.xform = previous
 
 
-## Árbol estilizado. `autumn` añade copas ámbar para romper la paleta fría.
+## Árbol estilizado. `autumn` añade copas ámbar para romper la paleta fría. La altura y la estación
+## son la variante del modelo.
 static func tree(location: LocationBase, where: Vector3, height: float = 3.6, autumn: bool = false) -> void:
-	var batch := location.batch
+	var procedural := func(_tint: Color) -> void: _tree_mesh(location.batch, where, height, autumn)
+	var variant := ModelCatalog.size_key(height) + ("_otono" if autumn else "")
+	ModelCatalog.draw(location, "arbol", Transform3D(Basis.IDENTITY, where), procedural, variant)
+	location.collider(where + Vector3.UP * 1.0, Vector3(0.4, 2.0, 0.4))
+
+
+static func _tree_mesh(batch: MeshBatcher, where: Vector3, height: float, autumn: bool) -> void:
 	batch.cylinder(where, 0.2, 0.12, height * 0.55, Palette.WOOD_DARK, 6)
 	var main := Color("6b4a24") if autumn else Palette.FOLIAGE
 	var side := Color("7a3a24") if autumn else Palette.FOLIAGE_LIGHT
@@ -46,7 +41,6 @@ static func tree(location: LocationBase, where: Vector3, height: float = 3.6, au
 	batch.sphere(top + Vector3(0.5, -0.3, 0.2), height * 0.21, side, 6, 4)
 	batch.sphere(top + Vector3(-0.42, -0.2, -0.35), height * 0.2, side, 6, 4)
 	batch.sphere(top + Vector3(0.05, 0.55, 0.05), height * 0.16, main.lightened(0.05), 6, 4)
-	location.collider(where + Vector3.UP * 1.0, Vector3(0.4, 2.0, 0.4))
 
 
 static func hedge(location: LocationBase, center: Vector3, size: Vector3) -> void:
@@ -122,7 +116,13 @@ static func car(location: LocationBase, where: Vector3, yaw_degrees: float = 0.0
 	var previous := location.batch.xform
 	var local := Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_degrees)), where)
 	location.batch.xform = previous * local
-	var batch := location.batch
+	var procedural := func(_tint: Color) -> void: _car_mesh(location.batch)
+	ModelCatalog.draw(location, "coche", Transform3D.IDENTITY, procedural)
+	location.collider(Vector3(0.0, 0.7, 0.0), Vector3(1.9, 1.4, 4.2))
+	location.batch.xform = previous
+
+
+static func _car_mesh(batch: MeshBatcher) -> void:
 	var paint := Color("15181f")
 	batch.box(Vector3(0.0, 0.55, 0.0), Vector3(1.7, 0.5, 4.1), paint)
 	batch.box(Vector3(0.0, 0.76, -1.2), Vector3(1.3, 0.34, 1.6), paint.lightened(0.04))
@@ -138,16 +138,21 @@ static func car(location: LocationBase, where: Vector3, yaw_degrees: float = 0.0
 		for z: float in [-1.3, 1.3]:
 			batch.box(Vector3(x, 0.31, z), Vector3(0.24, 0.62, 0.62), Color("0c0d10"))
 			batch.box(Vector3(x * 1.02, 0.31, z), Vector3(0.22, 0.26, 0.26), Color("565b64"))
-	location.collider(Vector3(0.0, 0.7, 0.0), Vector3(1.9, 1.4, 4.2))
-	location.batch.xform = previous
 
 
 ## Puesto de prensa con su toldo y su pila de periódicos.
 static func newsstand(location: LocationBase, where: Vector3, yaw_degrees: float = 0.0) -> void:
 	var previous := location.batch.xform
 	location.batch.xform = previous * Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_degrees)), where)
-	var batch := location.batch
-	location.solid(Vector3(0.0, 1.05, 0.0), Vector3(2.6, 2.1, 1.5), Palette.WOOD)
+	var procedural := func(_tint: Color) -> void: _newsstand_mesh(location.batch)
+	ModelCatalog.draw(location, "quiosco", Transform3D.IDENTITY, procedural)
+	location.collider(Vector3(0.0, 1.05, 0.0), Vector3(2.6, 2.1, 1.5))
+	location.add_sign("PRENSA", Vector3(0.0, 2.42, 1.16), 0.3, Palette.PAPER)
+	location.batch.xform = previous
+
+
+static func _newsstand_mesh(batch: MeshBatcher) -> void:
+	batch.box(Vector3(0.0, 1.05, 0.0), Vector3(2.6, 2.1, 1.5), Palette.WOOD)
 	batch.box(Vector3(0.0, 2.2, 0.15), Vector3(3.0, 0.14, 2.0), Palette.WINE.darkened(0.25))
 	batch.box(Vector3(0.0, 1.45, 0.77), Vector3(2.2, 0.8, 0.04), Palette.PAPER.darkened(0.2))
 	for x: float in [-0.8, -0.2, 0.4, 0.95]:
@@ -155,8 +160,6 @@ static func newsstand(location: LocationBase, where: Vector3, yaw_degrees: float
 		batch.box(Vector3(x, 1.62, 0.82), Vector3(0.36, 0.06, 0.02), Palette.INK)
 		batch.box(Vector3(x, 1.4, 0.82), Vector3(0.36, 0.24, 0.02), Palette.STEEL)
 	batch.box(Vector3(0.0, 0.75, 0.86), Vector3(2.4, 0.12, 0.34), Palette.WOOD_LIGHT)
-	location.add_sign("PRENSA", Vector3(0.0, 2.42, 1.16), 0.3, Palette.PAPER)
-	location.batch.xform = previous
 
 
 ## Buzón de correos. Se dibuja con su modelo de Blender (`buzon`) y, si falta, con el código de
@@ -173,12 +176,39 @@ static func _mailbox_mesh(batch: MeshBatcher, where: Vector3) -> void:
 	batch.box(where + Vector3(0.0, 0.85, 0.26), Vector3(0.28, 0.05, 0.04), Palette.IRON)
 
 
-## Poste con flechas de dirección.
+## Poste con flechas de dirección. El número de tableros es la variante del modelo; los rótulos
+## siguen siendo texto (`Label3D`).
 static func signpost(location: LocationBase, where: Vector3, labels: Array[String]) -> void:
-	var batch := location.batch
-	batch.cylinder(where, 0.07, 0.06, 2.7, Palette.WOOD_DARK, 6)
+	var procedural := func(_tint: Color) -> void: _signpost_mesh(location.batch, where, labels.size())
+	ModelCatalog.draw(location, "poste_indicador", Transform3D(Basis.IDENTITY, where), procedural, str(labels.size()))
 	location.collider(where + Vector3.UP * 1.2, Vector3(0.2, 2.4, 0.2))
 	for index in labels.size():
 		var y := 2.4 - 0.44 * float(index)
-		batch.box(where + Vector3(0.0, y, 0.06), Vector3(1.9, 0.36, 0.05), Palette.PAPER.darkened(0.35))
 		location.add_sign(labels[index], where + Vector3(0.0, y, 0.1), 0.22, Palette.INK)
+
+
+static func _signpost_mesh(batch: MeshBatcher, where: Vector3, boards: int) -> void:
+	batch.cylinder(where, 0.07, 0.06, 2.7, Palette.WOOD_DARK, 6)
+	for index in boards:
+		var y := 2.4 - 0.44 * float(index)
+		batch.box(where + Vector3(0.0, y, 0.06), Vector3(1.9, 0.36, 0.05), Palette.PAPER.darkened(0.35))
+
+
+static func _street_lamp_mesh(batch: MeshBatcher, where: Vector3) -> void:
+	batch.cylinder(where, 0.18, 0.13, 0.3, Palette.IRON, 6)
+	batch.cylinder(where + Vector3.UP * 0.3, 0.075, 0.055, 3.0, Palette.IRON, 6)
+	batch.box(where + Vector3.UP * 3.3, Vector3(0.42, 0.05, 0.42), Palette.IRON)
+	batch.cylinder(
+		where + Vector3.UP * 3.34, 0.13, 0.2, 0.44, Palette.AMBER_SOFT, 6, MeshBatcher.Layer.GLOW
+	)
+	batch.cylinder(where + Vector3.UP * 3.78, 0.26, 0.04, 0.2, Palette.IRON, 6)
+
+
+static func _bench_mesh(batch: MeshBatcher) -> void:
+	for x: float in [-0.75, 0.75]:
+		batch.box(Vector3(x, 0.22, 0.0), Vector3(0.08, 0.44, 0.46), Palette.IRON)
+		batch.box(Vector3(x, 0.66, -0.2), Vector3(0.08, 0.5, 0.06), Palette.IRON)
+	for z: float in [-0.14, 0.0, 0.14]:
+		batch.box(Vector3(0.0, 0.46, z), Vector3(1.8, 0.05, 0.12), Palette.WOOD)
+	for y: float in [0.68, 0.84]:
+		batch.box(Vector3(0.0, y, -0.2), Vector3(1.8, 0.1, 0.04), Palette.WOOD)

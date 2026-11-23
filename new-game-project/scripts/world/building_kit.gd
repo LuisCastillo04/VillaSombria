@@ -2,6 +2,9 @@ class_name BuildingKit
 extends RefCounted
 ## Piezas de arquitectura. Todas trabajan en un sistema local donde X recorre la
 ## fachada, Y es la altura y +Z sale hacia la calle; `begin` fija ese sistema.
+## Ventanas, puertas, toldos, chimeneas y columnas dibujan su parte visual con
+## `ModelCatalog.draw` (modelos de Blender con el código de aquí como alternativa). El cuerpo
+## (`body`) sigue siendo procedural: su huella la copian el mapa del pueblo y `test_map`.
 
 
 static func begin(location: LocationBase, origin: Vector3, yaw_degrees: float = 0.0) -> void:
@@ -38,7 +41,12 @@ static func body(
 static func window(
 	location: LocationBase, x: float, y: float, width: float, height: float, lit: bool, shutters: bool = false
 ) -> void:
-	var batch := location.batch
+	var procedural := func(_tint: Color) -> void: _window_mesh(location.batch, x, y, width, height, lit, shutters)
+	var variant := ModelCatalog.size_key(Vector2(width, height)) + ("_luz" if lit else "") + ("_postigos" if shutters else "")
+	ModelCatalog.draw(location, "ventana", Transform3D(Basis.IDENTITY, Vector3(x, y, 0.0)), procedural, variant)
+
+
+static func _window_mesh(batch: MeshBatcher, x: float, y: float, width: float, height: float, lit: bool, shutters: bool) -> void:
 	batch.box(Vector3(x, y, 0.03), Vector3(width + 0.2, height + 0.2, 0.08), Palette.WOOD_DARK)
 	if lit:
 		batch.box(Vector3(x, y, 0.07), Vector3(width, height, 0.03), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
@@ -70,8 +78,14 @@ static func window_grid(
 			index += 1
 
 
+## Puerta con su marco, montante iluminado y escalón. Las medidas son la variante y el color de la
+## hoja, su tinte.
 static func door(location: LocationBase, x: float, width: float, height: float, color: Color) -> void:
-	var batch := location.batch
+	var procedural := func(tint: Color) -> void: _door_mesh(location.batch, x, width, height, tint)
+	ModelCatalog.draw(location, "puerta", Transform3D(Basis.IDENTITY, Vector3(x, 0.0, 0.0)), procedural, ModelCatalog.size_key(Vector2(width, height)), color)
+
+
+static func _door_mesh(batch: MeshBatcher, x: float, width: float, height: float, color: Color) -> void:
 	batch.box(Vector3(x, height * 0.5 + 0.1, 0.05), Vector3(width + 0.36, height + 0.3, 0.12), Palette.STONE_LIGHT.darkened(0.15))
 	batch.box(Vector3(x, height * 0.5, 0.1), Vector3(width, height, 0.08), color)
 	batch.box(Vector3(x, height * 0.72, 0.15), Vector3(width * 0.6, height * 0.3, 0.02), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
@@ -81,7 +95,11 @@ static func door(location: LocationBase, x: float, width: float, height: float, 
 
 ## Toldo inclinado de rayas.
 static func awning(location: LocationBase, x: float, y: float, width: float, depth: float) -> void:
-	var batch := location.batch
+	var procedural := func(_tint: Color) -> void: _awning_mesh(location.batch, x, y, width, depth)
+	ModelCatalog.draw(location, "toldo", Transform3D(Basis.IDENTITY, Vector3(x, y, 0.0)), procedural, ModelCatalog.size_key(Vector2(width, depth)))
+
+
+static func _awning_mesh(batch: MeshBatcher, x: float, y: float, width: float, depth: float) -> void:
 	var stripes := int(width / 0.5)
 	for index in stripes:
 		var stripe_x := x - width * 0.5 + (float(index) + 0.5) * width / float(stripes)
@@ -98,15 +116,23 @@ static func awning(location: LocationBase, x: float, y: float, width: float, dep
 
 
 static func chimney(location: LocationBase, where: Vector3) -> void:
-	var batch := location.batch
+	var procedural := func(_tint: Color) -> void: _chimney_mesh(location.batch, where)
+	ModelCatalog.draw(location, "chimenea_tejado", Transform3D(Basis.IDENTITY, where), procedural)
+
+
+static func _chimney_mesh(batch: MeshBatcher, where: Vector3) -> void:
 	batch.box(where + Vector3.UP * 0.6, Vector3(0.7, 1.2, 0.7), Palette.BRICK)
 	batch.box(where + Vector3.UP * 1.25, Vector3(0.85, 0.12, 0.85), Palette.STONE_DARK)
 
 
 ## Columna clásica con basa y capitel.
 static func column(location: LocationBase, base: Vector3, height: float) -> void:
-	var batch := location.batch
+	var procedural := func(_tint: Color) -> void: _column_mesh(location.batch, base, height)
+	ModelCatalog.draw(location, "columna", Transform3D(Basis.IDENTITY, base), procedural, ModelCatalog.size_key(height))
+	location.collider(base + Vector3.UP * height * 0.5, Vector3(0.5, height, 0.5))
+
+
+static func _column_mesh(batch: MeshBatcher, base: Vector3, height: float) -> void:
 	batch.box(base + Vector3.UP * 0.1, Vector3(0.7, 0.2, 0.7), Palette.STONE_LIGHT)
 	batch.cylinder(base + Vector3.UP * 0.2, 0.25, 0.21, height - 0.4, Palette.STONE_LIGHT, 8)
 	batch.box(base + Vector3.UP * (height - 0.1), Vector3(0.66, 0.2, 0.66), Palette.STONE_LIGHT)
-	location.collider(base + Vector3.UP * height * 0.5, Vector3(0.5, height, 0.5))

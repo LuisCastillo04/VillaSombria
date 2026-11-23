@@ -47,14 +47,13 @@ func _build_cafe() -> void:
 	BuildingKit.begin(self, Vector3(-7.0, 0.0, -14.0))
 	BuildingKit.body(self, 11.0, 6.4, 7.0, Palette.PLASTER_WARM, Palette.ROOF_RED)
 	# Escaparate iluminado y puerta de entrada.
-	batch.box(Vector3(0.0, 1.75, 0.04), Vector3(10.4, 2.9, 0.1), Palette.WOOD_DARK)
-	for x: float in [-3.6, -1.4, 3.0]:
-		batch.box(Vector3(x, 1.8, 0.1), Vector3(1.9, 2.1, 0.04), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
-		batch.box(Vector3(x, 2.2, 0.13), Vector3(1.9, 0.05, 0.03), Palette.WOOD_DARK)
+	ModelCatalog.draw(self, "escaparate_cafe", Transform3D.IDENTITY, func(_tint: Color) -> void: _cafe_front_mesh())
 	BuildingKit.door(self, 0.9, 1.3, 2.4, Palette.WOOD)
 	BuildingKit.awning(self, 0.0, 3.5, 10.0, 1.7)
 	BuildingKit.window_grid(self, 10.0, [4.9], 4, Vector2(1.0, 1.4), [true, false, false, true], true)
-	batch.box(Vector3(0.0, 3.75, 0.1), Vector3(6.0, 0.62, 0.08), Palette.WOOD_DARK)
+	ModelCatalog.draw(self, "rotulo_cafe", Transform3D(Basis.IDENTITY, Vector3(0.0, 3.75, 0.1)), func(_tint: Color) -> void:
+		batch.box(Vector3(0.0, 3.75, 0.1), Vector3(6.0, 0.62, 0.08), Palette.WOOD_DARK)
+	)
 	add_sign("CAFÉ LA LUNA", Vector3(0.0, 3.75, 0.16), 0.46, Palette.AMBER_SOFT)
 	add_point_light(Vector3(0.0, 2.2, 1.8), Palette.WINDOW_WARM, 3.0, 8.5)
 	BuildingKit.chimney(self, Vector3(3.2, 7.4, -3.5))
@@ -76,9 +75,41 @@ func _build_archive() -> void:
 	BuildingKit.begin(self, Vector3(9.5, 0.0, -14.0))
 	BuildingKit.body(self, 13.0, 6.2, 8.0, Palette.STONE, Palette.ROOF, 1.5)
 	# Pórtico con columnas y frontón.
-	batch.box(Vector3(0.0, 0.1, 0.7), Vector3(9.0, 0.2, 1.6), Palette.STONE_LIGHT)
+	ModelCatalog.draw(self, "portico_archivo", Transform3D.IDENTITY, func(_tint: Color) -> void: _archive_portico_mesh())
 	for x: float in [-3.6, -1.4, 1.4, 3.6]:
 		BuildingKit.column(self, Vector3(x, 0.15, 1.1), 4.1)
+	add_sign("ARCHIVO MUNICIPAL", Vector3(0.0, 4.35, 1.72), 0.3, Palette.INK)
+	BuildingKit.door(self, 0.0, 1.8, 3.0, Palette.WOOD_DARK)
+	BuildingKit.window(self, -2.5, 2.1, 1.0, 2.0, true)
+	BuildingKit.window(self, 2.5, 2.1, 1.0, 2.0, false)
+	BuildingKit.window(self, -5.4, 2.1, 1.0, 2.0, false)
+	BuildingKit.window(self, 5.4, 2.1, 1.0, 2.0, true)
+	# Torre del reloj, visible desde toda la plaza.
+	var tower := Vector3(4.9, 0.0, -2.0)
+	ModelCatalog.draw(self, "torre_reloj", Transform3D(Basis.IDENTITY, tower), func(_tint: Color) -> void:
+		batch.box(tower + Vector3.UP * 7.6, Vector3(2.6, 3.0, 2.6), Palette.STONE)
+		batch.box(tower + Vector3.UP * 9.2, Vector3(2.9, 0.2, 2.9), Palette.STONE_LIGHT)
+		batch.pyramid(tower + Vector3.UP * 9.3, Vector3(2.9, 1.9, 2.9), Palette.ROOF)
+		_add_clock_face(tower + Vector3(0.0, 7.7, 1.33))
+	)
+	add_point_light(Vector3(0.0, 3.6, 2.4), Palette.AMBER_SOFT, 2.0, 6.5)
+	var archive_door := LocationExit.new("archivo", "desde_plaza", "Entrar en el archivo")
+	archive_door.with_lock({"day_min": 2}, "Hoy es domingo: el archivo municipal abre mañana a las ocho.")
+	add_interactable(archive_door, Vector3(0.0, 0.0, 1.2))
+	BuildingKit.end(self)
+
+
+## Escaparate del café: marco, tres cristales iluminados y sus travesaños.
+func _cafe_front_mesh() -> void:
+	batch.box(Vector3(0.0, 1.75, 0.04), Vector3(10.4, 2.9, 0.1), Palette.WOOD_DARK)
+	for x: float in [-3.6, -1.4, 3.0]:
+		batch.box(Vector3(x, 1.8, 0.1), Vector3(1.9, 2.1, 0.04), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
+		batch.box(Vector3(x, 2.2, 0.13), Vector3(1.9, 0.05, 0.03), Palette.WOOD_DARK)
+
+
+## Suelo, entablamento y frontón del pórtico del archivo (las columnas son piezas aparte).
+func _archive_portico_mesh() -> void:
+	batch.box(Vector3(0.0, 0.1, 0.7), Vector3(9.0, 0.2, 1.6), Palette.STONE_LIGHT)
 	batch.box(Vector3(0.0, 4.35, 0.8), Vector3(9.0, 0.4, 1.8), Palette.STONE_LIGHT)
 	batch.face(
 		PackedVector3Array([Vector3(-4.6, 4.55, 1.72), Vector3(4.6, 4.55, 1.72), Vector3(0.0, 5.9, 1.72)]),
@@ -95,23 +126,34 @@ func _build_archive() -> void:
 		Palette.ROOF,
 		Vector3(0.3, 1.0, 0.0)
 	)
-	add_sign("ARCHIVO MUNICIPAL", Vector3(0.0, 4.35, 1.72), 0.3, Palette.INK)
-	BuildingKit.door(self, 0.0, 1.8, 3.0, Palette.WOOD_DARK)
-	BuildingKit.window(self, -2.5, 2.1, 1.0, 2.0, true)
-	BuildingKit.window(self, 2.5, 2.1, 1.0, 2.0, false)
-	BuildingKit.window(self, -5.4, 2.1, 1.0, 2.0, false)
-	BuildingKit.window(self, 5.4, 2.1, 1.0, 2.0, true)
-	# Torre del reloj, visible desde toda la plaza.
-	var tower := Vector3(4.9, 0.0, -2.0)
-	batch.box(tower + Vector3.UP * 7.6, Vector3(2.6, 3.0, 2.6), Palette.STONE)
-	batch.box(tower + Vector3.UP * 9.2, Vector3(2.9, 0.2, 2.9), Palette.STONE_LIGHT)
-	batch.pyramid(tower + Vector3.UP * 9.3, Vector3(2.9, 1.9, 2.9), Palette.ROOF)
-	_add_clock_face(tower + Vector3(0.0, 7.7, 1.33))
-	add_point_light(Vector3(0.0, 3.6, 2.4), Palette.AMBER_SOFT, 2.0, 6.5)
-	var archive_door := LocationExit.new("archivo", "desde_plaza", "Entrar en el archivo")
-	archive_door.with_lock({"day_min": 2}, "Hoy es domingo: el archivo municipal abre mañana a las ocho.")
-	add_interactable(archive_door, Vector3(0.0, 0.0, 1.2))
-	BuildingKit.end(self)
+
+
+## Tapia, pilares con sus faroles y verja de la mansión. Colisiones y luces: `_build_mansion_gate`.
+func _mansion_gate_mesh() -> void:
+	for x: float in [-6.7, 6.7]:
+		batch.box(Vector3(x, 1.1, 0.0), Vector3(8.0, 2.2, 0.5), Palette.STONE_DARK)
+		batch.box(Vector3(x, 2.26, 0.0), Vector3(8.2, 0.12, 0.66), Palette.STONE)
+	for x: float in [-2.4, 2.4]:
+		batch.box(Vector3(x, 1.7, 0.0), Vector3(0.9, 3.4, 0.9), Palette.STONE)
+		batch.box(Vector3(x, 3.48, 0.0), Vector3(1.1, 0.16, 1.1), Palette.STONE_LIGHT)
+		batch.sphere(Vector3(x, 3.8, 0.0), 0.28, Palette.STONE_LIGHT, 7, 4)
+		batch.box(Vector3(x, 2.5, 0.48), Vector3(0.3, 0.42, 0.08), Palette.AMBER_SOFT, 0.0, MeshBatcher.Layer.GLOW)
+	for index in 15:
+		var x := -1.85 + 3.7 * float(index) / 14.0
+		var bar_height := 2.4 + 0.5 * sin(PI * float(index) / 14.0)
+		batch.box(Vector3(x, bar_height * 0.5, 0.0), Vector3(0.05, bar_height, 0.05), Palette.IRON)
+	batch.box(Vector3(0.0, 1.1, 0.0), Vector3(3.8, 0.08, 0.06), Palette.IRON)
+	batch.box(Vector3(0.0, 2.15, 0.0), Vector3(3.8, 0.08, 0.06), Palette.IRON)
+
+
+func _fountain_mesh(fountain: Vector3) -> void:
+	batch.cylinder(fountain, 3.0, 3.0, 0.14, Palette.STONE_DARK, 12)
+	batch.cylinder(fountain, 2.5, 2.42, 0.62, Palette.STONE, 10)
+	batch.cylinder(fountain + Vector3.UP * 0.6, 2.18, 2.18, 0.05, Color("1d3550"), 10)
+	batch.cylinder(fountain + Vector3.UP * 0.56, 0.5, 0.26, 1.3, Palette.STONE, 8)
+	batch.cylinder(fountain + Vector3.UP * 1.82, 0.95, 1.08, 0.14, Palette.STONE, 8)
+	batch.cylinder(fountain + Vector3.UP * 1.96, 0.24, 0.16, 0.5, Palette.STONE_LIGHT, 6)
+	batch.sphere(fountain + Vector3.UP * 2.6, 0.26, Palette.STONE_LIGHT, 7, 4)
 
 
 func _add_clock_face(center: Vector3) -> void:
@@ -127,8 +169,10 @@ func _build_mansion_gate() -> void:
 	BuildingKit.begin(self, Vector3(-14.0, 0.0, -3.0), 90.0)
 	# La mansión asoma tras la verja, al fondo de su jardín.
 	var mansion := Vector3(0.0, 0.0, -10.0)
-	batch.box(mansion + Vector3.UP * 4.2, Vector3(18.0, 8.4, 6.0), Palette.STONE_DARK)
-	batch.gable(mansion + Vector3.UP * 8.4, Vector3(6.8, 2.8, 18.6), Palette.ROOF, PI * 0.5, Palette.STONE_DARK)
+	ModelCatalog.draw(self, "mansion_fondo", Transform3D(Basis.IDENTITY, mansion), func(_tint: Color) -> void:
+		batch.box(mansion + Vector3.UP * 4.2, Vector3(18.0, 8.4, 6.0), Palette.STONE_DARK)
+		batch.gable(mansion + Vector3.UP * 8.4, Vector3(6.8, 2.8, 18.6), Palette.ROOF, PI * 0.5, Palette.STONE_DARK)
+	)
 	var saved := batch.xform
 	batch.xform = saved * Transform3D(Basis.IDENTITY, mansion + Vector3(0.0, 0.0, 3.0))
 	for y: float in [2.0, 5.6]:
@@ -136,21 +180,12 @@ func _build_mansion_gate() -> void:
 			BuildingKit.window(self, x, y, 1.1, 1.9, (int(x) + int(y)) % 3 == 0)
 	batch.xform = saved
 	# Tapia, pilares y verja de hierro.
+	ModelCatalog.draw(self, "verja_mansion", Transform3D.IDENTITY, func(_tint: Color) -> void: _mansion_gate_mesh())
 	for x: float in [-6.7, 6.7]:
-		solid(Vector3(x, 1.1, 0.0), Vector3(8.0, 2.2, 0.5), Palette.STONE_DARK)
-		batch.box(Vector3(x, 2.26, 0.0), Vector3(8.2, 0.12, 0.66), Palette.STONE)
+		collider(Vector3(x, 1.1, 0.0), Vector3(8.0, 2.2, 0.5))
 	for x: float in [-2.4, 2.4]:
-		solid(Vector3(x, 1.7, 0.0), Vector3(0.9, 3.4, 0.9), Palette.STONE)
-		batch.box(Vector3(x, 3.48, 0.0), Vector3(1.1, 0.16, 1.1), Palette.STONE_LIGHT)
-		batch.sphere(Vector3(x, 3.8, 0.0), 0.28, Palette.STONE_LIGHT, 7, 4)
-		batch.box(Vector3(x, 2.5, 0.48), Vector3(0.3, 0.42, 0.08), Palette.AMBER_SOFT, 0.0, MeshBatcher.Layer.GLOW)
+		collider(Vector3(x, 1.7, 0.0), Vector3(0.9, 3.4, 0.9))
 		add_point_light(Vector3(x, 2.6, 1.1), Color("ffb765"), 2.2, 6.0)
-	for index in 15:
-		var x := -1.85 + 3.7 * float(index) / 14.0
-		var bar_height := 2.4 + 0.5 * sin(PI * float(index) / 14.0)
-		batch.box(Vector3(x, bar_height * 0.5, 0.0), Vector3(0.05, bar_height, 0.05), Palette.IRON)
-	batch.box(Vector3(0.0, 1.1, 0.0), Vector3(3.8, 0.08, 0.06), Palette.IRON)
-	batch.box(Vector3(0.0, 2.15, 0.0), Vector3(3.8, 0.08, 0.06), Palette.IRON)
 	collider(Vector3(0.0, 1.5, 0.0), Vector3(3.9, 3.0, 0.3))
 	add_sign("MANSIÓN VALDÉS", Vector3(0.0, 3.42, 0.08), 0.3, Palette.AMBER_SOFT)
 	var gate := LocationExit.new("mansion", "desde_plaza", "Entrar en la mansión Valdés")
@@ -163,20 +198,16 @@ func _build_bank() -> void:
 	BuildingKit.begin(self, Vector3(-14.0, 0.0, 9.0), 90.0)
 	BuildingKit.body(self, 10.0, 6.0, 6.0, Palette.PLASTER, Palette.ROOF, 1.8)
 	BuildingKit.window_grid(self, 9.0, [2.3, 4.5], 3, Vector2(1.1, 1.5), [false, true, false, false, false, true])
-	batch.box(Vector3(0.0, 5.45, 0.1), Vector3(5.0, 0.55, 0.06), Palette.STONE_DARK)
+	ModelCatalog.draw(self, "rotulo_banco", Transform3D(Basis.IDENTITY, Vector3(0.0, 5.45, 0.1)), func(_tint: Color) -> void:
+		batch.box(Vector3(0.0, 5.45, 0.1), Vector3(5.0, 0.55, 0.06), Palette.STONE_DARK)
+	)
 	add_sign("BANCO VALDÉS", Vector3(0.0, 5.45, 0.16), 0.36, Palette.PAPER)
 	BuildingKit.end(self)
 
 
 func _build_square() -> void:
 	var fountain := Vector3(3.5, 0.0, 3.0)
-	batch.cylinder(fountain, 3.0, 3.0, 0.14, Palette.STONE_DARK, 12)
-	batch.cylinder(fountain, 2.5, 2.42, 0.62, Palette.STONE, 10)
-	batch.cylinder(fountain + Vector3.UP * 0.6, 2.18, 2.18, 0.05, Color("1d3550"), 10)
-	batch.cylinder(fountain + Vector3.UP * 0.56, 0.5, 0.26, 1.3, Palette.STONE, 8)
-	batch.cylinder(fountain + Vector3.UP * 1.82, 0.95, 1.08, 0.14, Palette.STONE, 8)
-	batch.cylinder(fountain + Vector3.UP * 1.96, 0.24, 0.16, 0.5, Palette.STONE_LIGHT, 6)
-	batch.sphere(fountain + Vector3.UP * 2.6, 0.26, Palette.STONE_LIGHT, 7, 4)
+	ModelCatalog.draw(self, "fuente", Transform3D(Basis.IDENTITY, fountain), func(_tint: Color) -> void: _fountain_mesh(fountain))
 	collider(fountain + Vector3.UP * 0.6, Vector3(3.4, 1.2, 3.4))
 	collider(fountain + Vector3.UP * 0.6, Vector3(3.4, 1.2, 3.4), PI * 0.25)
 
