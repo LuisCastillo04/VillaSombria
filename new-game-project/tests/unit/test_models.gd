@@ -122,6 +122,43 @@ func test_mailbox_model_orientation() -> void:
 		check(slot.z > 0.2 and absf(slot.x) < 0.05, "La ranura mira hacia +Z, como la procedural (%s)" % slot)
 
 
+## Cada pieza dibujada con su modelo, en su sitio real y con su tinte, coincide con su código
+## procedural (modelos «fieles»). Señala el modelo y la variante que fallan.
+func test_each_model_matches_its_procedural_piece() -> void:
+	ModelCatalog.captures.clear()
+	ModelCatalog.capturing = true
+	for location_id: String in LOCATIONS:
+		var location: LocationBase = (load("res://scenes/world/locations/%s.tscn" % location_id) as PackedScene).instantiate()
+		location._body = StaticBody3D.new()
+		location.build()
+		location._body.free()
+		location.free()
+	ModelCatalog.capturing = false
+	var checked := {}
+	for capture: Dictionary in ModelCatalog.captures:
+		var id: String = capture["id"]
+		var fidelity: Variant = ModelCatalog.MODELS.get(id, {}).get("fiel", false)
+		if not (fidelity is bool and fidelity):
+			continue
+		var label := "%s/%s en %s" % [id, capture["variant"], capture["where"]]
+		var placement: Transform3D = capture["placement"]
+		var tint: Color = capture.get("tint", Color.WHITE)
+		# La pieza procedural, rehecha con las caras que grabó la captura (mismo resultado que su código).
+		var expected := MeshBatcher.new()
+		expected.xform = placement
+		for face: Dictionary in capture["faces"]:
+			var color: Color = face["color"]
+			if face["tinted"]:
+				color = Color(color.r * tint.r, color.g * tint.g, color.b * tint.b, color.a)
+			expected.face(face["points"], color, Vector3.ZERO, face["layer"])
+		var actual := MeshBatcher.new()
+		check(ModelCatalog.place_in(actual, id, placement, capture["variant"], tint), "%s: sin modelo" % label)
+		_check_same_triangles(actual, expected, label)
+		checked[label] = true
+	ModelCatalog.captures.clear()
+	check(checked.size() > 0, "Hay piezas migradas que comprobar")
+
+
 ## Cada escenario se ve igual con modelos que sin ellos (salvo el redondeo de color de 8 bits) y
 ## tiene exactamente las mismas colisiones: migrar una pieza sólo cambia de dónde sale su malla.
 func test_locations_match_with_and_without_models() -> void:
@@ -321,29 +358,42 @@ static func _procedural_batch(build: Callable) -> MeshBatcher:
 	return batch
 
 
-## Compara dos lotes polígono a polígono, sin importar el orden ni cómo se partió cada polígono
-## en triángulos (Blender elige otras diagonales en los octógonos): mismos vértices (1 mm), misma
-## área, mismo color (1/255, el redondeo de 8 bits) y cara frontal hacia fuera.
+## Compara dos lotes por lo que cubren, sin importar el orden ni cómo se partió cada polígono en
+## triángulos (Blender elige otras diagonales): el centro de cada triángulo de uno cae en un
+## triángulo del otro con el mismo plano, el mismo color (1/255, el redondeo de 8 bits) y la cara
+## frontal hacia fuera, en los dos sentidos, y el área total de cada capa es la misma.
 func _check_same_triangles(actual: MeshBatcher, expected: MeshBatcher, label: String) -> void:
 	for layer: MeshBatcher.Layer in [MeshBatcher.Layer.OPAQUE, MeshBatcher.Layer.GLOW, MeshBatcher.Layer.GROUND]:
-		var a := _polygons(actual, layer)
-		var b := _polygons(expected, layer)
-		check_equal(a.size(), b.size(), "%s: polígonos de la capa %d" % [label, layer])
+		var a := _triangle_list(actual, layer)
+		var b := _triangle_list(expected, layer)
+		var area_a := 0.0
+		var area_b := 0.0
+		for triangle: Dictionary in a:
+			area_a += triangle["area"]
+			check(triangle["front"], "%s: cara frontal hacia dentro en %s" % [label, _point_key(triangle["center"])])
+		for triangle: Dictionary in b:
+			area_b += triangle["area"]
+		check(absf(area_a - area_b) <= 0.0005 * maxf(1.0, area_b), "%s: área de la capa %d %.4f m² y la procedural %.4f m²" % [label, layer, area_a, area_b])
 		var worst := 0.0
-		var missing := 0
-		for key: String in b:
-			if not a.has(key):
-				missing += 1
-				continue
-			worst = maxf(worst, _color_distance(a[key]["color"], b[key]["color"]))
-			check(absf(a[key]["area"] - b[key]["area"]) < 0.0001, "%s: área distinta en %s" % [label, key])
-			check(a[key]["front"] and b[key]["front"], "%s: cara frontal hacia fuera en %s" % [label, key])
-		check_equal(missing, 0, "%s: polígonos de la capa %d que no coinciden" % [label, layer])
+		for pair: Array in [[b, _grid(a), "que no tiene el modelo"], [a, _grid(b), "que no tiene la pieza procedural"]]:
+			var missing := 0
+			var example := ""
+			for triangle: Dictionary in pair[0]:
+				var match_found: Variant = _covering(pair[1], triangle)
+				if match_found == null:
+					missing += 1
+					example = _point_key(triangle["center"])
+				else:
+					worst = maxf(worst, _color_distance((match_found as Dictionary)["color"], triangle["color"]))
+			check(missing == 0, "%s: %d triángulos de la capa %d %s (p. ej. en %s)" % [label, missing, layer, pair[2], example])
 		check(worst <= 1.0 / 255.0 + 0.0001, "%s: diferencia de color %.4f en la capa %d" % [label, worst, layer])
 
 
-static func _polygons(batch: MeshBatcher, layer: MeshBatcher.Layer) -> Dictionary:
-	var found := {}
+const GRID_CELL := 0.5
+
+
+static func _triangle_list(batch: MeshBatcher, layer: MeshBatcher.Layer) -> Array[Dictionary]:
+	var found: Array[Dictionary] = []
 	var mesh := batch.build_mesh(layer)
 	if mesh == null:
 		return found
@@ -351,24 +401,85 @@ static func _polygons(batch: MeshBatcher, layer: MeshBatcher.Layer) -> Dictionar
 	var vertices: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 	var normals: PackedVector3Array = arrays[Mesh.ARRAY_NORMAL]
 	var colors: PackedColorArray = arrays[Mesh.ARRAY_COLOR]
-	var centers := ModelCatalog.polygon_centers(vertices, normals, colors)
-	var groups := {}
 	for start in range(0, vertices.size(), 3):
-		var group := _point_key(centers[start])
-		if not groups.has(group):
-			groups[group] = {"corners": {}, "area": 0.0, "color": colors[start], "front": true}
-		var entry: Dictionary = groups[group]
-		var winding := (vertices[start + 1] - vertices[start]).cross(vertices[start + 2] - vertices[start])
-		entry["area"] = float(entry["area"]) + winding.length() * 0.5
-		entry["front"] = entry["front"] and winding.dot(normals[start]) < 0.0
-		for corner in 3:
-			(entry["corners"] as Dictionary)[_point_key(vertices[start + corner])] = true
-	for group: String in groups:
-		var entry: Dictionary = groups[group]
-		var corners: Array = (entry["corners"] as Dictionary).keys()
-		corners.sort()
-		found["|".join(corners)] = entry
+		var p0 := vertices[start]
+		var p1 := vertices[start + 1]
+		var p2 := vertices[start + 2]
+		var cross := (p1 - p0).cross(p2 - p0)
+		if cross.length() < 0.0000001:
+			continue
+		found.append({
+			"points": [p0, p1, p2],
+			# Punto interior que no cae en la diagonal de ningún rectángulo (el centroide sí cae
+			# en la otra diagonal cuando el otro lote partió el rectángulo al revés).
+			"center": p0 * 0.6 + p1 * 0.25 + p2 * 0.15,
+			"normal": -cross.normalized(),
+			"color": colors[start],
+			"area": cross.length() * 0.5,
+			"front": cross.dot(normals[start]) < 0.0,
+		})
 	return found
+
+
+## Rejilla de 0,5 m con los triángulos que tocan cada celda, para buscar deprisa.
+static func _grid(triangles: Array[Dictionary]) -> Dictionary:
+	var grid := {}
+	for triangle in triangles:
+		var points: Array = triangle["points"]
+		# Margen de 5 mm: una cara justo en el borde de una celda se registra en las dos.
+		var low: Vector3 = (points[0] as Vector3).min(points[1]).min(points[2]) - Vector3.ONE * 0.005
+		var high: Vector3 = (points[0] as Vector3).max(points[1]).max(points[2]) + Vector3.ONE * 0.005
+		for x in range(floori(low.x / GRID_CELL), floori(high.x / GRID_CELL) + 1):
+			for y in range(floori(low.y / GRID_CELL), floori(high.y / GRID_CELL) + 1):
+				for z in range(floori(low.z / GRID_CELL), floori(high.z / GRID_CELL) + 1):
+					var cell := Vector3i(x, y, z)
+					if not grid.has(cell):
+						grid[cell] = []
+					(grid[cell] as Array).append(triangle)
+	return grid
+
+
+## Triángulo del otro lote en el mismo plano que contiene el punto de muestra de `triangle`, o
+## null. Si hay varios (caras coplanarias superpuestas, que ya parpadean en la pieza original), el
+## de color más parecido.
+static func _covering(grid: Dictionary, triangle: Dictionary) -> Variant:
+	var center: Vector3 = triangle["center"]
+	var cell := Vector3i(floori(center.x / GRID_CELL), floori(center.y / GRID_CELL), floori(center.z / GRID_CELL))
+	var best: Variant = null
+	var best_distance := INF
+	for candidate: Dictionary in grid.get(cell, []):
+		var normal: Vector3 = candidate["normal"]
+		if normal.dot(triangle["normal"]) < 0.999:
+			continue
+		var points: Array = candidate["points"]
+		if absf(normal.dot(center - (points[0] as Vector3))) > 0.001:
+			continue
+		if _inside(center, points[0], points[1], points[2], normal):
+			var distance := _color_distance(candidate["color"], triangle["color"])
+			if distance < best_distance:
+				best = candidate
+				best_distance = distance
+	return best
+
+
+## Coordenadas baricéntricas: no dependen del tamaño del triángulo, así que la tolerancia vale
+## igual para una baldosa que para una pared de 28 m.
+static func _inside(point: Vector3, a: Vector3, b: Vector3, c: Vector3, _normal: Vector3) -> bool:
+	var v0 := b - a
+	var v1 := c - a
+	var v2 := point - a
+	var d00 := v0.dot(v0)
+	var d01 := v0.dot(v1)
+	var d11 := v1.dot(v1)
+	var d20 := v2.dot(v0)
+	var d21 := v2.dot(v1)
+	var denominator := d00 * d11 - d01 * d01
+	if absf(denominator) < 1e-12:
+		return false
+	var v := (d11 * d20 - d01 * d21) / denominator
+	var w := (d00 * d21 - d01 * d20) / denominator
+	var tolerance := -0.0001
+	return v >= tolerance and w >= tolerance and 1.0 - v - w >= tolerance
 
 
 static func _point_key(point: Vector3) -> String:

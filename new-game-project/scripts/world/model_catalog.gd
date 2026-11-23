@@ -60,6 +60,7 @@ static func draw(
 ) -> bool:
 	if capturing:
 		_capture(location, id, transform, procedural, variant)
+		captures[captures.size() - 1]["tint"] = tint
 		procedural.call(tint)
 		return false
 	if place_in(location.batch, id, transform, variant, tint):
@@ -83,6 +84,7 @@ static func draw_in(
 	if capturing:
 		var entry := _capture_batch(batch, id, transform, procedural, variant, "")
 		entry["display"] = display
+		entry["tint"] = tint
 		procedural.call(tint)
 		return false
 	if place_in(batch, id, transform, variant, tint):
@@ -205,7 +207,9 @@ static func surfaces_from_node(root: Node, linear_colors: bool = LINEAR_VERTEX_C
 	keys.sort()
 	for key: String in keys:
 		var surface: Dictionary = by_key[key]
-		surface["centers"] = polygon_centers(surface["vertices"], surface["normals"], surface["colors"])
+		surface["centers"] = polygon_centers(surface["vertices"], surface["normals"], surface["colors"], surface["polygons"])
+		surface.erase("polygons")
+		surface.erase("next_polygon")
 		surfaces.append(surface)
 	return surfaces
 
@@ -252,7 +256,14 @@ static func _append_surface(
 			"colors": PackedColorArray(),
 		}
 	var target: Dictionary = by_key[key]
+	if not target.has("polygons"):
+		target["polygons"] = PackedInt32Array()
 	var normal_basis := transform.basis.inverse().transposed()
+	var uvs: Variant = arrays[Mesh.ARRAY_TEX_UV]
+	var has_ids := uvs is PackedVector2Array and not (uvs as PackedVector2Array).is_empty()
+	# Cada malla numera sus polígonos desde 0: se desplazan para que no se mezclen entre mallas.
+	var id_base := int(target.get("next_polygon", 0))
+	var top_id := id_base
 	var order := PackedInt32Array()
 	if indices is PackedInt32Array and not (indices as PackedInt32Array).is_empty():
 		order = indices
@@ -263,6 +274,7 @@ static func _append_surface(
 	var out_vertices: PackedVector3Array = target["vertices"]
 	var out_normals: PackedVector3Array = target["normals"]
 	var out_colors: PackedColorArray = target["colors"]
+	var out_polygons: PackedInt32Array = target["polygons"]
 	var has_normals := normals is PackedVector3Array and not (normals as PackedVector3Array).is_empty()
 	var has_colors := colors is PackedColorArray and not (colors as PackedColorArray).is_empty()
 	for vertex: int in order:
@@ -277,6 +289,14 @@ static func _append_surface(
 			if linear_colors:
 				color = color.linear_to_srgb()
 		out_colors.append(color)
+		var polygon := -1
+		if has_ids:
+			var uv: Vector2 = (uvs as PackedVector2Array)[vertex]
+			polygon = id_base + floori(uv.x * 256.0) + 256 * floori(uv.y * 256.0)
+			top_id = maxi(top_id, polygon + 1)
+		out_polygons.append(polygon)
+	target["polygons"] = out_polygons
+	target["next_polygon"] = top_id
 	target["vertices"] = out_vertices
 	target["normals"] = out_normals
 	target["colors"] = out_colors
@@ -351,15 +371,27 @@ static func _warn_once(key: String, message: String) -> void:
 		push_warning(message)
 
 
-## Centro del polígono al que pertenece cada vértice. Los exportadores parten cada polígono en
-## triángulos; aquí se vuelven a unir los que comparten arista, normal y color, para que la
-## variación de tono sea por polígono, como la de `MeshBatcher.face`.
-static func polygon_centers(vertices: PackedVector3Array, normals: PackedVector3Array, colors: PackedColorArray) -> PackedVector3Array:
+## Centro del polígono al que pertenece cada vértice, para que la variación de tono sea por
+## polígono, como la de `MeshBatcher.face`. Si el GLB trae el número de polígono (`polygons`, del
+## mapa UV que escribe `exportar_glb.py`), se agrupa por él; si no, se vuelven a unir los
+## triángulos que comparten arista, normal y color.
+static func polygon_centers(
+	vertices: PackedVector3Array, normals: PackedVector3Array, colors: PackedColorArray, polygons: PackedInt32Array = PackedInt32Array()
+) -> PackedVector3Array:
 	var triangles := vertices.size() / 3
 	var parent: Array[int] = []
 	parent.resize(triangles)
 	for triangle in triangles:
 		parent[triangle] = triangle
+	if polygons.size() == vertices.size() and not polygons.has(-1):
+		var first_of: Dictionary = {}
+		for triangle in triangles:
+			var polygon := polygons[triangle * 3]
+			if first_of.has(polygon):
+				_union(parent, triangle, first_of[polygon])
+			else:
+				first_of[polygon] = triangle
+		return _centers_of_groups(vertices, parent)
 	var edges: Dictionary = {}
 	for triangle in triangles:
 		for corner in 3:
@@ -372,6 +404,11 @@ static func polygon_centers(vertices: PackedVector3Array, normals: PackedVector3
 					_union(parent, triangle, other)
 			else:
 				edges[key] = triangle
+	return _centers_of_groups(vertices, parent)
+
+
+static func _centers_of_groups(vertices: PackedVector3Array, parent: Array[int]) -> PackedVector3Array:
+	var triangles := vertices.size() / 3
 	var points_by_group: Dictionary = {}
 	for triangle in triangles:
 		var group := _find(parent, triangle)

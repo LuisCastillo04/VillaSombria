@@ -2,7 +2,7 @@
 	"id": "buzon",
 	"blend": "blender/fuentes/atrezo/buzon.blend",
 	"glb": "new-game-project/assets/modelos/atrezo/buzon.glb",
-	"fecha": "2026-11-23T01:37:24",
+	"fecha": "2026-11-23T01:54:26",
 	"blender": "5.3.0",
 	"exportador_gltf": "5.3.43",
 	"triangulos": 68,
@@ -23,8 +23,9 @@
 			}
 		}
 	},
-	"sha256": "10376b620903c90782d48342fe872e41eacfe6f8827f516e9cba95d29ee470a6",
+	"sha256": "1568bb638a8066629e6d541a782b9a93bf42f1eb2cfcdfd672d6daf038e2b54b",
 	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
 	"opciones": {
 		"export_format": "GLB",
 		"use_active_collection": true,
@@ -33,6 +34,7 @@
 		"export_apply": true,
 		"export_normals": true,
 		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
 		"export_all_vertex_colors": false,
 		"export_materials": "EXPORT",
 		"export_image_format": "NONE",

@@ -33,6 +33,7 @@ OPCIONES = {
     "export_apply": True,
     "export_normals": True,
     "export_vertex_color": "ACTIVE",
+    "export_texcoords": True,
     "export_all_vertex_colors": False,
     "export_materials": "EXPORT",
     "export_image_format": "NONE",
@@ -103,6 +104,28 @@ def colores_a_srgb(objetos):
             dato.color = (vs.lineal_a_srgb(r), vs.lineal_a_srgb(g), vs.lineal_a_srgb(b), a)
 
 
+def ids_de_poligono(objetos):
+    """Escribe el número de cada polígono en un mapa UV (sólo en memoria, para el GLB).
+
+    El juego aplica a cada polígono la misma variación de tono que a la pieza procedural, a partir
+    de su centro; con este número sabe qué triángulos son del mismo polígono aunque dos caras
+    vecinas y coplanarias tengan el mismo color. Codificado en dos cifras de base 256 (u, v), así
+    sobrevive a cualquier compresión de coordenadas de textura. Los modelos no usan texturas: se
+    quitan los demás mapas UV del GLB.
+    """
+    for malla in {objeto.data for objeto in objetos}:
+        while malla.uv_layers:
+            malla.uv_layers.remove(malla.uv_layers[0])
+        capa = malla.uv_layers.new(name="VS_Poligono")
+        if len(malla.polygons) >= 256 * 256:
+            vs.fallar("%s tiene más de 65.536 polígonos" % malla.name)
+        for poligono in malla.polygons:
+            u = ((poligono.index % 256) + 0.5) / 256.0
+            v = ((poligono.index // 256) + 0.5) / 256.0
+            for bucle in poligono.loop_indices:
+                capa.data[bucle].uv = (u, v)
+
+
 def medir(objetos):
     """Triángulos y caja de cada objeto en su propio espacio (ejes de Godot): el juego coloca cada
     objeto por su origen, así que su posición en el .blend no cuenta."""
@@ -151,6 +174,7 @@ def main():
     objetos = comprobar_coleccion(capa.collection)
     triangulos, por_objeto = medir(objetos)
     colores_a_srgb(objetos)
+    ids_de_poligono(objetos)
     os.makedirs(os.path.dirname(destino), exist_ok=True)
     bpy.ops.export_scene.gltf(filepath=destino, **OPCIONES)
     with open(destino, "rb") as archivo:
@@ -166,6 +190,7 @@ def main():
         "objetos": por_objeto,
         "sha256": huella,
         "color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+        "uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
         "opciones": OPCIONES,
     }
     vs.escribir_json(vs.ruta_registro(id_modelo), registro)
