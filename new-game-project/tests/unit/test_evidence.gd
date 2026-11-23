@@ -3,7 +3,9 @@ extends TestCase
 ## los textos de `clues.json`; «Evidencia obtenida» aparece sólo la primera vez, dura lo configurado y
 ## se va sola sin cerrar la hoja; la hoja se cierra con E (sin que la pulsación que la abrió la
 ## cierre), con Esc y con el ratón; el jugador queda bloqueado y vuelve a moverse; nada se repite al
-## releer ni al cargar; y todo cabe en pantallas de distintas proporciones y tamaños de letra.
+## releer ni al cargar; y todo cabe en pantallas de distintas proporciones y tamaños de letra. Las
+## siete pruebas ilustradas muestran su imagen sin tapar textos, y la lista de invitados se escribe
+## con los nombres de la historia.
 
 const OPEN_SECONDS := EvidenceStyle.OPEN_SECONDS + 0.1
 const CLOSE_SECONDS := EvidenceStyle.CLOSE_SECONDS + 0.1
@@ -13,6 +15,8 @@ const SHOWCASE := {
 	"periodico_aniversario": ["periodico", "Periódico / Crónica", "periodico"],
 	"reloj_despacho": ["ficha", "Evidencia / Objeto", "engranaje"],
 }
+## Las pruebas con ilustración propia en la ficha (`presentation.art`).
+const ILLUSTRATED: Array[String] = ["huellas_betun", "foto_clara", "lista_invitados", "billete_tren", "libro_bodega", "llave_reloj", "copa_lavada"]
 ## Ubicación del quiosco del periódico en la plaza, como en `test_investigation`.
 const KIOSK_SPOT := Vector3(-4.2, 0.1, 10.0)
 
@@ -206,6 +210,115 @@ func test_presentations_agree_with_the_clue_descriptions() -> void:
 	for clue_id: String in GameData.clues:
 		var image := str(GameData.clues[clue_id].get("image", ""))
 		check(image.is_empty() or ResourceLoader.exists(image), "%s: su imagen existe" % clue_id)
+
+
+# --- Ilustraciones ---
+
+func test_illustrated_clues_open_with_their_own_art() -> void:
+	for clue_id: String in ILLUSTRATED:
+		var clue: Dictionary = GameData.clues[clue_id]
+		var spec: Dictionary = clue["presentation"]["art"]
+		check(ResourceLoader.exists(spec["image"]), "%s: existe su ilustración" % clue_id)
+		inspector.open(clue_id)
+		await _process_frames(1)
+		var card := inspector.get_document() as EvidenceRecordCard
+		check(card != null, "%s: se abre en la ficha" % clue_id)
+		if card == null:
+			continue
+		check_equal(_labels_named(card, "Description"), clue["description"], "%s: con su descripción de siempre" % clue_id)
+		var where := card.find_child("Where", true, false) as EvidenceTag
+		check(where != null and where.get_text() == "Hallada en: %s" % clue["where"], "%s: con su ubicación" % clue_id)
+		var art := card.illustration
+		check(art != null and art.name == "Illustration", "%s: con su ilustración" % clue_id)
+		check(card.find_child("Emblem", true, false) == null, "%s: sin el emblema genérico de la categoría" % clue_id)
+		if art == null:
+			continue
+		var texture := _illustration_texture(art)
+		check(texture != null and texture.resource_path == spec["image"], "%s: la imagen de sus datos" % clue_id)
+		check(EvidenceRecordCard.ART_BOUNDS.encloses(art.get_rect()), "%s: la ilustración queda dentro de la cartulina" % clue_id)
+		check(not card.art_covers_text(art.get_rect(), art.rotation_degrees, texture.get_image()), "%s: la ilustración no tapa ningún texto" % clue_id)
+		check(art.size.x >= float(spec["width"]) * 0.85, "%s: y conserva casi todo su tamaño" % clue_id)
+		inspector.close()
+		await _wait(CLOSE_SECONDS)
+	check(not GameState.is_player_locked(), "tras examinarlas no queda ningún bloqueo")
+
+
+func test_longer_texts_never_end_under_the_illustration() -> void:
+	for clue_id: String in ["billete_tren", "llave_reloj", "lista_invitados"]:
+		var entry := EvidenceInfo.describe(clue_id)
+		entry["title"] = "%s, hallada durante el registro del sábado por la noche" % entry["title"]
+		entry["description"] = "%s %s" % [entry["description"], entry["description"]]
+		var card := EvidenceRecordCard.new()
+		add_child(card)
+		card.setup(entry)
+		var art := card.illustration
+		check(art != null, "%s: con textos largos sigue teniendo ilustración" % clue_id)
+		if art != null:
+			var texture := _illustration_texture(art)
+			check(not card.art_covers_text(art.get_rect(), art.rotation_degrees, texture.get_image()), "%s: la ilustración se aparta de los textos largos" % clue_id)
+			check(EvidenceRecordCard.ART_BOUNDS.encloses(art.get_rect()), "%s: sin salirse de la cartulina" % clue_id)
+		card.queue_free()
+	await _process_frames(1)
+
+
+func test_guest_list_is_written_from_the_story() -> void:
+	inspector.open("lista_invitados")
+	await _process_frames(1)
+	var card := inspector.get_document() as EvidenceRecordCard
+	var guest_list := card.illustration as EvidenceGuestList if card != null else null
+	check(guest_list != null, "la lista de invitados se escribe con sus datos")
+	if guest_list == null:
+		return
+	var clue: Dictionary = GameData.clues["lista_invitados"]
+	var data: Dictionary = clue["presentation"]["guest_list"]
+	var expected := PackedStringArray()
+	for guest: Dictionary in data["guests"]:
+		expected.append(guest["name"])
+	check_equal(guest_list.get_guest_names(), expected, "los invitados de los datos, en orden")
+	var added: String = data["added"]["name"]
+	check_equal(guest_list.get_added_name(), added, "al final, el nombre añadido a mano")
+	check(str(clue["description"]).contains(added), "el añadido es el que cita la pista")
+	check_equal(guest_list.get_checked_count(), expected.size() + 1, "todas las casillas marcadas")
+	check(card.find_child("Clip", true, false) != null, "con la pinza que sujeta las hojas")
+	# Los apellidos de la familia y la invitada son los de los personajes de la historia.
+	var people := PackedStringArray()
+	for character_id: String in GameData.characters:
+		people.append(str(GameData.characters[character_id].get("name", "")))
+	for guest_name: String in guest_list.get_guest_names() + PackedStringArray([added]):
+		if guest_name.contains("Valdés") or guest_name.contains("Vidal"):
+			var known := false
+			for person in people:
+				known = known or guest_name.ends_with(person)
+			check(known, "«%s» es un personaje de la historia" % guest_name)
+	check(not ", ".join(guest_list.get_guest_names()).contains("Julián"), "Julián es el anfitrión, no un invitado")
+
+
+func test_illustration_settles_and_respects_reduced_motion() -> void:
+	inspector.open("copa_lavada")
+	await _process_frames(1)
+	var art := (inspector.get_document() as EvidenceRecordCard).illustration
+	check(art.modulate.a < 0.5, "la ilustración aparece después que la hoja")
+	check(art.scale.x < 1.0, "y se asienta sobre el papel")
+	await _wait(EvidenceRecordCard.ART_DELAY + EvidenceRecordCard.ART_IN + 0.1)
+	check(is_equal_approx(art.modulate.a, 1.0) and art.scale.is_equal_approx(Vector2.ONE), "al terminar se ve entera y a su tamaño")
+	check(is_zero_approx(art.rotation), "y derecha")
+	inspector.close()
+	await _wait(CLOSE_SECONDS)
+	Settings.set_value("accesibilidad/movimiento_reducido", true)
+	inspector.open("llave_reloj")
+	await _process_frames(1)
+	art = (inspector.get_document() as EvidenceRecordCard).illustration
+	check(art.scale.is_equal_approx(Vector2.ONE) and is_zero_approx(art.rotation), "con «Reducir movimiento» no se mueve")
+	await _wait(EvidenceRecordCard.ART_DELAY + EvidenceRecordCard.ART_IN + 0.1)
+	check(is_equal_approx(art.modulate.a, 1.0), "sólo aparece")
+	Settings.set_value("accesibilidad/movimiento_reducido", false)
+
+
+func _illustration_texture(art: Control) -> Texture2D:
+	if art is TextureRect:
+		return (art as TextureRect).texture
+	var paper := art.find_child("Paper", true, false) as TextureRect
+	return paper.texture if paper != null else null
 
 
 # --- «Evidencia obtenida» ---
