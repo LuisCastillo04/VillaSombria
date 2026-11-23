@@ -125,22 +125,7 @@ func test_mailbox_model_orientation() -> void:
 ## Cada pieza dibujada con su modelo, en su sitio real y con su tinte, coincide con su código
 ## procedural (modelos «fieles»). Señala el modelo y la variante que fallan.
 func test_each_model_matches_its_procedural_piece() -> void:
-	ModelCatalog.captures.clear()
-	ModelCatalog.capturing = true
-	for location_id: String in LOCATIONS:
-		var location: LocationBase = (load("res://scenes/world/locations/%s.tscn" % location_id) as PackedScene).instantiate()
-		location._body = StaticBody3D.new()
-		location.build()
-		location._body.free()
-		location.free()
-	# Los pivotes de cada personaje (CharacterModel dibuja cada uno con ModelCatalog.draw_in).
-	var tool: Node = (load("res://tools/modelos/exportar_referencias.gd") as GDScript).new()
-	for character: Array in tool.characters():
-		var model := CharacterModel.new()
-		model.build(character[1], character[0])
-		model.free()
-	tool.free()
-	ModelCatalog.capturing = false
+	_capture_everything()
 	var checked := {}
 	for capture: Dictionary in ModelCatalog.captures:
 		var id: String = capture["id"]
@@ -170,15 +155,7 @@ func test_each_model_matches_its_procedural_piece() -> void:
 ## todo lo que dibujan está en la pieza procedural con el mismo color, y lo que falta mira hacia
 ## abajo o es una trasera interior (no la trasera exterior del mueble).
 func test_optimized_models_only_drop_hidden_faces() -> void:
-	ModelCatalog.captures.clear()
-	ModelCatalog.capturing = true
-	for location_id: String in LOCATIONS:
-		var location: LocationBase = (load("res://scenes/world/locations/%s.tscn" % location_id) as PackedScene).instantiate()
-		location._body = StaticBody3D.new()
-		location.build()
-		location._body.free()
-		location.free()
-	ModelCatalog.capturing = false
+	_capture_everything()
 	var checked := 0
 	for capture: Dictionary in ModelCatalog.captures:
 		var id: String = capture["id"]
@@ -419,6 +396,41 @@ static func _mesh_with_material(material_name: String, color: Color) -> ArrayMes
 	material.resource_name = material_name
 	mesh.surface_set_material(0, material)
 	return mesh
+
+
+## Construye los escenarios y los personajes en modo captura: deja en `ModelCatalog.captures`
+## cada pieza migrada tal como la dibuja el juego (como hace `exportar_referencias.tscn`).
+func _capture_everything() -> void:
+	ModelCatalog.captures.clear()
+	ModelCatalog.capturing = true
+	for location_id: String in LOCATIONS:
+		var location: LocationBase = (load("res://scenes/world/locations/%s.tscn" % location_id) as PackedScene).instantiate()
+		location._body = StaticBody3D.new()
+		location.build()
+		location._body.free()
+		location.free()
+	var tool: Node = (load("res://tools/modelos/exportar_referencias.gd") as GDScript).new()
+	for character: Array in tool.characters():
+		var model := CharacterModel.new()
+		model.build(character[1], character[0])
+		model.free()
+	tool.free()
+	ModelCatalog.capturing = false
+
+
+## Una medida que el GLB no trae (un mueble nuevo con otras medidas) se dibuja con el código y el
+## resto del modelo sigue funcionando.
+func test_missing_variant_falls_back() -> void:
+	var batch := MeshBatcher.new()
+	check(not ModelCatalog.place_in(batch, "mesa", Transform3D.IDENTITY, "999x99x99"), "Una medida que el GLB no trae no se dibuja con el modelo")
+	check(ModelCatalog.place_in(batch, "mesa", Transform3D.IDENTITY, "120x76x80"), "Las demás medidas siguen usando el modelo")
+	var location := LocationBase.new()
+	location._body = StaticBody3D.new()
+	InteriorKit.table(location, Vector3.ZERO, Vector3(9.99, 0.99, 0.99))
+	check(not location.batch.is_empty(), "La mesa de medida nueva se dibuja con su código")
+	check_equal(location._body.get_child_count(), 1, "Y conserva su colisión")
+	location._body.free()
+	location.free()
 
 
 ## Construye una pieza con su código procedural en un escenario sin árbol.
