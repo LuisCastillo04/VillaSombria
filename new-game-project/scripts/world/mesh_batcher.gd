@@ -214,17 +214,22 @@ func add_surfaces(surfaces: Array, transform: Transform3D = Transform3D.IDENTITY
 		var tinted: bool = surface.get("tinted", false)
 		var buffers := _get_buffers(layer)
 		var count := vertices.size() - vertices.size() % 3
+		var shade_faces := layer == Layer.OPAQUE and color_jitter > 0.0
 		for start in range(0, count, 3):
+			# El centro del polígono es el mismo para los tres vértices: un tono por triángulo.
+			var shade := shade_offset(full * centers[start]) if shade_faces else 0.0
+			var flat := normals[start] == normals[start + 1] and normals[start] == normals[start + 2]
+			var face_normal := (normal_basis * normals[start]).normalized()
 			# Un espejo invierte el sentido de giro: se recorre el triángulo al revés.
-			var order := [start, start + 2, start + 1] if mirrored else [start, start + 1, start + 2]
-			for index: int in order:
+			for corner: int in ([0, 2, 1] if mirrored else [0, 1, 2]):
+				var index := start + corner
 				buffers.vertices.append(full * vertices[index])
-				buffers.normals.append((normal_basis * normals[index]).normalized())
+				buffers.normals.append(face_normal if flat else (normal_basis * normals[index]).normalized())
 				var color := colors[index]
 				if tinted:
 					color = Color(color.r * tint.r, color.g * tint.g, color.b * tint.b, color.a)
-				if layer == Layer.OPAQUE:
-					color = shaded(color, full * centers[index])
+				if shade_faces:
+					color = Color(clampf(color.r + shade, 0.0, 1.0), clampf(color.g + shade, 0.0, 1.0), clampf(color.b + shade, 0.0, 1.0), color.a)
 				buffers.colors.append(color)
 
 
@@ -291,14 +296,18 @@ func _sphere_point(
 func shaded(color: Color, center: Vector3) -> Color:
 	if color_jitter <= 0.0:
 		return color
-	var unit := float(_hash_point(center)) / 4294967295.0
-	var shade := lerpf(-color_jitter, color_jitter, unit)
+	var shade := shade_offset(center)
 	return Color(
 		clampf(color.r + shade, 0.0, 1.0),
 		clampf(color.g + shade, 0.0, 1.0),
 		clampf(color.b + shade, 0.0, 1.0),
 		color.a
 	)
+
+
+## Cuánto se aclara (o se oscurece, si es negativo) una cara con ese centro.
+func shade_offset(center: Vector3) -> float:
+	return lerpf(-color_jitter, color_jitter, float(_hash_point(center)) / 4294967295.0)
 
 
 static func _centroid(points: PackedVector3Array) -> Vector3:
