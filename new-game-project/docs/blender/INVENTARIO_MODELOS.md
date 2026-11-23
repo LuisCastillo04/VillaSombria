@@ -12,11 +12,14 @@ el GLB y su .import.
 
 | Categoría | Id | Variantes | Usos | Dónde | Usado por (con su respaldo procedural) | Triángulos | Colisiones (kit) | Tinte | Brillo | Fidelidad | Estado |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| arquitectura | aviso | 1 | 1 | plaza | `building_kit.gd` | 32 | 0 | — | — | exacto | migrado |
 | arquitectura | chimenea_tejado | 1 | 1 | plaza | `building_kit.gd` | 24 | 0 | — | — | exacto | migrado |
 | arquitectura | columna | 1 | 4 | plaza | `building_kit.gd` | 52 | 1 | — | — | exacto | migrado |
 | arquitectura | puerta | 2 | 2 | plaza | `building_kit.gd` | 120 | 0 | sí | sí | exacto | migrado |
+| arquitectura | puerta_doble | 1 | 1 | plaza | `building_kit.gd` | 180 | 2 | — | sí | exacto | migrado |
 | arquitectura | toldo | 1 | 1 | plaza | `building_kit.gd` | 320 | 0 | — | — | exacto | migrado |
 | arquitectura | ventana | 12 | 34 | estacion, plaza | `building_kit.gd` | 768 | 0 | — | sí | exacto | migrado |
+| atrezo | alcorque | 1 | 3 | plaza | `props_kit.gd` | 122 | 0 | — | — | exacto | migrado |
 | atrezo | arbol | 4 | 4 | plaza | `props_kit.gd` | 656 | 4 | — | — | exacto | migrado |
 | atrezo | banco | 1 | 5 | estacion, plaza | `props_kit.gd` | 108 | 1 | — | — | exacto | migrado |
 | atrezo | barril | 1 | 3 | cafe, estacion, plaza | `props_kit.gd` | 84 | 1 | — | — | exacto | migrado |
@@ -26,8 +29,10 @@ el GLB y su .import.
 | atrezo | farola | 1 | 13 | estacion, plaza | `props_kit.gd` | 92 | 1 | — | sí | exacto | migrado |
 | atrezo | jardinera | 1 | 1 | plaza | `props_kit.gd` | 538 | 8 | — | — | exacto | migrado |
 | atrezo | mesa_cafe | 1 | 7 | cafe, plaza | `props_kit.gd` | 136 | 3 | — | — | exacto | migrado |
+| atrezo | parterre | 8 | 8 | estacion, plaza | `props_kit.gd` | 4072 | 8 | — | — | exacto | migrado |
 | atrezo | poste_indicador | 2 | 2 | estacion, plaza | `props_kit.gd` | 88 | 2 | — | — | exacto | migrado |
 | atrezo | quiosco | 1 | 1 | plaza | `props_kit.gd` | 192 | 1 | — | — | exacto | migrado |
+| atrezo | valla_obras | 1 | 1 | plaza | `props_kit.gd` | 110 | 1 | — | — | exacto | migrado |
 | escenario | barra_cafe | 1 | 1 | cafe | `cafe.gd` | 36 | 1 | — | — | exacto | migrado |
 | escenario | botellero_cafe | 1 | 1 | cafe | `cafe.gd` | 1452 | 0 | — | — | exacto | migrado |
 | escenario | copa | 1 | 1 | mansion | `mansion.gd` | 24 | 0 | — | — | exacto | migrado |
@@ -61,7 +66,7 @@ el GLB y su .import.
 | mobiliario | comoda | 4 | 4 | cafe, mansion | `interior_kit.gd` | 216 | 4 | — | — | exacto | migrado |
 | mobiliario | cuadro | 2 | 2 | archivo, mansion | `interior_kit.gd` | 48 | 0 | sí | — | exacto | migrado |
 | mobiliario | escritorio | 1 | 1 | mansion | `interior_kit.gd` | 60 | 1 | — | — | exacto | migrado |
-| mobiliario | estanteria | 4 | 11 | archivo, mansion | `interior_kit.gd` | 3932 | 4 | — | — | optimizado | migrado |
+| mobiliario | estanteria | 4 | 11 | archivo, mansion | `interior_kit.gd` | 3856 | 4 | — | — | optimizado | migrado |
 | mobiliario | lampara_pie | 1 | 4 | archivo, cafe, mansion | `interior_kit.gd` | 60 | 1 | — | sí | exacto | migrado |
 | mobiliario | lampara_techo | 1 | 14 | archivo, cafe, mansion | `interior_kit.gd` | 40 | 0 | — | sí | exacto | migrado |
 | mobiliario | mesa | 6 | 6 | archivo, cafe, mansion | `interior_kit.gd` | 360 | 6 | sí | — | exacto | migrado |
@@ -82,4 +87,4 @@ el GLB y su .import.
 | personajes | personaje_ortega | 6 | 6 | personaje | `character_model.gd` | 338 | 0 | — | — | exacto | migrado |
 | personajes | personaje_rosa | 6 | 6 | personaje | `character_model.gd` | 396 | 0 | — | — | exacto | migrado |
 
-**Total:** 69 modelos, 252 usos en el juego, 16305 triángulos en los GLB.
+**Total:** 74 modelos, 266 usos en el juego, 20745 triángulos en los GLB.

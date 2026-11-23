@@ -208,6 +208,10 @@ La plaza tiene unas 91 llamadas de dibujado y 134.000 primitivas por fotograma.
   por detrás del papel) y los de la ficha elegida se avivan, pero un filtro por grupos ayudaría
   (ver «Cómo ampliarlo» en [TABLERO.md](TABLERO.md)).
 - El editor de Godot no muestra la geometría de los escenarios: se genera al ejecutar.
+- Quedan caras coplanares (z-fighting) en juntas de tabiques de los interiores y en algunas
+  juntas de la plaza; las puertas, la taquilla, las ventanas y las estanterías ya no tienen.
+  Se listan con `tools/modelos/detectar_coplanares.tscn`. Ver
+  [CORRECCIONES_GRAFICAS.md](CORRECCIONES_GRAFICAS.md).
 - Mientras el editor siga abierto desde antes de crear los autoloads, su analizador marca
   errores falsos. Se resuelve con **Proyecto > Recargar proyecto actual**.
 - En el equipo de desarrollo, el paso «Importación» de `verificar.ps1` aparece como fallido
