@@ -33,7 +33,24 @@
     "category": "documentos",
     "where": "Vestíbulo de la mansión",
     "description": "Lista de la cena del sábado 16 de octubre: la familia, el notario, el doctor y varios socios del banco. Al final, añadido a mano por Julián: «Srta. Irene Vidal, invitada personal».",
-    "prompt": "Examinar la lista de invitados"
+    "prompt": "Examinar la lista de invitados",
+    "presentation": {
+      "template": "ficha",
+      "art": {"image": "res://assets/ui/evidencias/lista_invitados.png", "center": [1132, 462], "width": 640},
+      "guest_list": {
+        "clip": "res://assets/ui/evidencias/lista_invitados_pinza.svg",
+        "guests": [
+          {"name": "Doña Elena Valdés"},
+          {"name": "Don Marcos Valdés"},
+          {"name": "Lic. Andrés Cortés", "note": "Notario"},
+          {"name": "Dr. Esteban Rivas"},
+          {"name": "Don Mauricio Escalante", "note": "Banco"},
+          {"name": "Don Felipe Aguirre", "note": "Banco"},
+          {"name": "Don Tomás Olmedo", "note": "Banco"}
+        ],
+        "added": {"name": "Srta. Irene Vidal", "note": "invitada personal"}
+      }
+    }
   },
   "reloj_despacho": {
     "name": "Reloj de sobremesa parado",
