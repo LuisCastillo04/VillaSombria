@@ -52,8 +52,10 @@ static func _window_mesh(batch: MeshBatcher, x: float, y: float, width: float, h
 		batch.box(Vector3(x, y, 0.07), Vector3(width, height, 0.03), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
 	else:
 		batch.box(Vector3(x, y, 0.07), Vector3(width, height, 0.03), Color("1b2433"))
+	# El travesaño queda medio centímetro por delante del parteluz: si los dos compartieran el
+	# plano de su cara frontal, el cruce parpadearía (z-fighting) al moverse la cámara.
 	batch.box(Vector3(x, y, 0.1), Vector3(0.05, height, 0.02), Palette.WOOD_DARK)
-	batch.box(Vector3(x, y, 0.1), Vector3(width, 0.05, 0.02), Palette.WOOD_DARK)
+	batch.box(Vector3(x, y, 0.105), Vector3(width, 0.05, 0.02), Palette.WOOD_DARK)
 	batch.box(Vector3(x, y - height * 0.5 - 0.12, 0.1), Vector3(width + 0.34, 0.08, 0.2), Palette.STONE_LIGHT.darkened(0.25))
 	if shutters:
 		batch.box(Vector3(x - width * 0.75, y, 0.05), Vector3(width * 0.45, height + 0.1, 0.05), Palette.SLATE)
@@ -79,14 +81,16 @@ static func window_grid(
 
 
 ## Puerta con su marco, montante iluminado y escalón. Las medidas son la variante y el color de la
-## hoja, su tinte.
+## hoja, su tinte. El marco sobresale 13 cm de la fachada: 2 cm más que el zócalo de `body` (11 cm).
+## Antes sobresalía lo mismo que el zócalo y sus caras frontales compartían plano: las franjas del
+## marco junto a la hoja parpadeaban al caminar (z-fighting) en el archivo y en el café.
 static func door(location: LocationBase, x: float, width: float, height: float, color: Color) -> void:
 	var procedural := func(tint: Color) -> void: _door_mesh(location.batch, x, width, height, tint)
 	ModelCatalog.draw(location, "puerta", Transform3D(Basis.IDENTITY, Vector3(x, 0.0, 0.0)), procedural, ModelCatalog.size_key(Vector2(width, height)), color)
 
 
 static func _door_mesh(batch: MeshBatcher, x: float, width: float, height: float, color: Color) -> void:
-	batch.box(Vector3(x, height * 0.5 + 0.1, 0.05), Vector3(width + 0.36, height + 0.3, 0.12), Palette.STONE_LIGHT.darkened(0.15))
+	batch.box(Vector3(x, height * 0.5 + 0.1, 0.06), Vector3(width + 0.36, height + 0.3, 0.14), Palette.STONE_LIGHT.darkened(0.15))
 	batch.box(Vector3(x, height * 0.5, 0.1), Vector3(width, height, 0.08), color)
 	batch.box(Vector3(x, height * 0.72, 0.15), Vector3(width * 0.6, height * 0.3, 0.02), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
 	batch.box(Vector3(x + width * 0.35, height * 0.45, 0.17), Vector3(0.07, 0.07, 0.06), Palette.AMBER)

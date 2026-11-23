@@ -357,8 +357,9 @@ static func _back_window_mesh(batch: MeshBatcher, where: Vector3, size: Vector2,
 	var outward := Basis(Vector3.UP, yaw) * Vector3(0.0, 0.0, 0.04)
 	batch.box(where, Vector3(size.x + 0.2, size.y + 0.2, 0.06), Palette.WOOD_DARK, yaw)
 	batch.box(where + outward, Vector3(size.x, size.y, 0.02), Color("4a6585"), yaw, MeshBatcher.Layer.GLOW)
+	# Travesaño medio centímetro por delante del parteluz, para que el cruce no parpadee.
 	batch.box(where + outward * 2.0, Vector3(0.05, size.y, 0.02), Palette.WOOD_DARK, yaw)
-	batch.box(where + outward * 2.0, Vector3(size.x, 0.05, 0.02), Palette.WOOD_DARK, yaw)
+	batch.box(where + outward * 2.25, Vector3(size.x, 0.05, 0.02), Palette.WOOD_DARK, yaw)
 
 
 static func plant(location: LocationBase, where: Vector3) -> void:

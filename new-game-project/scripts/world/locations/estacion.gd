@@ -83,9 +83,10 @@ func _build_station_house() -> void:
 	BuildingKit.body(self, 10.5, 4.6, 6.0, Palette.PLASTER_WARM, Palette.ROOF_RED, 2.0)
 	BuildingKit.window(self, -3.8, 2.1, 1.2, 1.7, true)
 	BuildingKit.window(self, 3.8, 2.1, 1.2, 1.7, false)
-	# Taquilla con su ventanilla, su repisa y los tableros de los rótulos.
+	# Taquilla con su ventanilla, su repisa y los tableros de los rótulos. El marco sobresale 13 cm,
+	# más que el zócalo (11 cm): con la misma medida, sus caras frontales se pisaban y parpadeaban.
 	ModelCatalog.draw(self, "taquilla", Transform3D.IDENTITY, func(_tint: Color) -> void:
-		batch.box(Vector3(0.0, 1.6, 0.05), Vector3(3.2, 2.2, 0.12), Palette.WOOD_DARK)
+		batch.box(Vector3(0.0, 1.6, 0.06), Vector3(3.2, 2.2, 0.14), Palette.WOOD_DARK)
 		batch.box(Vector3(0.0, 1.7, 0.12), Vector3(2.2, 1.1, 0.04), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
 		batch.box(Vector3(0.0, 1.02, 0.34), Vector3(3.0, 0.08, 0.56), Palette.WOOD_LIGHT)
 		batch.box(Vector3(0.0, 3.1, 0.1), Vector3(3.6, 0.5, 0.06), Palette.WOOD_DARK)
