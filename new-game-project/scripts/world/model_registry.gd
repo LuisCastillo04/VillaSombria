@@ -16,7 +16,8 @@ const MODELS := {
 	"barril": {"categoria": "atrezo", "objeto": "Barril", "fiel": true},
 	"caja": {"categoria": "atrezo", "objeto": "Caja", "fiel": true},
 	"mesa_cafe": {"categoria": "atrezo", "objeto": "MesaCafe", "fiel": true},
-},
+	# Mobiliario (InteriorKit)
+	"silla": {"categoria": "mobiliario", "objeto": "Silla", "fiel": true},
 	"sillon": {"categoria": "mobiliario", "objeto": "Sillon", "fiel": true},
 	"sofa": {"categoria": "mobiliario", "objeto": "Sofa", "fiel": true},
 	"mesa": {"categoria": "mobiliario", "objeto": "Mesa", "fiel": true},

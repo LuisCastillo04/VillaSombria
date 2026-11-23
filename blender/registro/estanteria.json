@@ -1,0 +1,93 @@
+{
+	"id": "estanteria",
+	"blend": "blender/fuentes/mobiliario/estanteria.blend",
+	"glb": "new-game-project/assets/modelos/mobiliario/estanteria.glb",
+	"fecha": "2026-11-23T01:54:36",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 5748,
+	"objetos": {
+		"Estanteria_300x200": {
+			"triangulos": 1044,
+			"caja_godot": {
+				"min": [
+					-1.54,
+					0.0,
+					-0.1
+				],
+				"max": [
+					1.54,
+					2.175,
+					0.35
+				]
+			}
+		},
+		"Estanteria_300x250": {
+			"triangulos": 1296,
+			"caja_godot": {
+				"min": [
+					-1.54,
+					0.0,
+					-0.1
+				],
+				"max": [
+					1.54,
+					2.675,
+					0.35
+				]
+			}
+		},
+		"Estanteria_320x260": {
+			"triangulos": 1356,
+			"caja_godot": {
+				"min": [
+					-1.64,
+					0.0,
+					-0.1
+				],
+				"max": [
+					1.64,
+					2.675,
+					0.35
+				]
+			}
+		},
+		"Estanteria_400x300": {
+			"triangulos": 2052,
+			"caja_godot": {
+				"min": [
+					-2.04,
+					0.0,
+					-0.1
+				],
+				"max": [
+					2.04,
+					3.175,
+					0.35
+				]
+			}
+		}
+	},
+	"sha256": "41c2246891956c8d061a038b6de25d1a345518483b64261f7c13662a191f9ddb",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}
