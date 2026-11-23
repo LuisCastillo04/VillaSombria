@@ -7,11 +7,11 @@ El detalle de cada decisión está en los documentos numerados de esta carpeta.
 
 | Dato | Valor |
 | --- | --- |
-| Sesión | 2 terminada; siguiente: 3 — arquitectura reutilizable |
-| Rama | `feature/blender-prototipo-buzon` (cerrada) → `feature/blender-arquitectura` |
-| Último commit válido | `1faa819` test(modelos): liberar los nodos de prueba de test_models (+ este registro) |
-| Fase | Sesión 2 verificada en copia limpia (`verificar.ps1 -ConVentana`) |
-| Próxima acción | Sesión 3: registro con variantes y tinte, captura de referencias desde los escenarios, `validar_modelos`, `migrar.py` |
+| Sesión | 3 terminada; siguiente: 4 — objetos y mobiliario |
+| Rama | `feature/blender-arquitectura` (cerrada) → `feature/blender-objetos` |
+| Último commit válido | `3c5cf14` docs(blender): contrato de compatibilidad y guía del sistema de modelos (+ este registro) |
+| Fase | Sesión 3 validada: 542 pruebas correctas |
+| Próxima acción | Sesión 4: refactorizar el mobiliario de InteriorKit y barril/caja/mesa de terraza con ModelCatalog.draw, registrarlos y `python blender/scripts/migrar.py` |
 
 Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exteriores) → 7 (personajes) →
 8 (integración), cada una en su rama creada desde la anterior. Ver [06-plan-migracion.md](06-plan-migracion.md).
@@ -41,7 +41,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | --- | --- | --- | --- |
 | 1 | `feature/blender-auditoria` | Terminada | `fec1bfa` (+ `3090bad` MCP) |
 | 2 | `feature/blender-prototipo-buzon` | Terminada y verificada | `1faa819` (+ registro) |
-| 3 | `feature/blender-arquitectura` | Pendiente | — |
+| 3 | `feature/blender-arquitectura` | Terminada y validada | `3c5cf14` (+ registro) |
 | 4 | `feature/blender-objetos` | Pendiente | — |
 | 5 | `feature/blender-interiores` | Pendiente | — |
 | 6 | `feature/blender-exteriores` | Pendiente | — |
@@ -60,6 +60,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
    en lineal los oscuros perdían hasta 4/255). `ModelCatalog` no convierte.
 4. **Referencias en JSON** (polígonos reales) en lugar de un GLB exportado por Godot.
 5. **Importación de GLB** sin LOD, mallas de sombra ni tangentes.
+6. **Sesión 3:** `ModelCatalog.draw(location, id, colocación, procedural, variante, tinte)`; registro en `ModelRegistry`; variantes = objetos de un mismo GLB (origen = pivote; posición en el .blend ignorada); tinte con `vs_tinte` (factor × color del kit); referencias capturadas desde los escenarios reales; `validar_modelos` y `migrar.py`. Detalle en 09-sistema-de-modelos.md
 
 ## Pruebas
 
@@ -70,6 +71,7 @@ Encargo vigente (2026-11-23): sesiones 2 → 3 → 4 → 5 y después 6 (exterio
 | Cierre de la sesión 2 (`aa20034`, carpeta de trabajo) | 538 correctas, 0 con fallos |
 | `verificar.ps1 -ConVentana` en copia limpia de `3831ad3` | Todo correcto salvo «Pruebas automatizadas»: 538 correctas, pero dos pruebas de `test_models` no liberaban un nodo y Godot avisaba de RID sin liberar al cerrar. Corregido en `1faa819` |
 | Paso de pruebas repetido en copia limpia de `1faa819` | **538 correctas, 0 con fallos, sin líneas `ERROR:`** (código 0) |
+| Cierre de la sesión 3 (`3c5cf14`, carpeta de trabajo) | 542 correctas, 0 con fallos, sin `ERROR:` |
 
 Ruido entre dos capturas idénticas de la plaza (lluvia y grano): media 4,4 por píxel, máximo 185.
 Las comparaciones exactas se hacen con la geometría (pruebas), no con píxeles.
