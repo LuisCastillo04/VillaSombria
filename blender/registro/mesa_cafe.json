@@ -1,0 +1,48 @@
+{
+	"id": "mesa_cafe",
+	"blend": "blender/fuentes/atrezo/mesa_cafe.blend",
+	"glb": "new-game-project/assets/modelos/atrezo/mesa_cafe.glb",
+	"fecha": "2026-11-23T01:54:30",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 136,
+	"objetos": {
+		"MesaCafe": {
+			"triangulos": 136,
+			"caja_godot": {
+				"min": [
+					-0.82567,
+					0.0,
+					-0.4745
+				],
+				"max": [
+					0.81186,
+					0.76,
+					0.50107
+				]
+			}
+		}
+	},
+	"sha256": "6a275cb7c5ed8ab2e116b416f48757c3441751e0ef9a8795131ae9f6edab6c38",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

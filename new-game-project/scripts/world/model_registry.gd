@@ -13,4 +13,23 @@ extends RefCounted
 const MODELS := {
 	# Atrezo (PropsKit)
 	"buzon": {"categoria": "atrezo", "objeto": "Buzon", "fiel": true},
+	"barril": {"categoria": "atrezo", "objeto": "Barril", "fiel": true},
+	"caja": {"categoria": "atrezo", "objeto": "Caja", "fiel": true},
+	"mesa_cafe": {"categoria": "atrezo", "objeto": "MesaCafe", "fiel": true},
+},
+	"sillon": {"categoria": "mobiliario", "objeto": "Sillon", "fiel": true},
+	"sofa": {"categoria": "mobiliario", "objeto": "Sofa", "fiel": true},
+	"mesa": {"categoria": "mobiliario", "objeto": "Mesa", "fiel": true},
+	"escritorio": {"categoria": "mobiliario", "objeto": "Escritorio", "fiel": true},
+	"estanteria": {"categoria": "mobiliario", "objeto": "Estanteria", "fiel": true},
+	"archivador": {"categoria": "mobiliario", "objeto": "Archivador", "fiel": true},
+	"chimenea": {"categoria": "mobiliario", "objeto": "Chimenea", "fiel": true},
+	"lampara_pie": {"categoria": "mobiliario", "objeto": "LamparaPie", "fiel": true},
+	"lampara_techo": {"categoria": "mobiliario", "objeto": "LamparaTecho", "fiel": true},
+	"cama": {"categoria": "mobiliario", "objeto": "Cama", "fiel": true},
+	"comoda": {"categoria": "mobiliario", "objeto": "Comoda", "fiel": true},
+	"cuadro": {"categoria": "mobiliario", "objeto": "Cuadro", "fiel": true},
+	"ventana_interior": {"categoria": "mobiliario", "objeto": "VentanaInterior", "fiel": true},
+	"planta": {"categoria": "mobiliario", "objeto": "Planta", "fiel": true},
+	"reloj_pie": {"categoria": "mobiliario", "objeto": "RelojPie", "fiel": true},
 }

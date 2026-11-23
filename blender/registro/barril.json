@@ -1,0 +1,48 @@
+{
+	"id": "barril",
+	"blend": "blender/fuentes/atrezo/barril.blend",
+	"glb": "new-game-project/assets/modelos/atrezo/barril.glb",
+	"fecha": "2026-11-23T01:54:28",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 84,
+	"objetos": {
+		"Barril": {
+			"triangulos": 84,
+			"caja_godot": {
+				"min": [
+					-0.38,
+					0.0,
+					-0.38
+				],
+				"max": [
+					0.38,
+					0.9,
+					0.38
+				]
+			}
+		}
+	},
+	"sha256": "c6d2cdfc1ceee6c3c127c7584ad6b7026b7ca5f4e9d599a923db31330dc844e2",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}
