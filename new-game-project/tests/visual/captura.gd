@@ -38,6 +38,13 @@ extends Node
 ##   --relacionar          con --open=board y --seleccion, pulsa «Relacionar»
 ##   --editar=id           con --open=board, abre la hipótesis de ese sospechoso
 ##   --desplegar           con --editar, despliega el selector de valoración
+##   --borrador=campo=id,...  con --open=accusation, rellena antes el borrador de la acusación
+##                         (campos suspect, motive, opportunity y means)
+##   --campo=clave         con --open=accusation, abre la lista de ese campo (suspect despliega
+##                         los sospechosos; motive, opportunity o means, el panel lateral)
+##   --buscar=texto        con --campo, escribe en el buscador del panel (_ por espacios)
+##   --bajar=N             con --campo, baja N filas con la flecha, como el teclado
+##   --presentar           con --open=accusation, presenta la acusación (Ortega responde)
 ##   --menu                captura el menú principal en lugar de la partida
 ##                         (con --open=load, la lista de partidas con ejemplos;
 ##                         con --open=settings:n o --open=credits, esos paneles)
@@ -207,7 +214,32 @@ func _open_panel(game: Game, what: String) -> void:
 					if option != null:
 						option.show_popup()
 		"accusation":
-			game.get_node("AccusationUi").open()
+			var accusation: AccusationUi = game.get_node("AccusationUi")
+			var args := _parse_args()
+			if args.has("borrador"):
+				for entry: String in (args["borrador"] as String).split(","):
+					var pair := entry.split("=")
+					Investigation.set_accusation_choice(pair[0], pair[1])
+			accusation.open()
+			if args.has("presentar"):
+				await _wait_seconds(0.4)
+				accusation.present()
+			if args.has("campo"):
+				await _wait_seconds(0.4)
+				accusation.open_field(args["campo"])
+				if args.has("buscar"):
+					await _wait_seconds(0.4)
+					accusation.get_panel().set_query(String(args["buscar"]).replace("_", " "))
+				if args.has("bajar"):
+					for step in int(args["bajar"]):
+						var down := InputEventAction.new()
+						down.action = "ui_down"
+						down.pressed = true
+						game.get_viewport().push_input(down)
+						await get_tree().process_frame
+						down.pressed = false
+						game.get_viewport().push_input(down)
+						await get_tree().process_frame
 		"pause":
 			game.get_node("PauseMenu").open()
 		"settings", "controls":

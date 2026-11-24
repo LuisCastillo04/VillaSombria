@@ -44,6 +44,10 @@ func _save_phase() -> void:
 	GameState.asked_topics["elena/coartada"] = true
 	GameState.hypotheses["marcos"] = {"status": "sospechoso", "note": "Miente sobre la hora"}
 	GameState.accusation_attempts = 1
+	# Borrador a medias de la acusación: sin motivo todavía.
+	Investigation.set_accusation_choice("suspect", "irene")
+	Investigation.set_accusation_choice("opportunity", "lista_invitados")
+	Investigation.set_accusation_choice("means", "reloj_despacho")
 	GameClock.advance(95)
 	GameState.play_seconds = 1234.5
 	game.player.teleport(game.player.global_position + Vector3(1.2, 0.0, -1.5), 2.0)
@@ -105,6 +109,14 @@ func _check_phase() -> void:
 	check_equal(GameState.accusation_attempts, 1, "intentos de acusación")
 	check(GameState.play_seconds >= 1234.5, "tiempo jugado")
 	check(not SaveSystem.has_unsaved_progress(), "recién cargada no hay progreso sin guardar")
+	var draft := Investigation.get_accusation_draft()
+	check_equal(draft, {"suspect": "irene", "motive": "", "opportunity": "lista_invitados", "means": "reloj_despacho"}, "borrador de la acusación")
+	var accusation: AccusationUi = game.get_node("AccusationUi")
+	accusation.open()
+	check_equal(accusation.get_field_text("suspect"), "Irene Vidal", "la hoja recupera al sospechoso")
+	check_equal(accusation.get_field_text("opportunity"), "Lista de invitados", "y las pruebas elegidas")
+	check(not accusation.get_field("motive").is_filled(), "el motivo sigue pendiente")
+	accusation.close()
 	game.queue_free()
 	await get_tree().process_frame
 	TestCase.clear_save_storage()
