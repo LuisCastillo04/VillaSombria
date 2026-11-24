@@ -27,6 +27,32 @@ const PLANTER_FLOWERS: Array[Vector2] = [
 	Vector2(36.0, 0.74), Vector2(108.0, 0.72), Vector2(180.0, 0.74), Vector2(252.0, 0.72), Vector2(324.0, 0.74),
 ]
 
+## Alcorque cuadrado a ras del suelo (`tree_pit`): lado, bordillo (ancho y alto) y altura de la tierra.
+const TREE_PIT_SIZE := 1.4
+const TREE_PIT_CURB := 0.12
+const TREE_PIT_CURB_HEIGHT := 0.06
+const TREE_PIT_SOIL := 0.035
+const TREE_PIT_COLLISION_HEIGHT := 0.8
+## Hojas caídas sobre la tierra: x, z (metros desde el centro) y giro (grados).
+const TREE_PIT_LEAVES: Array[Vector3] = [
+	Vector3(-0.38, 0.22, 20.0), Vector3(0.31, 0.36, -35.0), Vector3(0.42, -0.18, 70.0),
+	Vector3(-0.2, -0.41, -10.0), Vector3(0.05, 0.47, 45.0), Vector3(-0.45, -0.05, 100.0),
+]
+const TREE_PIT_LEAF_COLORS: Array[Color] = [Color("8a5a24"), Color("7a3a24"), Color("a8782e")]
+
+## Parterre alargado (`shrub_bed`): ancho, muro, altura, tierra, separación entre arbustos y colisión.
+const SHRUB_BED_WIDTH := 0.7
+const SHRUB_BED_WALL := 0.1
+const SHRUB_BED_HEIGHT := 0.3
+const SHRUB_BED_SOIL := 0.24
+const SHRUB_BED_SPACING := 0.62
+const SHRUB_BED_COLLISION_HEIGHT := 0.8
+
+## Valla de obras (`work_barrier`): largo del tablero, inclinación de las patas y amarillo de aviso.
+const BARRIER_LENGTH := 1.3
+const BARRIER_LEG_ANGLE := 0.28
+const BARRIER_YELLOW := Color("d9a521")
+
 
 static func street_lamp(location: LocationBase, where: Vector3, shadows: bool = false) -> void:
 	var procedural := func(_tint: Color) -> void: _street_lamp_mesh(location.batch, where)
@@ -143,6 +169,117 @@ static func _octagon_ring(batch: MeshBatcher, center: Vector3, outer: float, inn
 	for index in 8:
 		var next := (index + 1) % 8
 		batch.face(PackedVector3Array([outside[index], outside[next], inside[next], inside[index]]), color, Vector3.UP)
+
+
+## Alcorque a ras del suelo para un árbol del empedrado: bordillo bajo de piedra, tierra y unas
+## hojas caídas. Devuelve el pie del tronco (el árbol se planta ahí: la tierra, 3,5 cm más arriba,
+## lo tapa sin compartir plano con nada). La colisión cubre el alcorque entero: se rodea, no se pisa.
+static func tree_pit(location: LocationBase, where: Vector3) -> Vector3:
+	var procedural := func(_tint: Color) -> void: _tree_pit_mesh(location.batch, where)
+	ModelCatalog.draw(location, "alcorque", Transform3D(Basis.IDENTITY, where), procedural)
+	location.collider(where + Vector3.UP * TREE_PIT_COLLISION_HEIGHT * 0.5, Vector3(TREE_PIT_SIZE, TREE_PIT_COLLISION_HEIGHT, TREE_PIT_SIZE))
+	return where
+
+
+## El bordillo son cuatro piezas que no se solapan (las largas cubren las esquinas): ninguna cara
+## visible comparte plano con otra. La tierra queda por encima del empedrado de la plaza (1 cm).
+static func _tree_pit_mesh(batch: MeshBatcher, where: Vector3) -> void:
+	var half := TREE_PIT_SIZE * 0.5
+	var inner := half - TREE_PIT_CURB
+	var curb_y := TREE_PIT_CURB_HEIGHT * 0.5
+	for side: float in [-1.0, 1.0]:
+		batch.box(where + Vector3(0.0, curb_y, side * (half - TREE_PIT_CURB * 0.5)), Vector3(TREE_PIT_SIZE, TREE_PIT_CURB_HEIGHT, TREE_PIT_CURB), Palette.STONE)
+		batch.box(where + Vector3(side * (half - TREE_PIT_CURB * 0.5), curb_y, 0.0), Vector3(TREE_PIT_CURB, TREE_PIT_CURB_HEIGHT, inner * 2.0), Palette.STONE)
+	var soil := PackedVector3Array([
+		where + Vector3(-inner, TREE_PIT_SOIL, -inner), where + Vector3(inner, TREE_PIT_SOIL, -inner),
+		where + Vector3(inner, TREE_PIT_SOIL, inner), where + Vector3(-inner, TREE_PIT_SOIL, inner),
+	])
+	batch.face(soil, PLANTER_SOIL_COLOR, Vector3.UP)
+	for index in TREE_PIT_LEAVES.size():
+		var leaf := TREE_PIT_LEAVES[index]
+		var color: Color = TREE_PIT_LEAF_COLORS[index % TREE_PIT_LEAF_COLORS.size()]
+		batch.box(where + Vector3(leaf.x, TREE_PIT_SOIL + 0.004, leaf.y), Vector3(0.11, 0.008, 0.07), color, deg_to_rad(leaf.z))
+
+
+## Parterre alargado de piedra con una fila de arbustos redondos. `center` es el centro de su base
+## y el largo va por el eje X local (`yaw_degrees` lo gira). El largo es la variante del modelo.
+static func shrub_bed(location: LocationBase, center: Vector3, length: float, yaw_degrees: float = 0.0) -> void:
+	var previous := location.batch.xform
+	location.batch.xform = previous * Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_degrees)), center)
+	var procedural := func(_tint: Color) -> void: _shrub_bed_mesh(location.batch, length)
+	ModelCatalog.draw(location, "parterre", Transform3D.IDENTITY, procedural, ModelCatalog.size_key(length))
+	location.collider(Vector3(0.0, SHRUB_BED_COLLISION_HEIGHT * 0.5, 0.0), Vector3(length, SHRUB_BED_COLLISION_HEIGHT, SHRUB_BED_WIDTH))
+	location.batch.xform = previous
+
+
+## Muretes que no se solapan (los largos cubren las esquinas), tierra hundida 6 cm y arbustos
+## repartidos a lo largo, con tamaños y desvíos fijos para que no parezcan copiados.
+static func _shrub_bed_mesh(batch: MeshBatcher, length: float) -> void:
+	var half_width := SHRUB_BED_WIDTH * 0.5
+	var wall := SHRUB_BED_WALL
+	var y := SHRUB_BED_HEIGHT * 0.5
+	for side: float in [-1.0, 1.0]:
+		batch.box(Vector3(0.0, y, side * (half_width - wall * 0.5)), Vector3(length, SHRUB_BED_HEIGHT, wall), Palette.STONE)
+		batch.box(Vector3(side * (length * 0.5 - wall * 0.5), y, 0.0), Vector3(wall, SHRUB_BED_HEIGHT, SHRUB_BED_WIDTH - wall * 2.0), Palette.STONE)
+	var inner := Vector2(length * 0.5 - wall, half_width - wall)
+	batch.face(PackedVector3Array([
+		Vector3(-inner.x, SHRUB_BED_SOIL, -inner.y), Vector3(inner.x, SHRUB_BED_SOIL, -inner.y),
+		Vector3(inner.x, SHRUB_BED_SOIL, inner.y), Vector3(-inner.x, SHRUB_BED_SOIL, inner.y),
+	]), PLANTER_SOIL_COLOR, Vector3.UP)
+	var count := maxi(1, roundi((length - wall * 2.0) / SHRUB_BED_SPACING))
+	var step := (length - wall * 2.0) / float(count)
+	for index in count:
+		var x := -length * 0.5 + wall + step * (float(index) + 0.5)
+		var radius := 0.27 + 0.04 * float((index * 5) % 3)
+		var drift := 0.05 * float((index * 7) % 3 - 1)
+		var color := PLANTER_BUSH_COLOR if index % 2 == 0 else Palette.FOLIAGE_LIGHT
+		batch.sphere(Vector3(x, SHRUB_BED_SOIL + radius * 0.55, drift), radius, color, 6, 4, Vector3(1.0, 0.85, 1.0))
+
+
+## Valla de obras: tablero con franjas negras y amarillas sobre dos caballetes de madera. `where`
+## es el centro de su base; el tablero va por el eje X local.
+static func work_barrier(location: LocationBase, where: Vector3, yaw_degrees: float = 0.0) -> void:
+	var previous := location.batch.xform
+	location.batch.xform = previous * Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_degrees)), where)
+	var procedural := func(_tint: Color) -> void: _work_barrier_mesh(location.batch)
+	ModelCatalog.draw(location, "valla_obras", Transform3D.IDENTITY, procedural)
+	location.collider(Vector3(0.0, 0.5, 0.0), Vector3(BARRIER_LENGTH + 0.1, 1.0, 0.6))
+	location.batch.xform = previous
+
+
+static func _work_barrier_mesh(batch: MeshBatcher) -> void:
+	var half := BARRIER_LENGTH * 0.5
+	var board_y := 0.82
+	var board := Vector2(BARRIER_LENGTH, 0.2)
+	batch.box(Vector3(0.0, board_y, 0.0), Vector3(board.x, board.y, 0.04), Palette.INK)
+	# Franjas amarillas inclinadas, recortadas al tablero, por delante y por detrás (1 mm de aire).
+	var rect := PackedVector2Array([
+		Vector2(-half, board_y - board.y * 0.5), Vector2(half, board_y - board.y * 0.5),
+		Vector2(half, board_y + board.y * 0.5), Vector2(-half, board_y + board.y * 0.5),
+	])
+	var stripe := 0.12
+	var x := -half - board.y
+	while x < half:
+		var band := PackedVector2Array([
+			Vector2(x, board_y - board.y * 0.5), Vector2(x + stripe, board_y - board.y * 0.5),
+			Vector2(x + stripe + board.y, board_y + board.y * 0.5), Vector2(x + board.y, board_y + board.y * 0.5),
+		])
+		for piece: PackedVector2Array in Geometry2D.intersect_polygons(band, rect):
+			for z: float in [0.021, -0.021]:
+				var points := PackedVector3Array()
+				for point in piece:
+					points.append(Vector3(point.x, point.y, z))
+				batch.face(points, BARRIER_YELLOW, Vector3.BACK if z > 0.0 else Vector3.FORWARD)
+		x += stripe * 2.0
+	# Caballetes: dos patas abiertas en cada extremo, unidas por un travesaño bajo.
+	var saved := batch.xform
+	for leg_x: float in [-half + 0.12, half - 0.12]:
+		for side: float in [-1.0, 1.0]:
+			batch.xform = saved * Transform3D(Basis(Vector3.RIGHT, -side * BARRIER_LEG_ANGLE), Vector3(leg_x, 0.0, side * 0.24))
+			batch.box(Vector3(0.0, 0.42, 0.0), Vector3(0.05, 0.86, 0.04), Palette.WOOD_LIGHT)
+		batch.xform = saved
+		batch.box(Vector3(leg_x, 0.3, 0.0), Vector3(0.04, 0.05, 0.32), Palette.WOOD)
+	batch.xform = saved
 
 
 static func hedge(location: LocationBase, center: Vector3, size: Vector3) -> void:

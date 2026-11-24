@@ -8,6 +8,13 @@ const WALL_DARK := Color("3a2e2c")
 const FABRIC := Color("5a2a30")
 ## Mesilla de noche del cuarto de Lucía (centro de su base).
 const LUCIA_NIGHTSTAND := Vector3(-13.45, 0.0, 5.45)
+## Sala del salón: el sofá mira hacia +X y el sillón, al otro lado de la mesa baja, hacia −X. Así
+## se miran de frente, con casi un metro libre entre cada uno y la mesa. Antes el sillón estaba en
+## (2,8; −3,0) mirando hacia la cámara, de lado respecto al sofá.
+const SALON_SOFA := Vector3(-1.2, 0.0, -5.2)
+const SALON_TABLE := Vector3(0.9, 0.0, -5.2)
+const SALON_ARMCHAIR := Vector3(3.0, 0.0, -5.2)
+const SALON_ARMCHAIR_YAW := -90.0
 
 
 func build() -> void:
@@ -61,9 +68,9 @@ func _build_salon() -> void:
 	InteriorKit.fireplace(self, Vector3(3.2, 0.0, -8.6))
 	InteriorKit.painting(self, Vector3(3.2, 2.9, -8.85), Vector2(1.7, 1.0), Color("3c4a44"))
 	InteriorKit.back_window(self, Vector3(-2.6, 2.1, -8.86), Vector2(1.5, 2.1))
-	InteriorKit.sofa(self, Vector3(-1.2, 0.0, -5.2), 90.0, FABRIC)
-	InteriorKit.armchair(self, Vector3(2.8, 0.0, -3.0), 0.0, FABRIC.darkened(0.15))
-	InteriorKit.table(self, Vector3(0.9, 0.0, -5.2), Vector3(1.3, 0.42, 0.8), Palette.WOOD_DARK)
+	InteriorKit.sofa(self, SALON_SOFA, 90.0, FABRIC)
+	InteriorKit.armchair(self, SALON_ARMCHAIR, SALON_ARMCHAIR_YAW, FABRIC.darkened(0.15))
+	InteriorKit.table(self, SALON_TABLE, Vector3(1.3, 0.42, 0.8), Palette.WOOD_DARK)
 	InteriorKit.floor_lamp(self, Vector3(-4.2, 0.0, -2.2))
 	InteriorKit.ceiling_lamp(self, Vector3(0.6, 3.0, -4.6), 4.2, 10.0, true)
 	InteriorKit.plant(self, Vector3(5.2, 0.0, -8.2))
@@ -182,9 +189,10 @@ func _register_points() -> void:
 	face_marker("salon_chimenea", Vector3(3.2, 0.0, -8.6))
 	add_marker("salon_ventana", Vector3(-3.5, 0.0, -7.4))
 	face_marker("salon_ventana", Vector3(-2.6, 0.0, -9.0))
-	# Lado este del salón, lejos de la ventana de Irene y de la chimenea de Marcos.
+	# Lado este del salón, lejos de la ventana de Irene y de la chimenea de Marcos, tras el sillón y
+	# mirando a la sala.
 	add_marker("salon_este", Vector3(4.6, 0.0, -5.6))
-	face_marker("salon_este", Vector3(2.8, 0.0, -3.0))
+	face_marker("salon_este", SALON_TABLE)
 	add_marker("alcoba_elena", Vector3(-9.5, 0.0, -4.6))
 	face_marker("alcoba_elena", Vector3(-9.6, 0.0, -9.0))
 	add_marker("cuarto_lucia", Vector3(-8.0, 0.0, 5.6))

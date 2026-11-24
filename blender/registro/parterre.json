@@ -1,0 +1,153 @@
+{
+	"id": "parterre",
+	"blend": "blender/fuentes/atrezo/parterre.blend",
+	"glb": "new-game-project/assets/modelos/atrezo/parterre.glb",
+	"fecha": "2026-11-23T16:15:09",
+	"blender": "5.3.0",
+	"exportador_gltf": "5.3.43",
+	"triangulos": 4072,
+	"objetos": {
+		"Parterre_1000": {
+			"triangulos": 626,
+			"caja_godot": {
+				"min": [
+					-5.0,
+					0.0,
+					-0.35
+				],
+				"max": [
+					5.0,
+					0.73,
+					0.35
+				]
+			}
+		},
+		"Parterre_1320": {
+			"triangulos": 806,
+			"caja_godot": {
+				"min": [
+					-6.6,
+					0.0,
+					-0.35
+				],
+				"max": [
+					6.6,
+					0.73,
+					0.35
+				]
+			}
+		},
+		"Parterre_1500": {
+			"triangulos": 914,
+			"caja_godot": {
+				"min": [
+					-7.5,
+					0.0,
+					-0.35
+				],
+				"max": [
+					7.5,
+					0.73,
+					0.35
+				]
+			}
+		},
+		"Parterre_360": {
+			"triangulos": 230,
+			"caja_godot": {
+				"min": [
+					-1.8,
+					0.0,
+					-0.35
+				],
+				"max": [
+					1.8,
+					0.73,
+					0.35
+				]
+			}
+		},
+		"Parterre_400": {
+			"triangulos": 266,
+			"caja_godot": {
+				"min": [
+					-2.0,
+					0.0,
+					-0.35
+				],
+				"max": [
+					2.0,
+					0.73,
+					0.35
+				]
+			}
+		},
+		"Parterre_500": {
+			"triangulos": 338,
+			"caja_godot": {
+				"min": [
+					-2.5,
+					0.0,
+					-0.35
+				],
+				"max": [
+					2.5,
+					0.73,
+					0.35
+				]
+			}
+		},
+		"Parterre_600": {
+			"triangulos": 374,
+			"caja_godot": {
+				"min": [
+					-3.0,
+					0.0,
+					-0.35
+				],
+				"max": [
+					3.0,
+					0.73,
+					0.35
+				]
+			}
+		},
+		"Parterre_800": {
+			"triangulos": 518,
+			"caja_godot": {
+				"min": [
+					-4.0,
+					0.0,
+					-0.35
+				],
+				"max": [
+					4.0,
+					0.73,
+					0.35
+				]
+			}
+		}
+	},
+	"sha256": "21fe749f34a12e704257b2e0cda34777b8ca6cd68c91d95c587676b73ec17617",
+	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
+	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
+	"opciones": {
+		"export_format": "GLB",
+		"use_active_collection": true,
+		"use_active_collection_with_nested": true,
+		"export_yup": true,
+		"export_apply": true,
+		"export_normals": true,
+		"export_vertex_color": "ACTIVE",
+		"export_texcoords": true,
+		"export_all_vertex_colors": false,
+		"export_materials": "EXPORT",
+		"export_image_format": "NONE",
+		"export_lights": false,
+		"export_cameras": false,
+		"export_extras": false,
+		"export_animations": false,
+		"export_skins": false,
+		"export_morph": false
+	}
+}

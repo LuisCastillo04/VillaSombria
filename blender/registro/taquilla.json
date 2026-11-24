@@ -2,7 +2,7 @@
 	"id": "taquilla",
 	"blend": "blender/fuentes/escenario/taquilla.blend",
 	"glb": "new-game-project/assets/modelos/escenario/taquilla.glb",
-	"fecha": "2026-11-23T02:32:05",
+	"fecha": "2026-11-23T15:58:05",
 	"blender": "5.3.0",
 	"exportador_gltf": "5.3.43",
 	"triangulos": 60,
@@ -23,7 +23,7 @@
 			}
 		}
 	},
-	"sha256": "e107a71ad20370856f661b48308270af77def5009b500ad2b650314515ab0803",
+	"sha256": "09a410c71b20cb646704a4d16abf28cffb95ff749241cf4cb09868542a94ed61",
 	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
 	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
 	"opciones": {

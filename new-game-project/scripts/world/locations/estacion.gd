@@ -5,6 +5,16 @@ extends LocationBase
 const PLATFORM_TINT := Color("c9c6c0")
 const STREET_TINT := Color("8f93a0")
 const VERGE_TINT := Color("3f4640")
+## Parterres con arbustos (PropsKit.shrub_bed): centro, largo y giro. Por dentro de los muretes este
+## y sur (junto al edificio y junto al seto de la calle) y a lo largo del borde del andén, detrás
+## de los bancos. Dejan libres las vías, el paso a la calle, la taquilla y los bancos.
+const SHRUB_BEDS: Array[Dictionary] = [
+	{"center": Vector3(21.5, 0.0, 2.0), "length": 10.0, "yaw": 90.0},
+	{"center": Vector3(-9.0, 0.0, 7.6), "length": 3.6, "yaw": 0.0},
+	{"center": Vector3(8.0, 0.0, 7.6), "length": 6.0, "yaw": 0.0},
+	{"center": Vector3(-6.0, 0.0, -3.55), "length": 4.0, "yaw": 0.0},
+	{"center": Vector3(7.0, 0.0, -3.55), "length": 5.0, "yaw": 0.0},
+]
 
 
 func build() -> void:
@@ -83,9 +93,10 @@ func _build_station_house() -> void:
 	BuildingKit.body(self, 10.5, 4.6, 6.0, Palette.PLASTER_WARM, Palette.ROOF_RED, 2.0)
 	BuildingKit.window(self, -3.8, 2.1, 1.2, 1.7, true)
 	BuildingKit.window(self, 3.8, 2.1, 1.2, 1.7, false)
-	# Taquilla con su ventanilla, su repisa y los tableros de los rótulos.
+	# Taquilla con su ventanilla, su repisa y los tableros de los rótulos. El marco sobresale 13 cm,
+	# más que el zócalo (11 cm): con la misma medida, sus caras frontales se pisaban y parpadeaban.
 	ModelCatalog.draw(self, "taquilla", Transform3D.IDENTITY, func(_tint: Color) -> void:
-		batch.box(Vector3(0.0, 1.6, 0.05), Vector3(3.2, 2.2, 0.12), Palette.WOOD_DARK)
+		batch.box(Vector3(0.0, 1.6, 0.06), Vector3(3.2, 2.2, 0.14), Palette.WOOD_DARK)
 		batch.box(Vector3(0.0, 1.7, 0.12), Vector3(2.2, 1.1, 0.04), Palette.WINDOW_WARM, 0.0, MeshBatcher.Layer.GLOW)
 		batch.box(Vector3(0.0, 1.02, 0.34), Vector3(3.0, 0.08, 0.56), Palette.WOOD_LIGHT)
 		batch.box(Vector3(0.0, 3.1, 0.1), Vector3(3.6, 0.5, 0.06), Palette.WOOD_DARK)
@@ -132,6 +143,8 @@ func _build_edges() -> void:
 	PropsKit.low_wall(self, Vector3(-2.2, 0.3, 8.2), Vector3(27.6, 0.6, 0.4))
 	PropsKit.low_wall(self, Vector3(22.2, 0.3, 3.0), Vector3(0.4, 0.6, 14.0))
 	PropsKit.hedge(self, Vector3(12.0, 0.4, 11.0), Vector3(0.7, 0.8, 6.0))
+	for bed: Dictionary in SHRUB_BEDS:
+		PropsKit.shrub_bed(self, bed["center"], bed["length"], bed["yaw"])
 	collider(Vector3(-16.0, 2.0, 2.0), Vector3(1.0, 4.0, 14.0))
 	collider(Vector3(17.0, 2.0, 14.5), Vector3(11.0, 4.0, 1.0))
 	collider(Vector3(23.0, 2.0, 10.0), Vector3(1.0, 4.0, 14.0))

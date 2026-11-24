@@ -2,7 +2,7 @@
 	"id": "verja_mansion",
 	"blend": "blender/fuentes/escenario/verja_mansion.blend",
 	"glb": "new-game-project/assets/modelos/escenario/verja_mansion.glb",
-	"fecha": "2026-11-23T02:31:55",
+	"fecha": "2026-11-23T16:08:43",
 	"blender": "5.3.0",
 	"exportador_gltf": "5.3.43",
 	"triangulos": 408,
@@ -11,7 +11,7 @@
 			"triangulos": 408,
 			"caja_godot": {
 				"min": [
-					-10.8,
+					-7.0,
 					0.0,
 					-0.55
 				],
@@ -23,7 +23,7 @@
 			}
 		}
 	},
-	"sha256": "53b59883d77b9fb8cf67b3a2cda3855a42140b5c72136789b4f5debbd98e752e",
+	"sha256": "d5d46b7527dbf8a54ba2cea89c2b6f727d63552640af3bec0ee44c0d85093375",
 	"color_de_vertice": "sRGB (codificado al exportar; el .blend lo guarda en lineal)",
 	"uv": "número de polígono (VS_Poligono), sólo para la variación de tono",
 	"opciones": {

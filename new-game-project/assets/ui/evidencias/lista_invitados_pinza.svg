@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="176" height="108" viewBox="0 0 176 108">
+  <!-- Pinza de latón que sujeta la lista de invitados, con las patillas abatidas sobre el cuerpo.
+       Va encima de lista_invitados.png (la coloca EvidenceGuestList) y tapa la pinza recortada
+       de la referencia. -->
+  <defs>
+    <linearGradient id="cuerpo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5e4422"/>
+      <stop offset="0.25" stop-color="#3d2b13"/>
+      <stop offset="0.8" stop-color="#2e200d"/>
+      <stop offset="1" stop-color="#1c1307"/>
+    </linearGradient>
+    <linearGradient id="brillo" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#000000" stop-opacity="0.35"/>
+      <stop offset="0.3" stop-color="#ffe2a6" stop-opacity="0.06"/>
+      <stop offset="0.5" stop-color="#ffe2a6" stop-opacity="0.18"/>
+      <stop offset="0.7" stop-color="#ffe2a6" stop-opacity="0.05"/>
+      <stop offset="1" stop-color="#000000" stop-opacity="0.32"/>
+    </linearGradient>
+    <linearGradient id="canto" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e9c983"/>
+      <stop offset="0.45" stop-color="#a98140"/>
+      <stop offset="1" stop-color="#4a3216"/>
+    </linearGradient>
+    <linearGradient id="labio" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b89052"/>
+      <stop offset="0.55" stop-color="#6e4f23"/>
+      <stop offset="1" stop-color="#24180a"/>
+    </linearGradient>
+  </defs>
+  <!-- Sombra sobre el papel, hacia abajo a la derecha. -->
+  <g fill="#1d1106">
+    <path d="M18 30 L174 30 L170 105 L26 105 Z" opacity="0.06"/>
+    <path d="M17 28 L172 28 L168 102 L24 102 Z" opacity="0.09"/>
+    <path d="M16 27 L170 27 L166 99 L22 99 Z" opacity="0.12"/>
+  </g>
+  <!-- Cuerpo. -->
+  <path d="M10 24 L166 24 L161 88 Q160 93 155 93 L21 93 Q16 93 15 88 Z" fill="url(#cuerpo)"/>
+  <path d="M10 24 L166 24 L161 88 Q160 93 155 93 L21 93 Q16 93 15 88 Z" fill="url(#brillo)"/>
+  <!-- Desgaste del latón. -->
+  <g fill="#c79c58" opacity="0.16">
+    <ellipse cx="50" cy="48" rx="16" ry="6"/>
+    <ellipse cx="122" cy="64" rx="20" ry="7"/>
+    <ellipse cx="88" cy="38" rx="9" ry="3"/>
+  </g>
+  <path d="M10 24 L166 24 L161 88 Q160 93 155 93 L21 93 Q16 93 15 88 Z" fill="none" stroke="#140c04" stroke-width="1.6"/>
+  <!-- Labio inferior, donde muerde el papel. -->
+  <path d="M15 85 L161 85 L160 91 Q159 96 154 96 L22 96 Q17 96 16 91 Z" fill="url(#labio)" stroke="#140c04" stroke-width="1"/>
+  <path d="M18 86.6 L158 86.6" stroke="#e0bb74" stroke-width="1.1" opacity="0.75"/>
+  <!-- Patillas de alambre abatidas: cada una enmarca media pinza y se dobla junto al labio. -->
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g stroke="#140c04" stroke-width="5.4">
+      <path d="M22 22 L25 74 Q26 80 32 80 L76 80 Q82 80 82 74 L84 22"/>
+      <path d="M92 22 L94 74 Q94 80 100 80 L144 80 Q150 80 151 74 L154 22"/>
+    </g>
+    <g stroke="#b58a45" stroke-width="3.4">
+      <path d="M22 22 L25 74 Q26 80 32 80 L76 80 Q82 80 82 74 L84 22"/>
+      <path d="M92 22 L94 74 Q94 80 100 80 L144 80 Q150 80 151 74 L154 22"/>
+    </g>
+    <g stroke="#f3dba0" stroke-width="1.1" opacity="0.85">
+      <path d="M21.4 22 L24.4 74 Q25.4 79.2 32 79.2 L76 79.2"/>
+      <path d="M91.4 22 L93.4 74 Q93.4 79.2 100 79.2 L144 79.2"/>
+    </g>
+  </g>
+  <!-- Canto superior enrollado, con las patillas metidas en él. -->
+  <rect x="7" y="15" width="162" height="12" rx="6" fill="url(#canto)" stroke="#24170a" stroke-width="1.4"/>
+  <path d="M14 18.6 L162 18.6" stroke="#fff0c6" stroke-width="1.2" opacity="0.6" stroke-linecap="round"/>
+  <g fill="#7f5e2c" stroke="#24170a" stroke-width="1">
+    <ellipse cx="22" cy="21" rx="4.2" ry="3.4"/>
+    <ellipse cx="84" cy="21" rx="4.2" ry="3.4"/>
+    <ellipse cx="92" cy="21" rx="4.2" ry="3.4"/>
+    <ellipse cx="154" cy="21" rx="4.2" ry="3.4"/>
+  </g>
+</svg>

@@ -79,13 +79,16 @@ const PLAZA_LAMPS: Array[Vector2] = [
 ]
 const STATION_LAMPS: Array[Vector2] = [Vector2(-9.0, -2.6), Vector2(8.6, -2.6), Vector2(14.0, 6.6), Vector2(-0.6, 6.6)]
 
-## Árboles: posición, altura, si tienen hojas de otoño y si están en una jardinera.
+## Árboles: posición, altura, si tienen hojas de otoño y si están en una jardinera o en un alcorque.
 const PLAZA_TREES: Array[Dictionary] = [
-	{"at": Vector2(-5.2, -3.8), "height": 4.0, "autumn": false},
-	{"at": Vector2(12.0, -4.0), "height": 3.8, "autumn": true},
+	{"at": Vector2(-5.2, -3.8), "height": 4.0, "autumn": false, "pit": true},
+	{"at": Vector2(12.0, -4.0), "height": 3.8, "autumn": true, "pit": true},
 	{"at": Vector2(-2.0, 0.3), "height": 3.6, "autumn": true, "planter": true},
-	{"at": Vector2(12.4, 9.6), "height": 4.2, "autumn": false},
+	{"at": Vector2(12.4, 9.6), "height": 4.2, "autumn": false, "pit": true},
 ]
+## Escenarios cuyos parterres (`SHRUB_BEDS`) se dibujan tal cual.
+const PlazaLocation := preload("res://scripts/world/locations/plaza.gd")
+const StationLocation := preload("res://scripts/world/locations/estacion.gd")
 
 ## Casas de los alrededores, sólo decorativas, en metros de la plaza: rectángulo, altura y tejado.
 const OUTSKIRTS_PLAZA: Array[Dictionary] = [
@@ -328,9 +331,15 @@ func _draw_roof(building: Dictionary, rect: Rect2, height: float) -> void:
 		_outline(points, Color(INK, 0.75), 0.07)
 
 
-func _draw_tree(at: Vector2, height: float, autumn: bool, planter: bool = false) -> void:
+func _draw_tree(at: Vector2, height: float, autumn: bool, planter: bool = false, pit: bool = false) -> void:
 	if planter:
 		_draw_planter(at)
+	if pit:
+		var half := PropsKit.TREE_PIT_SIZE * 0.5
+		var curb := Rect2(at - Vector2(half, half), Vector2.ONE * PropsKit.TREE_PIT_SIZE)
+		draw_rect(curb, STONE)
+		draw_rect(curb.grow(-PropsKit.TREE_PIT_CURB), FOLIAGE_DARK.darkened(0.3))
+		_outline(_corners(curb), INK_SOFT, 0.06)
 	var crown := height * 0.36
 	var center := _lift(at, height * 0.72)
 	draw_circle(at + _shadow * height * 0.3, crown * 0.9, Color(0.12, 0.07, 0.03, 0.16), true, -1.0, true)
@@ -361,6 +370,21 @@ func _draw_planter(at: Vector2) -> void:
 	_outline(rim, INK_SOFT, 0.08)
 	draw_colored_polygon(soil, FOLIAGE_DARK)
 	draw_circle(_lift(at, height), inner * 0.55, FOLIAGE, true, -1.0, true)
+
+
+## Parterre alargado (`PropsKit.shrub_bed`): murete de piedra y una fila de arbustos.
+func _draw_shrub_bed(bed: Dictionary) -> void:
+	var center: Vector3 = bed["center"]
+	var length: float = bed["length"]
+	var along_x := absf(fmod(float(bed["yaw"]), 180.0)) < 45.0
+	var size := Vector2(length, PropsKit.SHRUB_BED_WIDTH) if along_x else Vector2(PropsKit.SHRUB_BED_WIDTH, length)
+	var rect := Rect2(Vector2(center.x, center.z) - size * 0.5, size)
+	_draw_box(rect, 0.0, PropsKit.SHRUB_BED_HEIGHT, STONE)
+	var count := maxi(1, roundi(length / PropsKit.SHRUB_BED_SPACING))
+	var axis := Vector2.RIGHT if along_x else Vector2.DOWN
+	for index in count:
+		var at := Vector2(center.x, center.z) + axis * (length * ((float(index) + 0.5) / float(count) - 0.5))
+		draw_circle(_lift(at, PropsKit.SHRUB_BED_HEIGHT + 0.1), 0.3, FOLIAGE if index % 2 == 0 else FOLIAGE_DARK, true, -1.0, true)
 
 
 func _draw_lamp(at: Vector2) -> void:
@@ -422,7 +446,7 @@ func _draw_plaza() -> void:
 	items.append({"depth": _depth(Vector2(9.5, -13.2)), "draw": _draw_archive_portico})
 	items.append({"depth": _depth(Vector2(-7.0, -13.0)), "draw": _draw_cafe_front})
 	for tree in PLAZA_TREES:
-		items.append({"depth": _depth(tree["at"]), "draw": _draw_tree.bind(tree["at"], tree["height"], tree["autumn"], tree.get("planter", false))})
+		items.append({"depth": _depth(tree["at"]), "draw": _draw_tree.bind(tree["at"], tree["height"], tree["autumn"], tree.get("planter", false), tree.get("pit", false))})
 	for lamp in PLAZA_LAMPS:
 		items.append({"depth": _depth(lamp), "draw": _draw_lamp.bind(lamp)})
 	_draw_sorted(items)
@@ -430,7 +454,7 @@ func _draw_plaza() -> void:
 
 ## Muretes, setos, coche, quiosco y bultos: piezas bajas que van antes que los edificios.
 func _draw_ground_details() -> void:
-	_draw_box(Rect2(-14.0, 12.95, 35.0, 0.5), 0.0, 0.6, STONE)
+	_draw_box(Rect2(-13.82, 12.95, 34.82, 0.5), 0.0, 0.6, STONE)
 	_draw_box(Rect2(14.95, -7.0, 0.5, 20.0), 0.0, 0.6, STONE)
 	_draw_box(Rect2(15.0, -6.95, 15.0, 0.7), 0.0, 0.8, FOLIAGE_DARK)
 	_draw_ground_shadow(Rect2(7.45, -9.85, 4.1, 1.7), 1.2, 0.18)
@@ -445,6 +469,8 @@ func _draw_ground_details() -> void:
 	draw_circle(Vector2(-2.2, -12.1), 0.3, WINE, true, -1.0, true)
 	draw_line(Vector2(14.5, -6.2), _lift(Vector2(14.5, -6.2), 2.7), WOOD, 0.12, true)
 	draw_line(_lift(Vector2(13.6, -6.2), 2.4), _lift(Vector2(15.4, -6.2), 2.4), SIDEWALK.darkened(0.2), 0.3, true)
+	for bed: Dictionary in PlazaLocation.SHRUB_BEDS:
+		_draw_shrub_bed(bed)
 
 
 func _draw_square_props() -> void:
@@ -468,7 +494,8 @@ func _draw_square_props() -> void:
 
 
 func _draw_mansion_gate() -> void:
-	for wall in [Rect2(-14.25, -13.7, 0.5, 8.0), Rect2(-14.25, -0.3, 0.5, 8.0)]:
+	# El tramo del sur termina en la esquina del banco (ver `GATE_WALLS` en plaza.gd).
+	for wall in [Rect2(-14.25, -13.7, 0.5, 8.0), Rect2(-14.25, -0.3, 0.5, 4.3)]:
 		_draw_box(wall, 0.0, 2.2, STONE_DARK)
 	for pillar_z: float in [-5.4, -0.6]:
 		var pillar := Rect2(-14.45, pillar_z - 0.45, 0.9, 0.9)
@@ -531,6 +558,8 @@ func _draw_station() -> void:
 	_draw_box(Rect2(-14.4, 8.0, 26.0, 0.4), 0.0, 0.6, STONE)
 	_draw_box(Rect2(22.0, -4.0, 0.4, 14.0), 0.0, 0.6, STONE)
 	_draw_box(Rect2(11.65, 8.0, 0.7, 6.0), 0.0, 0.8, FOLIAGE_DARK)
+	for bed: Dictionary in StationLocation.SHRUB_BEDS:
+		_draw_shrub_bed(bed)
 	for crate: Rect2 in [Rect2(-6.85, 5.55, 0.9, 0.9), Rect2(-5.85, 6.05, 0.7, 0.7)]:
 		_draw_box(crate, 0.0, crate.size.x, WOOD)
 	draw_circle(Vector2(-4.6, 6.6), 0.35, WOOD.darkened(0.2), true, -1.0, true)
