@@ -12,11 +12,14 @@ extends CanvasLayer
 ## Cada elección se anota enseguida en el borrador de `Investigation`, que vive en `GameState` y se
 ## guarda con la partida: «Seguir investigando» sólo cierra la hoja, y al volver todo sigue igual.
 ## Las reglas que deciden si la acusación se sostiene no cambian (`Investigation.evaluate_accusation`).
+##
+## Escape (o el botón de volver del mando) cierra primero la lista abierta y sólo después la hoja.
 
 const LOCK := "acusacion"
 ## Campo del sospechoso (`Investigation.SUSPECT_FIELD`); los otros tres son las categorías de prueba.
 const SUSPECT_FIELD := "suspect"
 const CONFRONTATION_SCENE := "confrontacion"
+const INCOMPLETE_TOOLTIP := "Completa los cuatro campos para presentar la acusación."
 
 var is_open := false
 
@@ -33,9 +36,11 @@ var _transition: Tween
 var _fields: Dictionary = {}
 
 @onready var _root: Control = $Root
+@onready var _dim: ColorRect = $Root/Dim
 @onready var _sheet: AccusationSheet = $Root/Sheet
 @onready var _header: AccusationHeader = $Root/Sheet/Content/Rows/Header
 @onready var _verdict: AccusationVerdict = $Root/Sheet/Content/Rows/Verdict
+@onready var _status: Label = $Root/Sheet/Content/Rows/Status
 @onready var _accuse: AccusationPlateButton = $Root/Sheet/Content/Rows/Buttons/Accuse
 @onready var _continue: AccusationPlateButton = $Root/Sheet/Content/Rows/Buttons/Continue
 @onready var _panel: AccusationEvidencePanel = $Root/Panel
@@ -47,13 +52,16 @@ func _ready() -> void:
 	for field: AccusationField in $Root/Sheet/Content/Rows/Fields.get_children():
 		_fields[field.field_key] = field
 		field.activated.connect(open_field)
+	CaseFileStyle.style_label(_status, AccusationStyle.italic_font(), AccusationStyle.STATUS_SIZE, AccusationStyle.INK_SOFT)
 	_accuse.pressed.connect(present)
 	_continue.pressed.connect(close)
 	_panel.item_chosen.connect(func(item_id: String) -> void: choose(_picker, item_id))
 	_panel.close_requested.connect(close_picker)
 	_suspects.suspect_chosen.connect(func(suspect_id: String) -> void: choose(SUSPECT_FIELD, suspect_id))
 	_suspects.closed.connect(_on_suspect_list_closed)
+	_dim.gui_input.connect(_on_dim_input)
 	_root.resized.connect(_on_root_resized)
+	Controls.input_device_changed.connect(_on_input_device_changed.unbind(1))
 	_shield.hide()
 	_panel.hide()
 	_root.hide()
@@ -71,12 +79,13 @@ func open() -> void:
 	_suspects.close(false)
 	_picker = ""
 	_set_editing("")
+	_sheet.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_INHERITED
 	_set_split(0.0)
 	_root.show()
 	_shield.hide()
 	_layout()
 	_animate_open()
-	(_fields[SUSPECT_FIELD] as AccusationField).selector.grab_focus()
+	_focus_first_pending()
 
 
 ## «Seguir investigando»: cierra la hoja sin presentar nada ni contar un intento. Lo elegido ya
@@ -123,6 +132,7 @@ func close_picker(play_sound: bool = true) -> void:
 	var focused := _root.get_viewport().gui_get_focus_owner()
 	if focused != null and _panel.is_ancestor_of(focused):
 		focused.release_focus()
+	_sheet.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_INHERITED
 	_animate_split(0.0)
 	if play_sound:
 		AudioManager.play("ui_cerrar")
@@ -217,6 +227,10 @@ func get_verdict_text() -> String:
 	return _verdict.get_text()
 
 
+func get_status_text() -> String:
+	return _status.text if _status.visible else ""
+
+
 func get_layout_scale() -> float:
 	return _scale
 
@@ -238,6 +252,7 @@ func _open_suspect_list() -> void:
 	_picker = SUSPECT_FIELD
 	_set_editing(SUSPECT_FIELD)
 	var selector := (_fields[SUSPECT_FIELD] as AccusationField).selector
+	_sheet.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
 	_suspects.open_at(selector, _draft[SUSPECT_FIELD])
 	AudioManager.play("ui_abrir")
 
@@ -247,6 +262,7 @@ func _on_suspect_list_closed() -> void:
 		return
 	_picker = ""
 	_set_editing("")
+	_sheet.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_INHERITED
 	if is_open:
 		AudioManager.play("ui_cerrar")
 		(_fields[SUSPECT_FIELD] as AccusationField).selector.grab_focus()
@@ -263,6 +279,7 @@ func _open_panel(field: String) -> void:
 	_panel.show()
 	_panel.open_for(field, _draft[field])
 	_panel.refresh_keys()
+	_sheet.focus_behavior_recursive = Control.FOCUS_BEHAVIOR_DISABLED
 	_animate_split(1.0)
 	AudioManager.play("ui_mover" if switching else "ui_abrir")
 	_panel.focus_list()
@@ -286,6 +303,21 @@ func _refresh_fields() -> void:
 		else:
 			var info := AccusationInfo.describe(item_id)
 			node.set_value(info.get("title", ""), AccusationStyle.type_icon(info.get("type", "")))
+	var complete := can_present()
+	_accuse.disabled = not complete
+	_accuse.tooltip_text = "" if complete else INCOMPLETE_TOOLTIP
+	_accuse.focus_mode = Control.FOCUS_ALL if complete else Control.FOCUS_NONE
+	_status.text = AccusationInfo.missing_text(_draft)
+	_status.visible = not complete
+
+
+## Al abrir, el foco va al primer campo sin rellenar; con todo elegido, a «Presentar la acusación».
+func _focus_first_pending() -> void:
+	for field in Investigation.ACCUSATION_FIELDS:
+		if str(_draft.get(field, "")).is_empty():
+			(_fields[field] as AccusationField).selector.grab_focus()
+			return
+	_accuse.grab_focus()
 
 
 # --- Entrada ---
@@ -293,12 +325,30 @@ func _refresh_fields() -> void:
 func _input(event: InputEvent) -> void:
 	if not is_open or ExitManager.is_dialog_open() or ConfirmDialog.is_open():
 		return
-	if event.is_action_pressed("pause") or event.is_action_pressed("ui_cancel"):
+	var cancel := event.is_action_pressed("ui_cancel")
+	# Escribiendo en el buscador, una tecla de pausa reasignada a una letra sigue siendo una letra.
+	var typing := is_panel_open() and _panel.get_search().has_focus()
+	if cancel or (event.is_action_pressed("pause") and not typing):
 		get_viewport().set_input_as_handled()
 		if not _picker.is_empty():
 			close_picker()
 		else:
 			close()
+		return
+	if is_panel_open() and _panel.handle_type_to_search(event):
+		get_viewport().set_input_as_handled()
+
+
+## Un clic en el fondo, fuera de la hoja y del panel, cierra el panel lateral.
+func _on_dim_input(event: InputEvent) -> void:
+	var click := event as InputEventMouseButton
+	if click != null and click.pressed and click.button_index == MOUSE_BUTTON_LEFT and is_panel_open():
+		close_picker()
+
+
+func _on_input_device_changed() -> void:
+	if is_panel_open():
+		_panel.refresh_keys()
 
 
 func _on_root_resized() -> void:

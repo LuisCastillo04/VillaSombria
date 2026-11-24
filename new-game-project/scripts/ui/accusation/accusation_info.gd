@@ -92,6 +92,26 @@ static func suspect_name(suspect_id: String) -> String:
 	return GameData.get_character_name(suspect_id)
 
 
+## Nombres de los campos que siguen vacíos en un borrador, en el orden del formulario.
+static func missing_fields(draft: Dictionary) -> PackedStringArray:
+	var missing := PackedStringArray()
+	for field in Investigation.ACCUSATION_FIELDS:
+		if str(draft.get(field, "")).is_empty():
+			missing.append(FIELD_NAMES[field])
+	return missing
+
+
+## Aviso bajo los botones mientras falta algo: «Falta elegir: oportunidad y medios.»
+static func missing_text(draft: Dictionary) -> String:
+	var missing := missing_fields(draft)
+	if missing.is_empty():
+		return ""
+	var listed := missing[0]
+	if missing.size() > 1:
+		listed = ", ".join(missing.slice(0, missing.size() - 1)) + " y " + missing[missing.size() - 1]
+	return "Falta elegir: %s." % listed
+
+
 ## Texto para buscar sin distinguir mayúsculas ni tildes.
 static func normalize(text: String) -> String:
 	var result := text.to_lower()

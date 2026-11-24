@@ -190,6 +190,22 @@ func set_query(text: String) -> void:
 	_apply_filter()
 
 
+## Si el jugador escribe una letra mientras recorre la lista, la letra va al buscador. Las teclas
+## que el InputMap usa para moverse, aceptar o volver nunca se desvían. Devuelve si la atendió.
+func handle_type_to_search(event: InputEvent) -> bool:
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo or not _search.visible or _search.has_focus():
+		return false
+	if key.ctrl_pressed or key.alt_pressed or key.meta_pressed or key.unicode <= 32:
+		return false
+	for action: StringName in [&"ui_accept", &"ui_cancel", &"pause", &"ui_up", &"ui_down", &"ui_left", &"ui_right", &"ui_focus_next", &"ui_focus_prev", &"ui_page_up", &"ui_page_down", &"ui_select"]:
+		if InputMap.has_action(action) and InputMap.event_is_action(key, action):
+			return false
+	_search.grab_focus()
+	_search.insert_text_at_caret(char(key.unicode))
+	return true
+
+
 ## Vuelve a leer las teclas del pie (por si se han reasignado o se juega con mando). Sin nada que
 ## elegir, sólo queda la de volver.
 func refresh_keys() -> void:
