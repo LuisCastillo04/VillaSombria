@@ -16,6 +16,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	DialogueManager.close()
+	Settings.set_value(ConversationLog.MODE_KEY, SettingsSchema.default_value(ConversationLog.MODE_KEY))
 	EventBus.story_action.disconnect(_on_action)
 	DialogueManager.options_shown.disconnect(_on_options)
 	GameState.reset()
@@ -91,11 +92,15 @@ func _complete_day_one() -> void:
 		_ask("rosa", topic)
 
 
-func _complete_day_two() -> void:
+## Con `ask_report_early`, se pregunta por el informe antes de que llegue (la variante «pendiente»).
+func _complete_day_two(ask_report_early: bool = false) -> void:
 	check(StoryDirector.rest(), "el primer día debe poder cerrarse")
 	_play("dia_2")
 	check_equal(GameClock.day, 2, "lunes")
 	check(not GameState.has_flag("informe_llegado"), "el correo aún no ha llegado")
+	if ask_report_early:
+		_ask("ortega", "informe")
+		check(not GameState.clues.has("informe_forense"), "antes del correo no hay informe")
 	GameClock.advance(4 * 60)
 	check(GameState.has_flag("informe_llegado"), "a mediodía llega el informe")
 	_ask("ortega", "informe")
@@ -115,13 +120,7 @@ func _complete_day_two() -> void:
 	_link("transferencia", "foto_clara", "d_dinero")
 
 
-func test_full_case_can_be_solved() -> void:
-	_complete_day_one()
-	check(GameState.clues.has("carta_valdes"), "la introducción entrega la carta")
-	check(GameState.has_flag("llamada_atendida"), "la llamada se ha atendido")
-	_complete_day_two()
-	check_equal(GameState.deductions.size(), GameData.deductions.size(), "todas las deducciones son alcanzables")
-
+func _complete_day_three() -> void:
 	check(StoryDirector.rest(), "el segundo día debe poder cerrarse")
 	_play("dia_3")
 	_ask("marcos", "pagare")
@@ -131,6 +130,16 @@ func test_full_case_can_be_solved() -> void:
 	_ask("hilario", "recortes")
 	_ask("anselmo", "hora_real")
 	_ask("anselmo", "dinero")
+
+
+func test_full_case_can_be_solved() -> void:
+	_complete_day_one()
+	check(GameState.clues.has("carta_valdes"), "la introducción entrega la carta")
+	check(GameState.has_flag("llamada_atendida"), "la llamada se ha atendido")
+	_complete_day_two()
+	check_equal(GameState.deductions.size(), GameData.deductions.size(), "todas las deducciones son alcanzables")
+
+	_complete_day_three()
 	check_equal(GameState.clues.size(), GameData.clues.size() - 1, "todas las pistas salvo la opcional del quiosco")
 	check_equal(GameState.testimonies.size(), GameData.testimonies.size(), "todos los testimonios son alcanzables")
 
@@ -205,3 +214,19 @@ func test_clock_stops_at_limit_without_breaking() -> void:
 	GameClock.advance(30)
 	check_equal(GameClock.minutes, stopped, "no pasa de la hora tope")
 	check(not NpcSchedule.get_slot("ortega", GameClock.day, GameClock.minutes).is_empty(), "las rutinas siguen válidas")
+
+
+## Con el diálogo único ninguna conversación imprescindible queda bloqueada: ni el informe preguntado
+## antes de que llegue (la variante con el informe es otra conversación), ni reunir a los sospechosos
+## después de echarse atrás una vez.
+func test_single_mode_never_blocks_the_story() -> void:
+	Settings.set_value(ConversationLog.MODE_KEY, ConversationLog.MODE_SINGLE)
+	_complete_day_one()
+	_complete_day_two(true)
+	check(GameState.clues.has("informe_forense"), "el informe llega con la variante nueva")
+	check_equal(GameState.deductions.size(), GameData.deductions.size(), "todas las deducciones son alcanzables")
+	_complete_day_three()
+	check_equal(GameState.testimonies.size(), GameData.testimonies.size(), "todos los testimonios son alcanzables")
+	_ask("ortega", "acusar")
+	_ask("ortega", "acusar")
+	check_equal(actions.count("open_accusation"), 2, "reunir a los sospechosos se puede repetir")

@@ -133,3 +133,37 @@ func test_portraits_load() -> void:
 		var path: String = GameData.characters[character_id]["portrait"]
 		check(ResourceLoader.exists(path), "falta la silueta " + path)
 		check(load(path) is Texture2D, "la silueta no es una textura: " + path)
+
+
+## Cada pregunta y cada variante tiene un identificador estable y único (el registro de
+## conversaciones y las partidas guardadas dependen de él), y las condiciones de conversaciones y
+## lugares apuntan a preguntas y lugares que existen.
+func test_questions_and_variants_have_stable_ids() -> void:
+	for npc_id in GameData.get_dialogue_ids():
+		var seen := {}
+		for topic: Dictionary in GameData.get_dialogue(npc_id).get("topics", []):
+			var topic_id := String(topic.get("id", ""))
+			check(not topic_id.is_empty() and not topic_id.contains("/") and not topic_id.contains("#"), "%s: pregunta sin identificador válido" % npc_id)
+			check(not seen.has(topic_id), "%s/%s: identificador repetido" % [npc_id, topic_id])
+			seen[topic_id] = true
+			var variants := ConversationLog.variant_ids(topic)
+			for variant_id in variants:
+				check(not variant_id.is_empty() and not variant_id.contains("#"), "%s/%s: variante sin identificador" % [npc_id, topic_id])
+				check_equal(variants.count(variant_id), 1, "%s/%s#%s: variante repetida" % [npc_id, topic_id, variant_id])
+			if topic.has("repeatable"):
+				check(topic["repeatable"] is bool, "%s/%s: repeatable debe ser sí o no" % [npc_id, topic_id])
+	var visitor := func(value: Variant) -> void:
+		if not value is Dictionary:
+			return
+		for list: String in ["asked", "not_asked"]:
+			for topic_key: Variant in (value as Dictionary).get(list, []):
+				var parts := String(topic_key).split("/")
+				check(parts.size() == 2 and not ConversationLog.find_topic(parts[0], parts[1]).is_empty(), "condición %s con una pregunta que no existe: %s" % [list, topic_key])
+		for location_id: Variant in (value as Dictionary).get("visited", []):
+			check(GameData.locations.has(location_id), "condición visited con un lugar que no existe: %s" % location_id)
+	var files := _dialogue_files()
+	for file_id: String in files:
+		_walk(files[file_id], visitor)
+	_walk(GameData.story, visitor)
+	_walk(GameData.schedules, visitor)
+

@@ -42,6 +42,12 @@ func _save_phase() -> void:
 	Investigation.discover_clue("reloj_despacho")
 	Investigation.record_testimony("t_elena_jaqueca")
 	GameState.asked_topics["elena/coartada"] = true
+	# Registro de los interrogatorios: una pregunta repetida, con su día y su hora, y otra con una
+	# variante concreta, además de lo ya visto en un menú.
+	ConversationLog.record("ortega", "caso", ConversationLog.BASE_VARIANT)
+	ConversationLog.record("ortega", "caso", ConversationLog.BASE_VARIANT)
+	ConversationLog.record("ortega", "informe", "pendiente")
+	ConversationLog.mark_seen("lucia", ConversationLog.menu("lucia"))
 	GameState.hypotheses["marcos"] = {"status": "sospechoso", "note": "Miente sobre la hora"}
 	GameState.accusation_attempts = 1
 	# Borrador a medias de la acusación: sin motivo todavía.
@@ -61,6 +67,11 @@ func _save_phase() -> void:
 		"clues": GameState.clues.duplicate(),
 		"testimonies": GameState.testimonies.duplicate(),
 		"flags": GameState.flags.keys(),
+		"conversations": {
+			"ortega/caso": GameState.conversations["ortega/caso"],
+			"ortega/informe": GameState.conversations["ortega/informe"],
+		},
+		"seen_topics": GameState.seen_topics.keys(),
 	}
 	check(await save_and_wait(SLOT), "la partida se guarda en %s" % SLOT)
 	var file := FileAccess.open(STORAGE.path_join(EXPECTED_FILE), FileAccess.WRITE)
@@ -105,6 +116,16 @@ func _check_phase() -> void:
 	for flag: String in expected["flags"]:
 		check(GameState.has_flag(flag), "marca %s" % flag)
 	check(GameState.asked_topics.has("elena/coartada"), "preguntas ya hechas")
+	for topic_key: String in expected["conversations"]:
+		var saved_variants: Dictionary = expected["conversations"][topic_key]["variants"]
+		var loaded: Dictionary = GameState.conversations.get(topic_key, {}).get("variants", {})
+		check_equal(loaded.keys(), saved_variants.keys(), "variantes de %s" % topic_key)
+		for variant_id: String in saved_variants:
+			for field: String in ["count", "order", "day", "minutes"]:
+				check_equal(int(loaded.get(variant_id, {}).get(field, -99)), int(saved_variants[variant_id][field]), "%s#%s: %s" % [topic_key, variant_id, field])
+	check(ConversationLog.is_variant_done("elena", "coartada", ConversationLog.BASE_VARIANT), "la pregunta de una partida sin registro se recupera con su testimonio")
+	for seen_key: String in expected["seen_topics"]:
+		check(GameState.seen_topics.has(seen_key), "lo ya visto en un menú: %s" % seen_key)
 	check_equal(GameState.hypotheses.get("marcos", {}).get("note", ""), "Miente sobre la hora", "hipótesis")
 	check_equal(GameState.accusation_attempts, 1, "intentos de acusación")
 	check(GameState.play_seconds >= 1234.5, "tiempo jugado")
