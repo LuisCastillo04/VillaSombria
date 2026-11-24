@@ -161,13 +161,18 @@ func _play(lines: Array, then: Callable) -> void:
 
 
 ## Reproduce la variante vigente de una pregunta. Cada variante es una conversación independiente:
-## la primera vez que se completa cuesta tiempo; repetirla, no.
+## la primera vez que se completa cuesta tiempo y aplica sus consecuencias (marcas, pistas,
+## testimonios, avisos, acciones). Repetirla sólo reproduce lo que se dijo: no cuesta tiempo ni
+## vuelve a ejecutar nada, salvo en las conversaciones pensadas para repetirse (`repeatable`), cuyas
+## consecuencias se aplican cada vez.
 func _play_topic(topic: Dictionary) -> void:
 	var topic_id := String(topic["id"])
 	var variant_id := ConversationLog.current_variant(topic)
 	var block := ConversationLog.variant_block(topic, variant_id)
 	var first_time := not ConversationLog.is_variant_done(npc_id, topic_id, variant_id)
 	var effects: Dictionary = block.get("effects", {}).duplicate()
+	if not first_time and not ConversationLog.is_repeatable(topic):
+		effects = {}
 	if first_time and not effects.has("minutes"):
 		effects["minutes"] = TOPIC_MINUTES
 	elif not first_time:

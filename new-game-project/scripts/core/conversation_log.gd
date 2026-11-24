@@ -286,13 +286,16 @@ static func clean_records(raw: Variant, report: bool = true) -> Dictionary:
 ## Partidas anteriores al registro detallado: reconstruye lo que se puede probar con lo que ya
 ## guardaban, sin inventar conversaciones.
 ##
-## - Cada pregunta de `asked` (el antiguo `asked_topics`) se hizo seguro. Si tiene variantes, se dan
-##   por hechas las que entregan algo que la partida tiene; si ninguna lo prueba, la única que no
-##   entrega nada (como «aún no ha llegado el informe»). El orden es el de `asked`, que ya era el
-##   orden en que se hicieron.
-## - Un testimonio o una pista que sólo entrega una pregunta prueba que esa pregunta se hizo.
+## - `asked` (el antiguo `asked_topics`) dice qué preguntas se empezaron, en el orden en que se
+##   hicieron. Una variante cuenta como completada si la partida tiene todo lo que entrega (marcas,
+##   pistas y testimonios); si no entrega nada, sólo cuando es la única así de su pregunta (como «aún
+##   no ha llegado el informe»). Una pregunta empezada cuyas consecuencias no constan (una partida
+##   guardada a mitad de la respuesta) queda pendiente: así repetirla no puede dejar sin entregar
+##   algo que la historia necesita.
+## - Un testimonio o una pista que sólo entrega una pregunta prueba que esa pregunta se hizo, con la
+##   misma exigencia.
 ## Lo reconstruido se marca `recovered`, sin día ni hora, que no se conocen.
-static func recover(records: Dictionary, asked: Array, clues: Array, testimonies: Array) -> Dictionary:
+static func recover(records: Dictionary, asked: Array, clues: Array, testimonies: Array, flags: Array = []) -> Dictionary:
 	var result := records.duplicate(true)
 	var owned: Array = clues + testimonies
 	var pending: Array[String] = []
@@ -311,7 +314,7 @@ static func recover(records: Dictionary, asked: Array, clues: Array, testimonies
 		var topic := _topic_for_key(topic_key)
 		if topic.is_empty():
 			continue
-		var done := _proven_variants(topic, owned, producers, topic_key)
+		var done := _proven_variants(topic, owned + flags, asked.has(topic_key))
 		var variants := {}
 		for variant_id in done:
 			var data := {"count": 1, "recovered": true}
@@ -325,24 +328,25 @@ static func recover(records: Dictionary, asked: Array, clues: Array, testimonies
 	return result
 
 
-## Variantes de una pregunta hecha que se pueden dar por completadas.
-static func _proven_variants(topic: Dictionary, owned: Array, producers: Dictionary, topic_key: String) -> Array[String]:
+## Variantes de una pregunta que se pueden dar por completadas con lo que tiene la partida (`owned`:
+## marcas, pistas y testimonios). Las consecuencias de una respuesta se aplican todas a la vez, así
+## que basta con sus pistas y testimonios; sólo si no entrega ninguno se miran sus marcas. Una
+## variante que no entrega nada sólo se da por hecha si la pregunta consta como empezada
+## (`was_asked`) y ninguna otra cosa lo explica.
+static func _proven_variants(topic: Dictionary, owned: Array, was_asked: bool) -> Array[String]:
 	var proven: Array[String] = []
 	var silent: Array[String] = []
 	for variant_id in variant_ids(topic):
-		var items := _effect_items(variant_block(topic, variant_id))
-		if items.is_empty():
+		var effects: Dictionary = variant_block(topic, variant_id).get("effects", {})
+		var needed: Array = effects.get("clues", []) + effects.get("testimonies", [])
+		if needed.is_empty():
+			needed = effects.get("flags", [])
+		if needed.is_empty():
 			silent.append(variant_id)
-			continue
-		for item in items:
-			if owned.has(item) and producers.get(item, "") == "%s#%s" % [topic_key, variant_id]:
-				proven.append(variant_id)
-				break
-	if proven.is_empty() and silent.size() == 1:
+		elif needed.all(func(item: Variant) -> bool: return owned.has(item)):
+			proven.append(variant_id)
+	if proven.is_empty() and was_asked and silent.size() == 1:
 		proven.append(silent[0])
-	# Una pregunta sin variantes que consta como hecha se hizo, entregue algo o no.
-	if proven.is_empty() and not topic.has("variants"):
-		proven.append(BASE_VARIANT)
 	return proven
 
 

@@ -114,7 +114,9 @@ func from_dict(data: Dictionary) -> void:
 	# Las partidas anteriores al registro detallado sólo traen `asked_topics`: se rehace lo que se
 	# puede probar con lo que guardaban, sin inventar conversaciones (`ConversationLog.recover`).
 	var records := ConversationLog.clean_records(data.get("conversations", {}), false)
-	conversations = ConversationLog.recover(records, asked_topics.keys(), data.get("clues", []), data.get("testimonies", []))
+	conversations = ConversationLog.recover(records, asked_topics.keys(), data.get("clues", []), data.get("testimonies", []), data.get("flags", []))
+	# El resumen sale del registro: una pregunta empezada pero sin completar vuelve a estar pendiente.
+	asked_topics.clear()
 	for topic_key: String in conversations:
 		asked_topics[topic_key] = true
 	hypotheses = data.get("hypotheses", {})
