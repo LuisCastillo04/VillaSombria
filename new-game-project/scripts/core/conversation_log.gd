@@ -332,6 +332,41 @@ static func can_still_open(npc_id: String, topic: Dictionary) -> bool:
 	return false
 
 
+# --- Historial de declaraciones -------------------------------------------------------------
+
+## Conversaciones completadas, de la más antigua a la más reciente, una por variante. Cada una:
+## `npc`, `topic`, `variant`, `label`, `lines` (lo que se oyó, de los datos), `count`, `order`, `day`
+## y `minutes` (0 y -1 si no se conocen), `gained` (pistas y testimonios que entregó) y `recovered`
+## (rehecha desde una partida anterior al registro). Las conversaciones repetibles, que son acciones
+## y no declaraciones, no aparecen. Leerlo no reproduce nada ni aplica ningún efecto.
+static func history() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	for topic_key: String in GameState.conversations:
+		var npc_id := topic_key.get_slice("/", 0)
+		var topic_id := topic_key.get_slice("/", 1)
+		var topic := find_topic(npc_id, topic_id)
+		if topic.is_empty() or is_repeatable(topic):
+			continue
+		var variants: Dictionary = (GameState.conversations[topic_key] as Dictionary).get("variants", {})
+		for variant_id: String in variants:
+			var data: Dictionary = variants[variant_id]
+			entries.append({
+				"npc": npc_id,
+				"topic": topic_id,
+				"variant": variant_id,
+				"label": String(topic.get("label", "")),
+				"lines": variant_block(topic, variant_id).get("lines", []),
+				"count": int(data.get("count", 1)),
+				"order": int(data.get("order", 0)),
+				"day": int(data.get("day", 0)),
+				"minutes": int(data.get("minutes", -1)),
+				"gained": data.get("gained", {}),
+				"recovered": bool(data.get("recovered", false)),
+			})
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a["order"] < b["order"])
+	return entries
+
+
 static func _next_order() -> int:
 	var highest := -1
 	for topic_key: String in GameState.conversations:
