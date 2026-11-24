@@ -5,9 +5,9 @@ extends CanvasLayer
 ## investigando.
 ##
 ## Este nodo sólo coordina. La hoja (`AccusationSheet`) y sus campos (`AccusationField`) están en la
-## escena. De momento, cada campo se elige en el menú desplegable de Godot, que en las pruebas sólo
-## ofrece lo descubierto de su categoría (`EvidenceCategories`). Lo que muestran lo lee
-## `AccusationInfo`.
+## escena; el sospechoso se elige en una lista desplegable propia (`AccusationSuspectList`) y, de
+## momento, cada prueba en el menú desplegable de Godot, que sólo ofrece lo descubierto de su
+## categoría (`EvidenceCategories`). Lo que muestran lo lee `AccusationInfo`.
 ##
 ## Cada elección se anota enseguida en el borrador de `Investigation`, que vive en `GameState` y se
 ## guarda con la partida: «Seguir investigando» sólo cierra la hoja, y al volver todo sigue igual.
@@ -21,14 +21,14 @@ const CONFRONTATION_SCENE := "confrontacion"
 var is_open := false
 
 var _draft: Dictionary = {}
-## Campo cuyo menú está abierto, o "".
+## Campo cuya lista está abierta: el sospechoso (lista desplegable), una prueba (menú) o "".
 var _picker := ""
 ## Avance de la animación de apertura, de 0 a 1.
 var _open_amount := 1.0
 var _scale := 1.0
 var _transition: Tween
 var _fields: Dictionary = {}
-## Menú desplegable de Godot con las opciones del campo que se edita, y sus identificadores.
+## Menú desplegable de Godot con las pruebas del campo que se edita, y sus identificadores.
 var _popup: PopupMenu
 var _popup_ids: Array[String] = []
 
@@ -38,6 +38,7 @@ var _popup_ids: Array[String] = []
 @onready var _verdict: AccusationVerdict = $Root/Sheet/Content/Rows/Verdict
 @onready var _accuse: AccusationPlateButton = $Root/Sheet/Content/Rows/Buttons/Accuse
 @onready var _continue: AccusationPlateButton = $Root/Sheet/Content/Rows/Buttons/Continue
+@onready var _suspects: AccusationSuspectList = $Root/SuspectList
 @onready var _shield: Control = $Root/Shield
 
 
@@ -47,6 +48,8 @@ func _ready() -> void:
 		field.activated.connect(open_field)
 	_accuse.pressed.connect(present)
 	_continue.pressed.connect(close)
+	_suspects.suspect_chosen.connect(func(suspect_id: String) -> void: choose(SUSPECT_FIELD, suspect_id))
+	_suspects.closed.connect(_on_suspect_list_closed)
 	_root.resized.connect(_on_root_resized)
 	_shield.hide()
 	_root.hide()
@@ -58,9 +61,12 @@ func open() -> void:
 	is_open = true
 	GameState.lock_player(LOCK)
 	_draft = Investigation.get_accusation_draft()
+	_suspects.setup(AccusationInfo.suspects())
 	_refresh_fields()
 	_verdict.show_message(AccusationInfo.DEFAULT_VERDICT, false)
-	close_picker(false)
+	_suspects.close(false)
+	_picker = ""
+	_set_editing("")
 	_root.show()
 	_shield.hide()
 	_layout()
@@ -73,7 +79,10 @@ func open() -> void:
 func close() -> void:
 	if not is_open:
 		return
-	close_picker(false)
+	if _picker == SUSPECT_FIELD:
+		_suspects.close(false)
+	_picker = ""
+	_set_editing("")
 	is_open = false
 	GameState.unlock_player(LOCK)
 	var focused := _root.get_viewport().gui_get_focus_owner()
@@ -82,21 +91,27 @@ func close() -> void:
 	_animate_close()
 
 
-## Abre el menú de un campo como si el jugador pulsara su selector. Volver a pulsar el campo
-## abierto lo cierra.
+## Abre la lista de un campo como si el jugador pulsara su selector: la desplegable del sospechoso
+## o el menú de una prueba. Volver a pulsar el campo abierto la cierra.
 func open_field(field: String) -> void:
 	if not is_open or not _fields.has(field):
 		return
 	if field == _picker:
 		close_picker()
 		return
-	_open_popup(field)
+	if field == SUSPECT_FIELD:
+		_open_suspect_list()
+	else:
+		_open_popup(field)
 
 
 ## Cierra la lista abierta (si la hay) y devuelve el foco a su campo, sin cambiar la elección.
 func close_picker(play_sound: bool = true) -> void:
 	var field := _picker
 	if field.is_empty():
+		return
+	if field == SUSPECT_FIELD:
+		_suspects.close()
 		return
 	_picker = ""
 	_set_editing("")
@@ -159,6 +174,18 @@ func get_active_picker() -> String:
 	return _picker
 
 
+func is_panel_open() -> bool:
+	return not _picker.is_empty() and _picker != SUSPECT_FIELD
+
+
+func is_suspect_list_open() -> bool:
+	return _picker == SUSPECT_FIELD
+
+
+func get_suspect_list() -> AccusationSuspectList:
+	return _suspects
+
+
 func get_sheet() -> AccusationSheet:
 	return _sheet
 
@@ -190,8 +217,30 @@ func get_sheet_rect() -> Rect2:
 
 # --- Listas ---
 
-## Despliega el menú de Godot con los sospechosos o con lo que se puede presentar en un campo.
+func _open_suspect_list() -> void:
+	if is_panel_open():
+		close_picker(false)
+	_picker = SUSPECT_FIELD
+	_set_editing(SUSPECT_FIELD)
+	var selector := (_fields[SUSPECT_FIELD] as AccusationField).selector
+	_suspects.open_at(selector, _draft[SUSPECT_FIELD])
+	AudioManager.play("ui_abrir")
+
+
+func _on_suspect_list_closed() -> void:
+	if _picker != SUSPECT_FIELD:
+		return
+	_picker = ""
+	_set_editing("")
+	if is_open:
+		AudioManager.play("ui_cerrar")
+		(_fields[SUSPECT_FIELD] as AccusationField).selector.grab_focus()
+
+
+## Despliega el menú de Godot con lo que se puede presentar en un campo de prueba.
 func _open_popup(field: String) -> void:
+	if _picker == SUSPECT_FIELD:
+		_suspects.close(false)
 	if _popup == null:
 		_popup = PopupMenu.new()
 		_popup.name = "Popup"
@@ -202,8 +251,7 @@ func _open_popup(field: String) -> void:
 		add_child(_popup)
 	_popup.clear()
 	_popup_ids.clear()
-	var options := AccusationInfo.suspects() if field == SUSPECT_FIELD else AccusationInfo.options(field)
-	for option in options:
+	for option in AccusationInfo.options(field):
 		_popup.add_item(option["title"], _popup_ids.size())
 		_popup_ids.append(option["id"])
 	if _popup_ids.is_empty():
@@ -221,7 +269,7 @@ func _open_popup(field: String) -> void:
 
 ## El menú se cerró sin elegir (Esc o un clic fuera).
 func _on_popup_hidden() -> void:
-	if _picker.is_empty():
+	if not is_panel_open():
 		return
 	var field := _picker
 	_picker = ""
@@ -263,6 +311,8 @@ func _input(event: InputEvent) -> void:
 
 
 func _on_root_resized() -> void:
+	if _picker == SUSPECT_FIELD:
+		_suspects.close(false)
 	_layout()
 
 
