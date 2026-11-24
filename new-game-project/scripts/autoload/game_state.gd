@@ -6,8 +6,12 @@ var flags: Dictionary = {}
 var clues: Array[String] = []
 var testimonies: Array[String] = []
 var deductions: Array[String] = []
-## Preguntas ya hechas, con claves de la forma "npc/pregunta".
+## Preguntas ya hechas, con claves de la forma "npc/pregunta": el resumen de `conversations`.
 var asked_topics: Dictionary = {}
+## Registro de los interrogatorios: "npc/pregunta" -> {"variants": {variante: {"count", "order",
+## "day", "minutes", "gained"}}}. Una variante se anota al terminar su respuesta, nunca antes; las
+## reglas están en `ConversationLog`.
+var conversations: Dictionary = {}
 ## Hipótesis del jugador por sospechoso: {"status": String, "note": String}.
 var hypotheses: Dictionary = {}
 ## Borrador del formulario de acusación: campo -> sospechoso o elemento elegido. Sólo guarda los
@@ -28,6 +32,7 @@ func reset() -> void:
 	testimonies.clear()
 	deductions.clear()
 	asked_topics.clear()
+	conversations.clear()
 	hypotheses.clear()
 	accusation_draft.clear()
 	location_id = ""

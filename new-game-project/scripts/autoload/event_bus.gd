@@ -14,6 +14,9 @@ signal player_locks_changed
 signal clue_discovered(clue_id: String)
 signal testimony_recorded(testimony_id: String)
 signal deduction_made(deduction_id: String)
+## El jugador ha terminado de oír la respuesta a una pregunta (la primera vez o al repetirla). El
+## registro está en `ConversationLog`.
+signal conversation_recorded(npc_id: String, topic_id: String)
 ## El jugador ha anotado o cambiado su valoración o su hipótesis sobre un sospechoso.
 signal hypothesis_changed(suspect_id: String)
 ## Ha cambiado el borrador de la acusación: un campo del formulario, o "" si se vació entero.

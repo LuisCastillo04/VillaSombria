@@ -478,7 +478,7 @@ func test_confirming_right_after_the_choices_appear_is_ignored() -> void:
 	check(not GameState.asked_topics.has("eusebio/camino"), "y no se registra ninguna pregunta")
 	await _wait(GUARD_SECONDS)
 	await _press("interact")
-	check(GameState.asked_topics.has("eusebio/camino"), "pasado el instante, E confirma la señalada")
+	check_equal(DialogueManager.get_current_topic(), "camino", "pasado el instante, E confirma la señalada")
 	check(ui.is_typing() or ui.is_waiting_for_input(), "y se muestra la respuesta")
 
 
@@ -486,7 +486,7 @@ func test_number_keys_choose_even_from_the_keypad() -> void:
 	await _talk_to_eusebio()
 	await _read_until_choices()
 	await _press_key(KEY_KP_1)
-	check(GameState.asked_topics.has("eusebio/camino"), "el 1 del teclado numérico hace la primera pregunta")
+	check_equal(DialogueManager.get_current_topic(), "camino", "el 1 del teclado numérico hace la primera pregunta")
 	await _read_until_choices()
 	await _press_key(KEY_9)
 	check(ui.is_choosing() and DialogueManager.active, "un número sin respuesta no hace nada")
@@ -503,7 +503,7 @@ func test_hovering_highlights_and_only_a_click_chooses() -> void:
 	check_equal(ui.get_choices().get_selected_index(), 1, "el ratón señala la tarjeta sobre la que pasa")
 	check(DialogueManager.active and ui.is_choosing(), "pasar por encima no elige")
 	await _click(items[0])
-	check(GameState.asked_topics.has("eusebio/camino"), "el clic elige la pregunta")
+	check_equal(DialogueManager.get_current_topic(), "camino", "el clic elige la pregunta")
 
 
 func test_focus_returns_to_the_last_choice() -> void:

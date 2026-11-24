@@ -40,6 +40,7 @@
       "if": {"day_min": 2, "not_clues": ["informe_forense"]},
       "variants": [
         {
+          "id": "llegado",
           "if": {"flags": ["informe_llegado"]},
           "lines": [
             {"s": "ortega", "t": "Acaba de llegar. Y no es el corazón, inspector."},
@@ -49,7 +50,7 @@
           ],
           "effects": {"clues": ["informe_forense"]}
         },
-        {"lines": [{"s": "ortega", "t": "Todavía no. El correo de la capital no llega hasta mediodía."}], "effects": {"minutes": 0}}
+        {"id": "pendiente", "lines": [{"s": "ortega", "t": "Todavía no. El correo de la capital no llega hasta mediodía."}], "effects": {"minutes": 0}}
       ]
     },
     {
