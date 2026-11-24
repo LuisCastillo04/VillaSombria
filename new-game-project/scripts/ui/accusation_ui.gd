@@ -5,8 +5,8 @@ extends CanvasLayer
 ## investigando.
 ##
 ## Este nodo sólo coordina. La hoja (`AccusationSheet`) y sus campos (`AccusationField`) están en la
-## escena; el sospechoso se elige en una lista desplegable propia (`AccusationSuspectList`) y, de
-## momento, cada prueba en el menú desplegable de Godot, que sólo ofrece lo descubierto de su
+## escena; el sospechoso se elige en una lista desplegable propia (`AccusationSuspectList`) y cada
+## prueba en el panel lateral (`AccusationEvidencePanel`), que sólo ofrece lo descubierto de su
 ## categoría (`EvidenceCategories`). Lo que muestran lo lee `AccusationInfo`.
 ##
 ## Cada elección se anota enseguida en el borrador de `Investigation`, que vive en `GameState` y se
@@ -21,16 +21,16 @@ const CONFRONTATION_SCENE := "confrontacion"
 var is_open := false
 
 var _draft: Dictionary = {}
-## Campo cuya lista está abierta: el sospechoso (lista desplegable), una prueba (menú) o "".
+## Campo cuya lista está abierta: el sospechoso (lista desplegable), una prueba (panel lateral) o "".
 var _picker := ""
+## Reparto de la pantalla: 0 con la hoja centrada, 1 con el panel lateral al lado.
+var _split := 0.0
 ## Avance de la animación de apertura, de 0 a 1.
 var _open_amount := 1.0
 var _scale := 1.0
+var _split_tween: Tween
 var _transition: Tween
 var _fields: Dictionary = {}
-## Menú desplegable de Godot con las pruebas del campo que se edita, y sus identificadores.
-var _popup: PopupMenu
-var _popup_ids: Array[String] = []
 
 @onready var _root: Control = $Root
 @onready var _sheet: AccusationSheet = $Root/Sheet
@@ -38,6 +38,7 @@ var _popup_ids: Array[String] = []
 @onready var _verdict: AccusationVerdict = $Root/Sheet/Content/Rows/Verdict
 @onready var _accuse: AccusationPlateButton = $Root/Sheet/Content/Rows/Buttons/Accuse
 @onready var _continue: AccusationPlateButton = $Root/Sheet/Content/Rows/Buttons/Continue
+@onready var _panel: AccusationEvidencePanel = $Root/Panel
 @onready var _suspects: AccusationSuspectList = $Root/SuspectList
 @onready var _shield: Control = $Root/Shield
 
@@ -48,10 +49,13 @@ func _ready() -> void:
 		field.activated.connect(open_field)
 	_accuse.pressed.connect(present)
 	_continue.pressed.connect(close)
+	_panel.item_chosen.connect(func(item_id: String) -> void: choose(_picker, item_id))
+	_panel.close_requested.connect(close_picker)
 	_suspects.suspect_chosen.connect(func(suspect_id: String) -> void: choose(SUSPECT_FIELD, suspect_id))
 	_suspects.closed.connect(_on_suspect_list_closed)
 	_root.resized.connect(_on_root_resized)
 	_shield.hide()
+	_panel.hide()
 	_root.hide()
 	_layout()
 
@@ -67,6 +71,7 @@ func open() -> void:
 	_suspects.close(false)
 	_picker = ""
 	_set_editing("")
+	_set_split(0.0)
 	_root.show()
 	_shield.hide()
 	_layout()
@@ -92,7 +97,7 @@ func close() -> void:
 
 
 ## Abre la lista de un campo como si el jugador pulsara su selector: la desplegable del sospechoso
-## o el menú de una prueba. Volver a pulsar el campo abierto la cierra.
+## o el panel lateral de una prueba. Volver a pulsar el campo abierto la cierra.
 func open_field(field: String) -> void:
 	if not is_open or not _fields.has(field):
 		return
@@ -102,7 +107,7 @@ func open_field(field: String) -> void:
 	if field == SUSPECT_FIELD:
 		_open_suspect_list()
 	else:
-		_open_popup(field)
+		_open_panel(field)
 
 
 ## Cierra la lista abierta (si la hay) y devuelve el foco a su campo, sin cambiar la elección.
@@ -115,8 +120,10 @@ func close_picker(play_sound: bool = true) -> void:
 		return
 	_picker = ""
 	_set_editing("")
-	if _popup != null and _popup.visible:
-		_popup.hide()
+	var focused := _root.get_viewport().gui_get_focus_owner()
+	if focused != null and _panel.is_ancestor_of(focused):
+		focused.release_focus()
+	_animate_split(0.0)
 	if play_sound:
 		AudioManager.play("ui_cerrar")
 	(_fields[field] as AccusationField).selector.grab_focus()
@@ -182,6 +189,10 @@ func is_suspect_list_open() -> bool:
 	return _picker == SUSPECT_FIELD
 
 
+func get_panel() -> AccusationEvidencePanel:
+	return _panel
+
+
 func get_suspect_list() -> AccusationSuspectList:
 	return _suspects
 
@@ -215,6 +226,10 @@ func get_sheet_rect() -> Rect2:
 	return Rect2(_sheet.position, _sheet.size * _sheet.scale)
 
 
+func get_panel_rect() -> Rect2:
+	return Rect2(_panel.position, _panel.size * _panel.scale)
+
+
 # --- Listas ---
 
 func _open_suspect_list() -> void:
@@ -237,44 +252,20 @@ func _on_suspect_list_closed() -> void:
 		(_fields[SUSPECT_FIELD] as AccusationField).selector.grab_focus()
 
 
-## Despliega el menú de Godot con lo que se puede presentar en un campo de prueba.
-func _open_popup(field: String) -> void:
+## Abre el panel lateral para un campo de prueba. Si ya estaba abierto para otro, sólo cambia
+## de contenido.
+func _open_panel(field: String) -> void:
+	var switching := is_panel_open()
 	if _picker == SUSPECT_FIELD:
 		_suspects.close(false)
-	if _popup == null:
-		_popup = PopupMenu.new()
-		_popup.name = "Popup"
-		_popup.add_theme_font_override("font", AccusationStyle.body_font())
-		_popup.add_theme_font_size_override("font_size", AccusationStyle.ROW_SIZE)
-		_popup.id_pressed.connect(func(index: int) -> void: choose(_picker, _popup_ids[index]))
-		_popup.popup_hide.connect(_on_popup_hidden)
-		add_child(_popup)
-	_popup.clear()
-	_popup_ids.clear()
-	for option in AccusationInfo.options(field):
-		_popup.add_item(option["title"], _popup_ids.size())
-		_popup_ids.append(option["id"])
-	if _popup_ids.is_empty():
-		_popup.add_item(AccusationInfo.EMPTY_TEXTS.get(field, ""), 0)
-		_popup.set_item_disabled(0, true)
 	_picker = field
 	_set_editing(field)
-	# Bajo el selector, en píxeles de la ventana: con la escala de la hoja y la del estiramiento.
-	var selector := (_fields[field] as AccusationField).selector
-	var screen_scale := selector.get_viewport().get_final_transform().get_scale() * selector.get_global_transform_with_canvas().get_scale()
-	var origin := selector.get_screen_position() + Vector2(0.0, selector.size.y * screen_scale.y)
-	_popup.popup(Rect2i(Vector2i(origin), Vector2i(int(selector.size.x * screen_scale.x), 0)))
-	AudioManager.play("ui_abrir")
-
-
-## El menú se cerró sin elegir (Esc o un clic fuera).
-func _on_popup_hidden() -> void:
-	if not is_panel_open():
-		return
-	var field := _picker
-	_picker = ""
-	_set_editing("")
-	(_fields[field] as AccusationField).selector.grab_focus()
+	_panel.show()
+	_panel.open_for(field, _draft[field])
+	_panel.refresh_keys()
+	_animate_split(1.0)
+	AudioManager.play("ui_mover" if switching else "ui_abrir")
+	_panel.focus_list()
 
 
 func _set_editing(field: String) -> void:
@@ -318,24 +309,55 @@ func _on_root_resized() -> void:
 
 # --- Composición y animaciones ---
 
-## La hoja tiene un tamaño de diseño; si la pantalla (o el tamaño de letra de Accesibilidad) no da
-## para ella, se escala entera, así nunca se sale de la pantalla.
+## La hoja y el panel tienen un tamaño de diseño; si la pantalla (o el tamaño de letra de
+## Accesibilidad) no da para los dos juntos, se escalan a la vez, así nunca se salen de la pantalla
+## ni cambian de tamaño al abrir el panel.
 func _layout() -> void:
 	if _root == null:
 		return
 	var available := _root.size - AccusationStyle.SCREEN_MARGIN * 2.0
-	_scale = clampf(minf(available.y / AccusationStyle.SHEET_SIZE.y, available.x / AccusationStyle.SHEET_SIZE.x), 0.25, 1.0)
+	var both := AccusationStyle.SHEET_SIZE.x + AccusationStyle.PANEL_GAP + AccusationStyle.PANEL_SIZE.x
+	_scale = clampf(minf(available.y / AccusationStyle.SHEET_SIZE.y, available.x / both), 0.25, 1.0)
 	_sheet.size = AccusationStyle.SHEET_SIZE
+	_panel.size = AccusationStyle.PANEL_SIZE
 	_place()
 
 
 func _place() -> void:
 	var area := _root.size
 	var sheet_size := AccusationStyle.SHEET_SIZE * _scale
+	var panel_size := AccusationStyle.PANEL_SIZE * _scale
+	var both := (AccusationStyle.SHEET_SIZE.x + AccusationStyle.PANEL_GAP + AccusationStyle.PANEL_SIZE.x) * _scale
+	var centered_x := (area.x - sheet_size.x) * 0.5
+	var split_x := (area.x - both) * 0.5
+	var top := (area.y - sheet_size.y) * 0.5
 	var pop := lerpf(AccusationStyle.OPEN_SCALE, 1.0, _open_amount)
-	var sheet_position := (area - sheet_size) * 0.5
+	var sheet_position := Vector2(lerpf(centered_x, split_x, _split), top)
 	_sheet.scale = Vector2.ONE * _scale * pop
 	_sheet.position = sheet_position + sheet_size * (1.0 - pop) * 0.5
+	var panel_x := split_x + (AccusationStyle.SHEET_SIZE.x + AccusationStyle.PANEL_GAP) * _scale
+	_panel.scale = Vector2.ONE * _scale
+	_panel.position = Vector2(panel_x + AccusationStyle.PANEL_SLIDE * _scale * (1.0 - _split), top + (sheet_size.y - panel_size.y) * 0.5)
+	_panel.modulate.a = _split
+	_panel.visible = is_panel_open() or _split > 0.001
+
+
+func _set_split(value: float) -> void:
+	if _split_tween != null:
+		_split_tween.kill()
+	_split = value
+	_place()
+
+
+## Paso suave entre la hoja centrada y la hoja con el panel al lado.
+func _animate_split(target: float) -> void:
+	if _split_tween != null:
+		_split_tween.kill()
+	_split_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT if target > _split else Tween.EASE_IN_OUT)
+	_split_tween.tween_method(func(value: float) -> void:
+		_split = value
+		_place()
+	, _split, target, AccusationStyle.SPLIT_SECONDS)
 
 
 func _animate_open() -> void:
@@ -369,3 +391,4 @@ func _finish_close() -> void:
 	_root.hide()
 	_shield.hide()
 	_root.modulate.a = 1.0
+	_set_split(0.0)

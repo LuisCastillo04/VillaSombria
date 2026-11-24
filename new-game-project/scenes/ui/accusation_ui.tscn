@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://scripts/ui/gold_divider.gd" id="6"]
 [ext_resource type="Script" path="res://scripts/ui/accusation/accusation_verdict.gd" id="7"]
 [ext_resource type="Script" path="res://scripts/ui/accusation/accusation_plate_button.gd" id="8"]
+[ext_resource type="Script" path="res://scripts/ui/accusation/accusation_evidence_panel.gd" id="9"]
 [ext_resource type="Script" path="res://scripts/ui/accusation/accusation_suspect_list.gd" id="10"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_dim"]
@@ -152,6 +153,13 @@ text = "Seguir investigando"
 script = ExtResource("8")
 primary = false
 icon_name = "lupa"
+
+[node name="Panel" type="Control" parent="Root"]
+visible = false
+layout_mode = 0
+offset_right = 600.0
+offset_bottom = 880.0
+script = ExtResource("9")
 
 [node name="SuspectList" type="Control" parent="Root"]
 visible = false

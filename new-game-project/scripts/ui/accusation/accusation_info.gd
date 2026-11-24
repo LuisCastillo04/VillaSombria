@@ -90,3 +90,21 @@ static func describe(item_id: String) -> Dictionary:
 
 static func suspect_name(suspect_id: String) -> String:
 	return GameData.get_character_name(suspect_id)
+
+
+## Texto para buscar sin distinguir mayúsculas ni tildes.
+static func normalize(text: String) -> String:
+	var result := text.to_lower()
+	var plain := {"á": "a", "é": "e", "í": "i", "ó": "o", "ú": "u", "ü": "u", "ñ": "n", "à": "a", "è": "e"}
+	for accented: String in plain:
+		result = result.replace(accented, plain[accented])
+	return result
+
+
+## Si una opción contiene todas las palabras de la búsqueda, en su título o en su texto.
+static func matches(option: Dictionary, query: String) -> bool:
+	var haystack := normalize("%s %s %s %s" % [option.get("title", ""), option.get("full_title", ""), option.get("text", ""), option.get("type_label", "")])
+	for word in normalize(query).split(" ", false):
+		if not haystack.contains(word):
+			return false
+	return true
