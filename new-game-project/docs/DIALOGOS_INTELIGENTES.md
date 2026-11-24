@@ -289,6 +289,11 @@ Correspondencia con los escenarios pedidos: 1 y 11 (`test_a_question_counts_only
 14 (`test_the_journal_history_never_replays_anything`); 15 (`test_single_mode_never_blocks_the_story`);
 17 (`test_focus_moves_on_when_a_question_changes_section`, `test_smart_mode_lets_the_player_repeat_from_the_section`).
 
+Resultado: con `verificar.ps1` sin ventana, importación, arranque y los siete reinicios correctos;
+la batería, 642 correctas y 2 fallos de `test_integration` (la intermitencia conocida de las teclas
+perdidas, ver [ESTADO_PROYECTO.md](ESTADO_PROYECTO.md#problemas-conocidos)); repetida, cuatro veces de
+cuatro correcta, y una segunda ejecución completa dio 644 correctas y 0 fallos (605 antes de empezar).
+
 Dos mutaciones comprobaron que las pruebas detectan los fallos: con la sección desplegada por defecto
 fallan cuatro pruebas de interfaz, y aplicando los efectos al repetir falla la prueba de los avisos.
 

@@ -76,6 +76,13 @@ Tras recolocar el mobiliario (rama `fix/posicionamiento-escenarios`), `verificar
 una copia aparte de la rama: importación, arranque, 551 pruebas correctas y 0 fallos, y los siete
 reinicios en procesos separados, todo correcto.
 
+Tras los diálogos inteligentes (rama `feature/dialogos-inteligentes`), `verificar.ps1` sin ventana en
+una copia aparte de la rama: importación, arranque y los siete reinicios en procesos separados
+correctos; la batería dio 642 correctas y 2 fallos de `test_integration` (pulsaciones de E y B
+perdidas, la intermitencia conocida). Repetida aislada, `test_integration` pasó cuatro veces de
+cuatro, y una segunda ejecución completa de la batería dio 644 pruebas correctas y 0 fallos. Antes
+de empezar, la misma batería sobre la rama sin cambios dio 605 correctas.
+
 | Archivo | Cubre |
 | --- | --- |
 | `test_player` | Movimiento relativo a la cámara, colisiones, interacción, bloqueos |
