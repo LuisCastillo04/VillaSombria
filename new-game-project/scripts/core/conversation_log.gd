@@ -25,6 +25,14 @@ const MODE_SMART := "inteligente"
 const MODE_SINGLE := "unico"
 const MODES: Array[String] = [MODE_FREE, MODE_SMART, MODE_SINGLE]
 
+## Estado de una pregunta en el menú.
+const PENDING := "pendiente"
+const DONE := "realizada"
+
+## Parte del menú en que aparece una pregunta: la principal o «Preguntas realizadas».
+const SECTION_MAIN := "principal"
+const SECTION_ASKED := "realizadas"
+
 
 ## Modalidad vigente: `MODE_FREE`, `MODE_SMART` (por defecto) o `MODE_SINGLE`. Sólo cambia cómo se
 ## presenta el menú de preguntas: cambiarla nunca borra ni altera el registro.
@@ -150,6 +158,56 @@ static func note_gained(entry: Dictionary, clues: Array, testimonies: Array) -> 
 		if not list.is_empty():
 			gained[pair[0]] = list
 	entry["gained"] = gained
+
+
+# --- Menú -----------------------------------------------------------------------------------
+
+## Preguntas que ofrece el personaje ahora mismo, ya ordenadas para la modalidad `menu_mode` (sin
+## ella, la de Configuración). Cada entrada: `id`, `label`, `variant`, `state` (`PENDING` o `DONE`),
+## `asked`, `section` (`SECTION_MAIN` o `SECTION_ASKED`) y `count`.
+##
+## - Libre: todas en el orden de los datos, en la parte principal, como siempre.
+## - Inteligente: primero las pendientes, en el orden de los datos; las hechas pasan a «Preguntas
+##   realizadas» y se pueden repetir.
+## Sólo aparecen las preguntas cuya condición se cumple: una que sus propios datos retiran al hacerla
+## (un «not_clues» con lo que entrega) no vuelve, como antes.
+static func menu(npc_id: String, menu_mode: String = "") -> Array[Dictionary]:
+	if menu_mode.is_empty():
+		menu_mode = mode()
+	var pending: Array[Dictionary] = []
+	var asked: Array[Dictionary] = []
+	for topic: Dictionary in GameData.get_dialogue(npc_id).get("topics", []):
+		if not Conditions.check(topic.get("if", {})):
+			continue
+		var variant_id := current_variant(topic)
+		if variant_id.is_empty():
+			continue
+		var topic_id := String(topic["id"])
+		var done := is_variant_done(npc_id, topic_id, variant_id)
+		var entry := {
+			"id": topic_id,
+			"label": String(topic.get("label", "")),
+			"variant": variant_id,
+			"state": DONE if done else PENDING,
+			"asked": done,
+			"section": SECTION_MAIN,
+			"count": times_asked(npc_id, topic_id, variant_id),
+		}
+		if done and menu_mode != MODE_FREE:
+			entry["section"] = SECTION_ASKED
+			asked.append(entry)
+		else:
+			pending.append(entry)
+	pending.append_array(asked)
+	return pending
+
+
+## Entrada del menú actual para esa pregunta, o vacía si ahora no se ofrece.
+static func menu_entry(npc_id: String, topic_id: String, menu_mode: String = "") -> Dictionary:
+	for entry in menu(npc_id, menu_mode):
+		if entry["id"] == topic_id:
+			return entry
+	return {}
 
 
 ## Si el personaje tiene alguna pregunta disponible que aún no se le ha hecho (con su variante actual).

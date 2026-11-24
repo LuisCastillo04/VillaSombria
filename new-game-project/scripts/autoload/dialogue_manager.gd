@@ -99,6 +99,12 @@ func choose(option_id: String) -> void:
 	_play_topic(topic)
 
 
+## Preguntas que ofrece ahora el NPC, ordenadas y con su estado según la modalidad de Configuración
+## (ver `ConversationLog.menu`).
+func get_topic_menu(target_npc: String) -> Array[Dictionary]:
+	return ConversationLog.menu(target_npc)
+
+
 func close() -> void:
 	if not active:
 		return
@@ -225,12 +231,12 @@ func _finish_conversation_step() -> void:
 		_show_topics()
 
 
+## Menú de preguntas: lo ordena `ConversationLog` según la modalidad y termina con la de salir.
 func _show_topics() -> void:
 	var options: Array = []
-	for topic in get_available_topics(npc_id):
-		var variant_id := ConversationLog.current_variant(topic)
-		options.append({"id": topic["id"], "label": topic["label"], "asked": ConversationLog.is_variant_done(npc_id, topic["id"], variant_id)})
-	options.append({"id": EXIT_OPTION, "label": "Terminar la conversación.", "asked": true})
+	for entry in get_topic_menu(npc_id):
+		options.append(entry)
+	options.append({"id": EXIT_OPTION, "label": "Terminar la conversación.", "asked": true, "section": "salida"})
 	options_shown.emit(options)
 
 
@@ -243,11 +249,11 @@ func _show_choices(choices: Array, after: Dictionary) -> void:
 	options_shown.emit(options)
 
 
+## La pregunta, si el menú la ofrece ahora mismo; si no, vacía.
 func _find_topic(topic_id: String) -> Dictionary:
-	for topic in get_available_topics(npc_id):
-		if topic["id"] == topic_id:
-			return topic
-	return {}
+	if ConversationLog.menu_entry(npc_id, topic_id).is_empty():
+		return {}
+	return ConversationLog.find_topic(npc_id, topic_id)
 
 
 func _first_matching(variants: Array) -> Dictionary:
