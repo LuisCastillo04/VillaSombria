@@ -1,6 +1,19 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/accusation_ui.gd" id="1"]
+[ext_resource type="Shader" path="res://assets/shaders/evidence_backdrop.gdshader" id="2"]
+[ext_resource type="Script" path="res://scripts/ui/accusation/accusation_sheet.gd" id="3"]
+[ext_resource type="Script" path="res://scripts/ui/accusation/accusation_header.gd" id="4"]
+[ext_resource type="Script" path="res://scripts/ui/accusation/accusation_field.gd" id="5"]
+[ext_resource type="Script" path="res://scripts/ui/gold_divider.gd" id="6"]
+[ext_resource type="Script" path="res://scripts/ui/accusation/accusation_verdict.gd" id="7"]
+[ext_resource type="Script" path="res://scripts/ui/accusation/accusation_plate_button.gd" id="8"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dim"]
+shader = ExtResource("2")
+shader_parameter/tint = Color(0.02, 0.025, 0.035, 0.76)
+shader_parameter/blur = 2.6
+shader_parameter/vignette = 0.24
 
 [node name="AccusationUi" type="CanvasLayer"]
 layer = 9
@@ -15,79 +28,135 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Dim" type="ColorRect" parent="Root"]
+material = SubResource("ShaderMaterial_dim")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.02, 0.03, 0.05, 0.82)
+color = Color(0.02, 0.025, 0.035, 0.8)
 
-[node name="Sheet" type="PanelContainer" parent="Root"]
+[node name="Sheet" type="Control" parent="Root"]
+layout_mode = 0
+offset_left = 520.0
+offset_top = 35.0
+offset_right = 1400.0
+offset_bottom = 1045.0
+script = ExtResource("3")
+
+[node name="Content" type="MarginContainer" parent="Root/Sheet"]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -540.0
-offset_top = -420.0
-offset_right = 540.0
-offset_bottom = 420.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 74
+theme_override_constants/margin_top = 42
+theme_override_constants/margin_right = 74
+theme_override_constants/margin_bottom = 46
 
-[node name="Box" type="VBoxContainer" parent="Root/Sheet"]
+[node name="Rows" type="VBoxContainer" parent="Root/Sheet/Content"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 10
 
-[node name="Title" type="Label" parent="Root/Sheet/Box"]
+[node name="Header" type="Control" parent="Root/Sheet/Content/Rows"]
+custom_minimum_size = Vector2(0, 140)
 layout_mode = 2
-text = "ACUSACIÓN FORMAL"
+mouse_filter = 2
+script = ExtResource("4")
 
-[node name="SuspectLabel" type="Label" parent="Root/Sheet/Box"]
+[node name="Fields" type="VBoxContainer" parent="Root/Sheet/Content/Rows"]
 layout_mode = 2
-text = "Acuso a:"
-
-[node name="Suspect" type="OptionButton" parent="Root/Sheet/Box"]
-layout_mode = 2
-
-[node name="MotiveLabel" type="Label" parent="Root/Sheet/Box"]
-layout_mode = 2
-text = "Motivo: por qué lo hizo"
-
-[node name="Motive" type="OptionButton" parent="Root/Sheet/Box"]
-layout_mode = 2
-
-[node name="OpportunityLabel" type="Label" parent="Root/Sheet/Box"]
-layout_mode = 2
-text = "Oportunidad: cómo pudo estar allí a la hora real"
-
-[node name="Opportunity" type="OptionButton" parent="Root/Sheet/Box"]
-layout_mode = 2
-
-[node name="MeansLabel" type="Label" parent="Root/Sheet/Box"]
-layout_mode = 2
-text = "Medios: cómo lo hizo"
-
-[node name="Means" type="OptionButton" parent="Root/Sheet/Box"]
-layout_mode = 2
-
-[node name="Verdict" type="RichTextLabel" parent="Root/Sheet/Box"]
-layout_mode = 2
-size_flags_vertical = 3
-bbcode_enabled = true
-
-[node name="Buttons" type="HBoxContainer" parent="Root/Sheet/Box"]
-layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 14
 
-[node name="Accuse" type="Button" parent="Root/Sheet/Box/Buttons"]
+[node name="Suspect" type="VBoxContainer" parent="Root/Sheet/Content/Rows/Fields"]
+layout_mode = 2
+script = ExtResource("5")
+field_key = "suspect"
+label_text = "Acuso a:"
+icon_name = "persona"
+placeholder = "Seleccionar sospechoso"
+opens_side_panel = false
+
+[node name="Motive" type="VBoxContainer" parent="Root/Sheet/Content/Rows/Fields"]
+layout_mode = 2
+script = ExtResource("5")
+field_key = "motive"
+label_text = "Motivo:"
+prompt_text = "por qué lo hizo"
+icon_name = ""
+glyph = "?"
+
+[node name="Opportunity" type="VBoxContainer" parent="Root/Sheet/Content/Rows/Fields"]
+layout_mode = 2
+script = ExtResource("5")
+field_key = "opportunity"
+label_text = "Oportunidad:"
+prompt_text = "cómo pudo estar allí a la hora real"
+icon_name = "reloj"
+
+[node name="Means" type="VBoxContainer" parent="Root/Sheet/Content/Rows/Fields"]
+layout_mode = 2
+script = ExtResource("5")
+field_key = "means"
+label_text = "Medios:"
+prompt_text = "cómo lo hizo"
+icon_name = "lupa"
+
+[node name="Spacer" type="Control" parent="Root/Sheet/Content/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Divider" type="Control" parent="Root/Sheet/Content/Rows"]
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("6")
+hollow = true
+color = Color(0.431, 0.102, 0.118, 0.75)
+
+[node name="Verdict" type="PanelContainer" parent="Root/Sheet/Content/Rows"]
+layout_mode = 2
+script = ExtResource("7")
+
+[node name="Spacer2" type="Control" parent="Root/Sheet/Content/Rows"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Buttons" type="HBoxContainer" parent="Root/Sheet/Content/Rows"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 28
+
+[node name="Accuse" type="Button" parent="Root/Sheet/Content/Rows/Buttons"]
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Presentar la acusación"
+script = ExtResource("8")
+icon_name = "balanza"
 
-[node name="Cancel" type="Button" parent="Root/Sheet/Box/Buttons"]
+[node name="Continue" type="Button" parent="Root/Sheet/Content/Rows/Buttons"]
+custom_minimum_size = Vector2(0, 70)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Seguir investigando"
+script = ExtResource("8")
+primary = false
+icon_name = "lupa"
+
+[node name="Shield" type="Control" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
