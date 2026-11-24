@@ -92,6 +92,7 @@ func to_dict() -> Dictionary:
 		"testimonies": testimonies,
 		"deductions": deductions,
 		"asked_topics": asked_topics.keys(),
+		"conversations": conversations.duplicate(true),
 		"hypotheses": hypotheses,
 		"accusation_draft": accusation_draft.duplicate(),
 		"location_id": location_id,
@@ -110,6 +111,12 @@ func from_dict(data: Dictionary) -> void:
 	deductions.assign(data.get("deductions", []))
 	for topic: String in data.get("asked_topics", []):
 		asked_topics[topic] = true
+	# Las partidas anteriores al registro detallado sólo traen `asked_topics`: se rehace lo que se
+	# puede probar con lo que guardaban, sin inventar conversaciones (`ConversationLog.recover`).
+	var records := ConversationLog.clean_records(data.get("conversations", {}), false)
+	conversations = ConversationLog.recover(records, asked_topics.keys(), data.get("clues", []), data.get("testimonies", []))
+	for topic_key: String in conversations:
+		asked_topics[topic_key] = true
 	hypotheses = data.get("hypotheses", {})
 	# Las partidas anteriores al borrador no lo traen: el formulario empieza vacío.
 	var draft: Variant = data.get("accusation_draft", {})

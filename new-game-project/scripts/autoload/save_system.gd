@@ -835,6 +835,15 @@ func _digest_of(sections: Dictionary) -> String:
 	var state: Dictionary = tracked.get("state", {})
 	for key in NON_PROGRESS_STATE_KEYS:
 		state.erase(key)
+	# Repetir una pregunta ya hecha sólo suma a su contador: no hay nada nuevo que guardar.
+	var conversations: Variant = state.get("conversations")
+	if conversations is Dictionary:
+		for topic_key: Variant in conversations:
+			var variants: Variant = (conversations[topic_key] as Dictionary).get("variants") if conversations[topic_key] is Dictionary else null
+			if variants is Dictionary:
+				for variant_id: Variant in variants:
+					if variants[variant_id] is Dictionary:
+						(variants[variant_id] as Dictionary).erase("count")
 	return JSON.stringify(tracked, "", true).sha256_text()
 
 

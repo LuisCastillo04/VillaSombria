@@ -10,8 +10,9 @@ extends RefCounted
 ## el informe», la del informe recibido sigue pendiente. Una pregunta sin variantes usa
 ## `BASE_VARIANT`.
 ##
-## Los datos viven en `GameState` (`conversations` y el resumen `asked_topics`); aquí sólo están las
-## reglas.
+## Los datos viven en `GameState` (`conversations` y el resumen `asked_topics`) y se guardan con la
+## partida, cada ranura con el suyo; aquí sólo están las reglas, también las que limpian lo que trae
+## una partida y rehacen el registro de las anteriores a él (`clean_records`, `recover`).
 
 const BASE_VARIANT := "base"
 
@@ -150,3 +151,218 @@ static func _next_order() -> int:
 		for variant_id: String in variants:
 			highest = maxi(highest, int((variants[variant_id] as Dictionary).get("order", -1)))
 	return highest + 1
+
+
+# --- Guardado ---------------------------------------------------------------------------------
+
+## Registro limpio a partir de lo que trae una partida: sólo preguntas y variantes que existen en los
+## datos, con contadores, días y horas válidos. Lo que no se entiende se descarta (con un aviso si
+## `report`); nunca impide cargar, porque el resto de la partida reconstruye lo esencial.
+static func clean_records(raw: Variant, report: bool = true) -> Dictionary:
+	var result := {}
+	if raw == null:
+		return result
+	if not raw is Dictionary:
+		_warn(report, "el registro de conversaciones está dañado; se rehace con las preguntas hechas")
+		return result
+	for topic_key: Variant in raw:
+		var topic := _topic_for_key(topic_key)
+		if topic.is_empty():
+			_warn(report, "se ignora una conversación desconocida («%s»)" % str(topic_key))
+			continue
+		var entry: Variant = raw[topic_key]
+		var variants: Variant = entry.get("variants") if entry is Dictionary else null
+		if not variants is Dictionary:
+			_warn(report, "se descarta una conversación dañada («%s»)" % topic_key)
+			continue
+		var known := variant_ids(topic)
+		var clean_variants := {}
+		for variant_id: Variant in variants:
+			var data: Variant = variants[variant_id]
+			if not variant_id is String or not known.has(variant_id) or not data is Dictionary:
+				_warn(report, "se ignora una variante desconocida o dañada de «%s»" % topic_key)
+				continue
+			clean_variants[variant_id] = _clean_variant(data)
+		if not clean_variants.is_empty():
+			result[topic_key] = {"variants": clean_variants}
+	_fill_missing_orders(result)
+	return result
+
+
+## Partidas anteriores al registro detallado: reconstruye lo que se puede probar con lo que ya
+## guardaban, sin inventar conversaciones.
+##
+## - Cada pregunta de `asked` (el antiguo `asked_topics`) se hizo seguro. Si tiene variantes, se dan
+##   por hechas las que entregan algo que la partida tiene; si ninguna lo prueba, la única que no
+##   entrega nada (como «aún no ha llegado el informe»). El orden es el de `asked`, que ya era el
+##   orden en que se hicieron.
+## - Un testimonio o una pista que sólo entrega una pregunta prueba que esa pregunta se hizo.
+## Lo reconstruido se marca `recovered`, sin día ni hora, que no se conocen.
+static func recover(records: Dictionary, asked: Array, clues: Array, testimonies: Array) -> Dictionary:
+	var result := records.duplicate(true)
+	var owned: Array = clues + testimonies
+	var pending: Array[String] = []
+	for topic_key: Variant in asked:
+		if topic_key is String and not pending.has(topic_key):
+			pending.append(topic_key)
+	var producers := _exclusive_producers()
+	for item: Variant in owned:
+		if producers.has(item):
+			var source: String = (producers[item] as String).get_slice("#", 0)
+			if not pending.has(source):
+				pending.append(source)
+	for topic_key in pending:
+		if result.has(topic_key):
+			continue
+		var topic := _topic_for_key(topic_key)
+		if topic.is_empty():
+			continue
+		var done := _proven_variants(topic, owned, producers, topic_key)
+		var variants := {}
+		for variant_id in done:
+			var data := {"count": 1, "recovered": true}
+			var gained := _owned_effects(variant_block(topic, variant_id), clues, testimonies)
+			if not gained.is_empty():
+				data["gained"] = gained
+			variants[variant_id] = data
+		if not variants.is_empty():
+			result[topic_key] = {"variants": variants}
+	_fill_missing_orders(result)
+	return result
+
+
+## Variantes de una pregunta hecha que se pueden dar por completadas.
+static func _proven_variants(topic: Dictionary, owned: Array, producers: Dictionary, topic_key: String) -> Array[String]:
+	var proven: Array[String] = []
+	var silent: Array[String] = []
+	for variant_id in variant_ids(topic):
+		var items := _effect_items(variant_block(topic, variant_id))
+		if items.is_empty():
+			silent.append(variant_id)
+			continue
+		for item in items:
+			if owned.has(item) and producers.get(item, "") == "%s#%s" % [topic_key, variant_id]:
+				proven.append(variant_id)
+				break
+	if proven.is_empty() and silent.size() == 1:
+		proven.append(silent[0])
+	# Una pregunta sin variantes que consta como hecha se hizo, entregue algo o no.
+	if proven.is_empty() and not topic.has("variants"):
+		proven.append(BASE_VARIANT)
+	return proven
+
+
+## Pistas y testimonios que sólo entrega una variante de una pregunta: elemento -> «npc/pregunta#variante».
+static func _exclusive_producers() -> Dictionary:
+	var producers := {}
+	var repeated := {}
+	for npc_id in GameData.get_dialogue_ids():
+		for topic: Dictionary in GameData.get_dialogue(npc_id).get("topics", []):
+			for variant_id in variant_ids(topic):
+				for item in _effect_items(variant_block(topic, variant_id)):
+					if producers.has(item):
+						repeated[item] = true
+					producers[item] = "%s#%s" % [key(npc_id, topic["id"]), variant_id]
+	for scene_id: String in GameData.scenes:
+		for item in _scene_items(GameData.scenes[scene_id]):
+			repeated[item] = true
+	for item: String in repeated:
+		producers.erase(item)
+	return producers
+
+
+static func _effect_items(block: Dictionary) -> Array[String]:
+	var items: Array[String] = []
+	var effects: Dictionary = block.get("effects", {})
+	for list: String in ["clues", "testimonies"]:
+		for item: Variant in effects.get(list, []):
+			items.append(String(item))
+	return items
+
+
+## Pistas y testimonios que puede entregar una escena, en cualquiera de sus bloques y respuestas.
+static func _scene_items(block: Variant) -> Array[String]:
+	var items: Array[String] = []
+	if block is Dictionary:
+		items.append_array(_effect_items(block))
+		for child_key: String in ["after"]:
+			items.append_array(_scene_items(block.get(child_key)))
+		for choice: Variant in block.get("choices", []):
+			items.append_array(_scene_items(choice))
+	return items
+
+
+static func _owned_effects(block: Dictionary, clues: Array, testimonies: Array) -> Dictionary:
+	var effects: Dictionary = block.get("effects", {})
+	var gained := {}
+	var owned_clues: Array = effects.get("clues", []).filter(func(item: Variant) -> bool: return clues.has(item))
+	var owned_testimonies: Array = effects.get("testimonies", []).filter(func(item: Variant) -> bool: return testimonies.has(item))
+	if not owned_clues.is_empty():
+		gained["clues"] = owned_clues
+	if not owned_testimonies.is_empty():
+		gained["testimonies"] = owned_testimonies
+	return gained
+
+
+static func _clean_variant(data: Dictionary) -> Dictionary:
+	var clean := {"count": maxi(_whole(data.get("count"), 1), 1)}
+	var order := _whole(data.get("order"), -1)
+	if order >= 0:
+		clean["order"] = order
+	var day := _whole(data.get("day"), 0)
+	if day >= 1 and day <= GameClock.LAST_DAY:
+		clean["day"] = day
+		var minutes := _whole(data.get("minutes"), -1)
+		if minutes >= 0 and minutes <= 24 * 60:
+			clean["minutes"] = minutes
+	var gained: Variant = data.get("gained")
+	if gained is Dictionary:
+		var clean_gained := {}
+		for pair: Array in [["clues", GameData.clues], ["testimonies", GameData.testimonies]]:
+			var list: Variant = gained.get(pair[0])
+			if list is Array:
+				var known: Array = (list as Array).filter(func(item: Variant) -> bool: return item is String and (pair[1] as Dictionary).has(item))
+				if not known.is_empty():
+					clean_gained[pair[0]] = known
+		if not clean_gained.is_empty():
+			clean["gained"] = clean_gained
+	if data.get("recovered") == true:
+		clean["recovered"] = true
+	return clean
+
+
+## Las entradas sin orden (reconstruidas o dañadas) van detrás de las que lo tienen, en el orden en
+## que aparecen.
+static func _fill_missing_orders(records: Dictionary) -> void:
+	var highest := -1
+	for topic_key: String in records:
+		var variants: Dictionary = records[topic_key]["variants"]
+		for variant_id: String in variants:
+			highest = maxi(highest, int((variants[variant_id] as Dictionary).get("order", -1)))
+	for topic_key: String in records:
+		var variants: Dictionary = records[topic_key]["variants"]
+		for variant_id: String in variants:
+			var data: Dictionary = variants[variant_id]
+			if not data.has("order"):
+				highest += 1
+				data["order"] = highest
+
+
+static func _topic_for_key(topic_key: Variant) -> Dictionary:
+	if not topic_key is String or (topic_key as String).get_slice_count("/") != 2:
+		return {}
+	var npc_id := (topic_key as String).get_slice("/", 0)
+	if not GameData.characters.has(npc_id) or not GameData.has_dialogue(npc_id):
+		return {}
+	return find_topic(npc_id, (topic_key as String).get_slice("/", 1))
+
+
+static func _whole(value: Variant, fallback: int) -> int:
+	if (typeof(value) == TYPE_INT or typeof(value) == TYPE_FLOAT) and is_finite(float(value)) and float(value) == floorf(float(value)):
+		return int(value)
+	return fallback
+
+
+static func _warn(report: bool, message: String) -> void:
+	if report:
+		push_warning("Partida guardada: %s." % message)
