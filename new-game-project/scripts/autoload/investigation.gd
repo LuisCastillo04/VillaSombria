@@ -96,6 +96,25 @@ func get_board_items() -> Array[Dictionary]:
 	return items
 
 
+## Lo que el jugador puede presentar en la acusación para una categoría ("motive", "opportunity" o
+## "means", ver `EvidenceCategories`): las pistas, testimonios y deducciones ya hallados que
+## pertenecen a ella, en el orden del tablero y sin repetir. Nunca incluye nada sin descubrir, y no
+## depende del sospechoso elegido ni de cuál sea la respuesta correcta: sólo reduce la lista a lo
+## que tiene que ver con la pregunta.
+func get_accusation_options(category: String) -> Array[Dictionary]:
+	var options: Array[Dictionary] = []
+	if not EvidenceCategories.is_category(category):
+		return options
+	var seen := {}
+	for item in get_board_items():
+		var item_id: String = item.get("id", "")
+		if item_id.is_empty() or seen.has(item_id) or not EvidenceCategories.belongs(item_id, category):
+			continue
+		seen[item_id] = true
+		options.append(item)
+	return options
+
+
 ## Hipótesis del jugador sobre un sospechoso: {"status", "note"}, vacías si aún no anotó nada.
 func get_hypothesis(suspect_id: String) -> Dictionary:
 	var saved: Dictionary = GameState.hypotheses.get(suspect_id, {})

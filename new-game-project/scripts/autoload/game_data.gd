@@ -13,6 +13,9 @@ var story: Dictionary = {}
 var scenes: Dictionary = {}
 ## Lugares y calibración del mapa del pueblo; los interpreta TownMap.
 var map: Dictionary = {}
+## Para qué sirve cada prueba, testimonio o deducción en la acusación; lo interpreta
+## `EvidenceCategories`.
+var evidence_categories: Dictionary = {}
 
 var _dialogues: Dictionary = {}
 
@@ -27,6 +30,7 @@ func _ready() -> void:
 	story = _read("story.json")
 	scenes = _read("dialogues/escenas.json")
 	map = _read("map.json")
+	evidence_categories = _read("evidence_categories.json")
 
 
 func _exit_tree() -> void:
