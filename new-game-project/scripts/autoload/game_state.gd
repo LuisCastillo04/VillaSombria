@@ -12,6 +12,9 @@ var asked_topics: Dictionary = {}
 ## "day", "minutes", "gained"}}}. Una variante se anota al terminar su respuesta, nunca antes; las
 ## reglas están en `ConversationLog`.
 var conversations: Dictionary = {}
+## Preguntas que ya han aparecido en el menú de su personaje, con claves "npc/pregunta#variante":
+## lo que aparezca después, desbloqueado por la investigación, se marca como «Nuevo».
+var seen_topics: Dictionary = {}
 ## Hipótesis del jugador por sospechoso: {"status": String, "note": String}.
 var hypotheses: Dictionary = {}
 ## Borrador del formulario de acusación: campo -> sospechoso o elemento elegido. Sólo guarda los
@@ -33,6 +36,7 @@ func reset() -> void:
 	deductions.clear()
 	asked_topics.clear()
 	conversations.clear()
+	seen_topics.clear()
 	hypotheses.clear()
 	accusation_draft.clear()
 	location_id = ""
@@ -93,6 +97,7 @@ func to_dict() -> Dictionary:
 		"deductions": deductions,
 		"asked_topics": asked_topics.keys(),
 		"conversations": conversations.duplicate(true),
+		"seen_topics": seen_topics.keys(),
 		"hypotheses": hypotheses,
 		"accusation_draft": accusation_draft.duplicate(),
 		"location_id": location_id,
@@ -119,6 +124,11 @@ func from_dict(data: Dictionary) -> void:
 	asked_topics.clear()
 	for topic_key: String in conversations:
 		asked_topics[topic_key] = true
+	# Sin la lista de lo visto (partidas anteriores), cuenta como visto lo que ya se completó.
+	seen_topics = ConversationLog.clean_seen(data.get("seen_topics", []))
+	for topic_key: String in conversations:
+		for variant_id: String in conversations[topic_key]["variants"]:
+			seen_topics["%s#%s" % [topic_key, variant_id]] = true
 	hypotheses = data.get("hypotheses", {})
 	# Las partidas anteriores al borrador no lo traen: el formulario empieza vacío.
 	var draft: Variant = data.get("accusation_draft", {})

@@ -9,6 +9,9 @@ extends Node
 ##   --shots=x,y,z;x,y,z   guarda una imagen numerada por cada posición
 ##   --day=N --time=HH:MM  fija el calendario
 ##   --seed=todo           concede todas las pistas y testimonios
+##   --visto=A,B           da por vistas las preguntas que esos personajes ofrecen antes de
+##                         --pistas: lo que éstas desbloqueen aparecerá con «Nuevo»
+##   --hecho=npc/pregunta,...  da por completadas esas preguntas (como al oír su respuesta)
 ##   --pistas=a,b          concede sólo esas pistas, testimonios o deducciones (en ese orden)
 ##   --hipotesis=id=valoración[=nota],...   anota hipótesis antes de abrir el tablero
 ##   --flags=a,b           marca esos hechos de la historia antes de entrar en el escenario
@@ -88,6 +91,13 @@ func _ready() -> void:
 		GameClock.advance(1)
 	if args.get("seed", "") == "todo":
 		_grant_everything()
+	if args.has("hecho"):
+		for topic_key: String in (args["hecho"] as String).split(","):
+			var topic := ConversationLog.find_topic(topic_key.get_slice("/", 0), topic_key.get_slice("/", 1))
+			ConversationLog.record(topic_key.get_slice("/", 0), topic_key.get_slice("/", 1), ConversationLog.current_variant(topic))
+	if args.has("visto"):
+		for npc_id: String in (args["visto"] as String).split(","):
+			ConversationLog.mark_seen(npc_id, ConversationLog.menu(npc_id))
 	if args.has("pistas"):
 		_grant_items((args["pistas"] as String).split(","))
 	if args.has("hipotesis"):

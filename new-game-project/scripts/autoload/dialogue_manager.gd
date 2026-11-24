@@ -27,6 +27,8 @@ var _is_scene := false
 ## Pregunta cuya respuesta se está oyendo: se anota en `ConversationLog` cuando termina, nunca
 ## antes, así que una conversación interrumpida la deja pendiente.
 var _topic_in_progress: Dictionary = {}
+## Preguntas presentadas como nuevas en esta conversación: siguen con «Nuevo» mientras dure.
+var _fresh_keys: Dictionary = {}
 
 
 ## Abre una conversación con un NPC.
@@ -117,6 +119,7 @@ func close() -> void:
 	_pending_after = {}
 	_after_lines = Callable()
 	_topic_in_progress = {}
+	_fresh_keys = {}
 	GameState.unlock_player("dialogo")
 	closed.emit(finished_npc)
 
@@ -149,6 +152,7 @@ func was_asked(target_npc: String, topic_id: String) -> bool:
 func _open(target_npc: String, is_scene: bool) -> void:
 	active = true
 	npc_id = target_npc
+	_fresh_keys = {}
 	_is_scene = is_scene
 	GameState.lock_player("dialogo")
 	opened.emit(target_npc)
@@ -236,11 +240,17 @@ func _finish_conversation_step() -> void:
 		_show_topics()
 
 
-## Menú de preguntas: lo ordena `ConversationLog` según la modalidad y termina con la de salir.
+## Menú de preguntas: lo ordena `ConversationLog` según la modalidad y termina con la de salir. Lo
+## que aparece por primera vez desbloqueado por la investigación llega como nuevo; después, todo lo
+## mostrado queda como visto.
 func _show_topics() -> void:
+	var entries := ConversationLog.menu(npc_id, ConversationLog.mode(), _fresh_keys)
 	var options: Array = []
-	for entry in get_topic_menu(npc_id):
+	for entry in entries:
+		if entry["fresh"]:
+			_fresh_keys[ConversationLog.variant_key(npc_id, entry["id"], entry["variant"])] = true
 		options.append(entry)
+	ConversationLog.mark_seen(npc_id, entries)
 	options.append({"id": EXIT_OPTION, "label": "Terminar la conversación.", "asked": true, "section": "salida"})
 	options_shown.emit(options)
 

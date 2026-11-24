@@ -45,7 +45,8 @@ const TRANSITION_LOCK := "transicion"
 const CASE_CLOSED_FLAG := "caso_resuelto"
 ## Datos que cambian sin que la partida avance: no cuentan como progreso sin guardar.
 const NON_PROGRESS_SECTIONS: Array[String] = ["player"]
-const NON_PROGRESS_STATE_KEYS: Array[String] = ["play_seconds"]
+## Lo que el jugador ha visto en los menús de preguntas tampoco es progreso.
+const NON_PROGRESS_STATE_KEYS: Array[String] = ["play_seconds", "seen_topics"]
 ## Espera entre comprobaciones mientras el momento no es seguro para guardar.
 const AUTOSAVE_RETRY_SECONDS := 1.0
 ## Al salir se espera a que termine una transición en curso, como mucho este tiempo.

@@ -10,7 +10,11 @@ extends RefCounted
 ## el informe», la del informe recibido sigue pendiente. Una pregunta sin variantes usa
 ## `BASE_VARIANT`.
 ##
-## Los datos viven en `GameState` (`conversations` y el resumen `asked_topics`) y se guardan con la
+## Las preguntas que la investigación desbloquea después de la primera conversación con un personaje
+## llegan marcadas como nuevas («Nuevo»), una vez: lo que ya apareció en su menú queda anotado en
+## `GameState.seen_topics`.
+##
+## Los datos viven en `GameState` (`conversations`, `seen_topics` y el resumen `asked_topics`) y se guardan con la
 ## partida, cada ranura con el suyo; aquí sólo están las reglas, también las que limpian lo que trae
 ## una partida y rehacen el registro de las anteriores a él (`clean_records`, `recover`).
 
@@ -150,6 +154,7 @@ static func record(npc_id: String, topic_id: String, variant_id: String) -> Dict
 	var fresh := {"count": 1, "order": _next_order(), "day": GameClock.day, "minutes": GameClock.minutes}
 	variants[variant_id] = fresh
 	GameState.asked_topics[topic_key] = true
+	GameState.seen_topics[variant_key(npc_id, topic_id, variant_id)] = true
 	return fresh
 
 
@@ -172,7 +177,11 @@ static func note_gained(entry: Dictionary, clues: Array, testimonies: Array) -> 
 
 ## Preguntas que ofrece el personaje ahora mismo, ya ordenadas para la modalidad `menu_mode` (sin
 ## ella, la de Configuración). Cada entrada: `id`, `label`, `variant`, `state` (`PENDING`, `DONE` o
-## `LOCKED`), `asked`, `section` (`SECTION_MAIN` o `SECTION_ASKED`), `repeatable` y `count`.
+## `LOCKED`), `asked`, `fresh`, `section` (`SECTION_MAIN` o `SECTION_ASKED`), `repeatable` y `count`.
+##
+## `fresh` marca una pregunta pendiente recién desbloqueada: aparece por primera vez en el menú de un
+## personaje con el que ya se había hablado. `fresh_keys` son las claves de variante que ya se
+## presentaron como nuevas en la conversación en curso: lo siguen siendo mientras dure.
 ##
 ## - Libre: todas en el orden de los datos, en la parte principal, como siempre.
 ## - Inteligente: primero las pendientes, en el orden de los datos; las hechas pasan a «Preguntas
@@ -183,9 +192,10 @@ static func note_gained(entry: Dictionary, clues: Array, testimonies: Array) -> 
 ## pendientes, y nunca se bloquean.
 ## Sólo aparecen las preguntas cuya condición se cumple: una que sus propios datos retiran al hacerla
 ## (un «not_clues» con lo que entrega) no vuelve, como antes.
-static func menu(npc_id: String, menu_mode: String = "") -> Array[Dictionary]:
+static func menu(npc_id: String, menu_mode: String = "", fresh_keys: Dictionary = {}) -> Array[Dictionary]:
 	if menu_mode.is_empty():
 		menu_mode = mode()
+	var met := has_met(npc_id)
 	var pending: Array[Dictionary] = []
 	var standing: Array[Dictionary] = []
 	var asked: Array[Dictionary] = []
@@ -198,12 +208,14 @@ static func menu(npc_id: String, menu_mode: String = "") -> Array[Dictionary]:
 		var topic_id := String(topic["id"])
 		var done := is_variant_done(npc_id, topic_id, variant_id)
 		var repeatable := is_repeatable(topic)
+		var entry_key := variant_key(npc_id, topic_id, variant_id)
 		var entry := {
 			"id": topic_id,
 			"label": String(topic.get("label", "")),
 			"variant": variant_id,
 			"state": DONE if done else PENDING,
 			"asked": done,
+			"fresh": not done and (fresh_keys.has(entry_key) or (met and not GameState.seen_topics.has(entry_key))),
 			"section": SECTION_MAIN,
 			"repeatable": repeatable,
 			"count": times_asked(npc_id, topic_id, variant_id),
@@ -228,6 +240,24 @@ static func menu_entry(npc_id: String, topic_id: String, menu_mode: String = "")
 		if entry["id"] == topic_id:
 			return entry
 	return {}
+
+
+## Marca como vistas las preguntas que acaban de aparecer en el menú de un personaje.
+static func mark_seen(npc_id: String, entries: Array) -> void:
+	for entry: Dictionary in entries:
+		GameState.seen_topics[variant_key(npc_id, entry["id"], entry["variant"])] = true
+
+
+## Si el jugador ya ha hablado alguna vez con el personaje (ha visto su menú o le ha preguntado algo).
+static func has_met(npc_id: String) -> bool:
+	var prefix := npc_id + "/"
+	for seen_key: String in GameState.seen_topics:
+		if seen_key.begins_with(prefix):
+			return true
+	for topic_key: String in GameState.asked_topics:
+		if topic_key.begins_with(prefix):
+			return true
+	return false
 
 
 ## Si el personaje tiene alguna pregunta disponible que aún no se le ha hecho (con su variante actual).
@@ -280,6 +310,20 @@ static func clean_records(raw: Variant, report: bool = true) -> Dictionary:
 		if not clean_variants.is_empty():
 			result[topic_key] = {"variants": clean_variants}
 	_fill_missing_orders(result)
+	return result
+
+
+## Preguntas ya vistas en un menú: sólo claves de variantes que existen.
+static func clean_seen(raw: Variant) -> Dictionary:
+	var result := {}
+	if not raw is Array:
+		return result
+	for seen_key: Variant in raw:
+		if not seen_key is String:
+			continue
+		var topic := _topic_for_key((seen_key as String).get_slice("#", 0))
+		if not topic.is_empty() and variant_ids(topic).has((seen_key as String).get_slice("#", 1)):
+			result[seen_key] = true
 	return result
 
 
