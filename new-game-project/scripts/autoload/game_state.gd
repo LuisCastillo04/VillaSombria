@@ -88,6 +88,7 @@ func to_dict() -> Dictionary:
 		"deductions": deductions,
 		"asked_topics": asked_topics.keys(),
 		"hypotheses": hypotheses,
+		"accusation_draft": accusation_draft.duplicate(),
 		"location_id": location_id,
 		"spawn_id": spawn_id,
 		"accusation_attempts": accusation_attempts,
@@ -105,6 +106,13 @@ func from_dict(data: Dictionary) -> void:
 	for topic: String in data.get("asked_topics", []):
 		asked_topics[topic] = true
 	hypotheses = data.get("hypotheses", {})
+	# Las partidas anteriores al borrador no lo traen: el formulario empieza vacío.
+	var draft: Variant = data.get("accusation_draft", {})
+	if draft is Dictionary:
+		for field: Variant in draft:
+			var value: Variant = draft[field]
+			if field is String and value is String and not (value as String).is_empty():
+				accusation_draft[field] = value
 	location_id = data.get("location_id", "")
 	spawn_id = data.get("spawn_id", "")
 	accusation_attempts = int(data.get("accusation_attempts", 0))

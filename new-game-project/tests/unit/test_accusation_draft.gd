@@ -1,5 +1,6 @@
 extends TestCase
-## Borrador de la acusación: qué elecciones acepta y cuándo se vacía.
+## Borrador de la acusación: qué elecciones acepta, cuándo se vacía y cómo viaja con las partidas
+## guardadas (ranuras independientes, autoguardado, partidas antiguas y datos dañados).
 
 
 func before_each() -> void:
@@ -30,6 +31,32 @@ func _discover(ids: Array[String]) -> void:
 			Investigation.record_testimony(item_id)
 		else:
 			GameState.deductions.append(item_id)
+
+
+func _draft_in(slot_id: String) -> Dictionary:
+	var result := SaveSystem.read_slot(slot_id)
+	if result["status"] != SaveFormat.Status.OK:
+		return {"error": result["error"]}
+	return result["document"]["sections"]["state"].get("accusation_draft", {})
+
+
+func _load(slot_id: String) -> bool:
+	var result := SaveSystem.read_slot(slot_id)
+	if result["status"] != SaveFormat.Status.OK:
+		return false
+	SaveSystem.apply_sections(result["document"]["sections"])
+	return true
+
+
+func _document_with_draft(draft: Variant) -> Dictionary:
+	var state := {
+		"flags": [], "clues": ["transferencia", "libro_bodega"], "testimonies": ["t_elena_clara"],
+		"deductions": [], "asked_topics": [], "hypotheses": {}, "location_id": "mansion",
+		"spawn_id": "", "accusation_attempts": 1,
+	}
+	if draft != null:
+		state["accusation_draft"] = draft
+	return SaveFormat.build({"kind": "manual", "saved_at": 1763500000, "reason": "manual"}, {"state": state, "clock": {"day": 3, "minutes": 600}})
 
 
 # --- Elecciones ---
@@ -102,3 +129,104 @@ func test_case_solved_and_new_game_clear_the_draft() -> void:
 	Investigation.set_accusation_choice("suspect", "irene")
 	GameState.reset()
 	check_equal(GameState.accusation_draft, {}, "una partida nueva empieza sin borrador")
+
+
+# --- Partidas guardadas ---
+
+func test_draft_round_trips_through_a_save() -> void:
+	GameState.location_id = "mansion"
+	_discover(["transferencia", "libro_bodega", "d_bodega"])
+	Investigation.set_accusation_choice("suspect", "anselmo")
+	Investigation.set_accusation_choice("motive", "transferencia")
+	Investigation.set_accusation_choice("opportunity", "d_bodega")
+	check(await save_and_wait("manual_1"), "se guarda")
+	check_equal(_draft_in("manual_1"), {"suspect": "anselmo", "motive": "transferencia", "opportunity": "d_bodega"}, "el archivo guarda identificadores, no posiciones de una lista")
+	GameState.reset()
+	check(_load("manual_1"), "se carga")
+	var draft := Investigation.get_accusation_draft()
+	check_equal(draft["suspect"], "anselmo", "sospechoso")
+	check_equal(draft["motive"], "transferencia", "motivo")
+	check_equal(draft["opportunity"], "d_bodega", "oportunidad")
+	check_equal(draft["means"], "", "los medios siguen vacíos")
+
+
+func test_each_slot_keeps_its_own_draft() -> void:
+	GameState.location_id = "mansion"
+	_discover(["transferencia", "pagare_marcos"])
+	Investigation.set_accusation_choice("suspect", "anselmo")
+	Investigation.set_accusation_choice("motive", "transferencia")
+	await save_and_wait("manual_1")
+	Investigation.set_accusation_choice("suspect", "marcos")
+	Investigation.set_accusation_choice("motive", "pagare_marcos")
+	await save_and_wait("manual_2")
+	check_equal(_draft_in("manual_1")["suspect"], "anselmo", "la primera ranura conserva su borrador")
+	check_equal(_draft_in("manual_2")["suspect"], "marcos", "la segunda tiene el suyo")
+	check(_load("manual_1"), "se carga la primera")
+	check_equal(Investigation.get_accusation_draft()["motive"], "transferencia", "con su motivo")
+	check(_load("manual_2"), "se carga la segunda")
+	check_equal(Investigation.get_accusation_draft()["motive"], "pagare_marcos", "con el suyo")
+	for slot_id: String in ["manual_3", "manual_4", "manual_5"]:
+		check_equal(SaveSystem.get_slot_info(slot_id)["status"], SaveFormat.Status.EMPTY, "el borrador no crea ranuras")
+
+
+func test_changing_the_draft_is_unsaved_progress_and_autosaves_with_it() -> void:
+	GameState.location_id = "mansion"
+	_discover(["transferencia"])
+	await save_and_wait("manual_3")
+	check(not SaveSystem.has_unsaved_progress(), "recién guardado no hay nada pendiente")
+	Investigation.set_accusation_choice("suspect", "irene")
+	check(SaveSystem.has_unsaved_progress(), "cambiar el borrador es algo que guardar al salir")
+	check(await autosave_and_wait("lugar"), "el autoguardado escribe")
+	check_equal(_draft_in("manual_3"), {"suspect": "irene"}, "con el borrador, en la ranura activa")
+
+
+func test_draft_edited_after_talking_to_ortega_is_autosaved_on_closing() -> void:
+	GameState.location_id = "mansion"
+	_discover(["transferencia"])
+	await save_and_wait("manual_2")
+	SaveSystem.autosave_enabled = true
+	SaveSystem.autosave_delay = 0.05
+	SaveSystem.autosave_min_interval = 0.0
+	# Como en el juego: la conversación con Ortega termina y abre la hoja; su autoguardado espera.
+	DialogueManager.closed.emit("ortega")
+	GameState.lock_player("acusacion")
+	Investigation.set_accusation_choice("suspect", "anselmo")
+	Investigation.set_accusation_choice("motive", "transferencia")
+	await get_tree().create_timer(0.4).timeout
+	check_equal(_draft_in("manual_2"), {}, "con la hoja abierta no se escribe nada")
+	check(SaveSystem.has_pending_autosave(), "la petición espera a que se cierre")
+	GameState.unlock_player("acusacion")
+	var waited := 0.0
+	while _draft_in("manual_2").is_empty() and waited < 3.0:
+		await get_tree().create_timer(0.1).timeout
+		waited += 0.1
+	check_equal(_draft_in("manual_2"), {"suspect": "anselmo", "motive": "transferencia"}, "al seguir investigando, el autoguardado lleva el borrador")
+
+
+func test_saves_without_a_draft_still_load() -> void:
+	var result := SaveFormat.parse(JSON.stringify(_document_with_draft(null)))
+	check_equal(result["status"], SaveFormat.Status.OK, "una partida anterior al borrador se acepta")
+	check_equal(result["document"]["sections"]["state"]["accusation_draft"], {}, "con el borrador vacío")
+	SaveSystem.apply_sections(result["document"]["sections"])
+	check_equal(Investigation.get_accusation_draft()["suspect"], "", "el formulario empieza vacío")
+	check(GameState.clues.has("transferencia"), "y el resto de la partida se restaura")
+
+
+func test_invalid_draft_entries_are_dropped_on_load() -> void:
+	var draft := {
+		"suspect": "ortega",
+		"motive": "transferencia",
+		"opportunity": "d_bodega",
+		"means": "libro_bodega",
+		"culpable": "anselmo",
+	}
+	var result := SaveFormat.parse(JSON.stringify(_document_with_draft(draft)))
+	check_equal(result["status"], SaveFormat.Status.OK, "un borrador raro no impide cargar")
+	check_equal(result["document"]["sections"]["state"]["accusation_draft"], {"motive": "transferencia"}, "sólo queda lo que vale con lo descubierto")
+
+
+func test_damaged_draft_does_not_block_loading() -> void:
+	for damaged: Variant in ["anselmo", [1, 2], 42]:
+		var result := SaveFormat.parse(JSON.stringify(_document_with_draft(damaged)))
+		check_equal(result["status"], SaveFormat.Status.OK, "un borrador dañado (%s) no corrompe la partida" % str(damaged))
+		check_equal(result["document"]["sections"]["state"]["accusation_draft"], {}, "y empieza vacío")

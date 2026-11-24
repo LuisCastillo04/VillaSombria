@@ -159,6 +159,7 @@ static func _validate_state(state: Dictionary) -> Dictionary:
 	if not hypotheses is Dictionary:
 		return failure(Status.CORRUPT, "Las hipótesis del tablero están dañadas.")
 	state["hypotheses"] = _clean_hypotheses(hypotheses)
+	state["accusation_draft"] = _clean_accusation_draft(state)
 	var location: Variant = state.get("location_id")
 	if not location is String:
 		return failure(Status.CORRUPT, "Falta el lugar de la partida.")
@@ -222,6 +223,26 @@ static func _clean_hypotheses(hypotheses: Dictionary) -> Dictionary:
 		var note: Variant = entry.get("note", "")
 		if status is String and note is String:
 			result[suspect_id] = {"status": status, "note": (note as String).left(MAX_NOTE_LENGTH)}
+	return result
+
+
+## Borrador de la acusación de una partida ya con sus listas limpias. Es opcional (las partidas
+## anteriores no lo tienen) y nunca impide cargar: se queda sólo con las elecciones que siguen
+## valiendo con lo que esa partida había descubierto, y sin los campos vacíos.
+static func _clean_accusation_draft(state: Dictionary) -> Dictionary:
+	var raw: Variant = state.get("accusation_draft", {})
+	var known: Array = state["clues"] + state["testimonies"] + state["deductions"]
+	var clean := Investigation.clean_accusation_draft(raw, known)
+	var result := {}
+	for field: String in clean:
+		if not (clean[field] as String).is_empty():
+			result[field] = clean[field]
+	if raw is Dictionary:
+		for field: Variant in raw:
+			if not result.has(field) and not str(raw[field]).is_empty():
+				push_warning("Partida guardada: se descarta una elección del borrador de la acusación (%s «%s»)." % [field, raw[field]])
+	elif raw != null:
+		push_warning("Partida guardada: el borrador de la acusación está dañado y empieza vacío.")
 	return result
 
 
