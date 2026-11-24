@@ -15,6 +15,22 @@ extends RefCounted
 ## una partida y rehacen el registro de las anteriores a él (`clean_records`, `recover`).
 
 const BASE_VARIANT := "base"
+## Preferencia de Configuración → Jugabilidad con la modalidad de los interrogatorios.
+const MODE_KEY := "jugabilidad/sistema_dialogos"
+## Todas las preguntas siguen en su sitio y se repiten sin límite.
+const MODE_FREE := "libre"
+## Las nuevas primero; las hechas, aparte y repetibles. Es la modalidad por defecto.
+const MODE_SMART := "inteligente"
+## Cada pregunta se hace una sola vez.
+const MODE_SINGLE := "unico"
+const MODES: Array[String] = [MODE_FREE, MODE_SMART, MODE_SINGLE]
+
+
+## Modalidad vigente: `MODE_FREE`, `MODE_SMART` (por defecto) o `MODE_SINGLE`. Sólo cambia cómo se
+## presenta el menú de preguntas: cambiarla nunca borra ni altera el registro.
+static func mode() -> String:
+	var value := String(Settings.get_value(MODE_KEY))
+	return value if MODES.has(value) else MODE_SMART
 
 
 static func key(npc_id: String, topic_id: String) -> String:

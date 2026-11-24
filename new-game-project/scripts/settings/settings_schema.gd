@@ -42,6 +42,11 @@ const DEFINITIONS := {
 	"jugabilidad/velocidad_texto": {"type": TYPE_STRING, "default": "normal",
 		"options": ["lento", "normal", "rapido", "instantaneo"]},
 	"jugabilidad/avance_automatico": {"type": TYPE_BOOL, "default": false},
+	# Cómo se presentan las preguntas ya hechas en un interrogatorio (ver `ConversationLog`): todas
+	# repetibles en su sitio, agrupadas aparte (por defecto) o de una sola vez. Es una preferencia
+	# del jugador, común a todas las partidas; el progreso de cada partida no depende de ella.
+	"jugabilidad/sistema_dialogos": {"type": TYPE_STRING, "default": "inteligente",
+		"options": ["libre", "inteligente", "unico"]},
 	# Preguntar antes de las acciones que se pueden confirmar (dejar pasar una hora). Las
 	# confirmaciones de acciones destructivas no dependen de esta preferencia.
 	"jugabilidad/confirmaciones": {"type": TYPE_BOOL, "default": true},
@@ -70,6 +75,9 @@ const LABELS := {
 	"normal": "Normal",
 	"rapido": "Rápido",
 	"instantaneo": "Instantáneo",
+	"libre": "Repetición libre",
+	"inteligente": "Diálogo inteligente",
+	"unico": "Diálogo único",
 	"grande": "Grande",
 	"muy_grande": "Muy grande",
 }
