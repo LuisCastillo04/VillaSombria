@@ -10,6 +10,9 @@ var deductions: Array[String] = []
 var asked_topics: Dictionary = {}
 ## Hipótesis del jugador por sospechoso: {"status": String, "note": String}.
 var hypotheses: Dictionary = {}
+## Borrador del formulario de acusación: campo -> sospechoso o elemento elegido. Sólo guarda los
+## campos rellenos; las reglas que lo validan están en `Investigation`.
+var accusation_draft: Dictionary = {}
 var location_id := ""
 var spawn_id := ""
 var accusation_attempts := 0
@@ -26,6 +29,7 @@ func reset() -> void:
 	deductions.clear()
 	asked_topics.clear()
 	hypotheses.clear()
+	accusation_draft.clear()
 	location_id = ""
 	spawn_id = ""
 	accusation_attempts = 0

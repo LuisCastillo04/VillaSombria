@@ -8,6 +8,16 @@ const CLUE_MINUTES := 5
 ## Valoraciones que el jugador puede dar a un sospechoso en el tablero, en el orden en que se
 ## ofrecen. La cadena vacía es «sin valorar»; los rótulos están en `JournalInfo.STATUS_LABELS`.
 const HYPOTHESIS_STATUSES: Array[String] = ["", "sospechoso", "principal", "descartado"]
+## Campos del formulario de acusación, en su orden: el sospechoso y las tres pruebas, que usan las
+## claves de `EvidenceCategories` y de las reglas de `story.json`.
+const SUSPECT_FIELD := "suspect"
+const ACCUSATION_FIELDS: Array[String] = ["suspect", "motive", "opportunity", "means"]
+## Marca que pone la historia al cerrar el caso: entonces el borrador de la acusación se descarta.
+const CASE_SOLVED_FLAG := "caso_resuelto"
+
+
+func _ready() -> void:
+	EventBus.flag_set.connect(_on_flag_set)
 
 
 ## Registra una pista una sola vez. Devuelve si era nueva. Con `announce`, el HUD lo avisa
@@ -113,6 +123,83 @@ func get_accusation_options(category: String) -> Array[Dictionary]:
 		seen[item_id] = true
 		options.append(item)
 	return options
+
+
+# --- Borrador de la acusación ---
+
+## Lo último que el jugador eligió en cada campo de la acusación, con todos los campos de
+## `ACCUSATION_FIELDS` ("" si está vacío). Sólo devuelve elecciones que siguen siendo válidas.
+func get_accusation_draft() -> Dictionary:
+	return clean_accusation_draft(GameState.accusation_draft, _discovered_ids())
+
+
+## Anota una elección del formulario en el borrador. `field` es uno de `ACCUSATION_FIELDS`; `value`,
+## el sospechoso o el elemento elegido, o "" para dejar el campo vacío. Rechaza a quien no es
+## sospechoso y los elementos sin descubrir o de otra categoría. Anotar no presenta nada ni cuenta
+## como intento: sólo recuerda el formulario. Devuelve si el borrador quedó con ese valor.
+func set_accusation_choice(field: String, value: String) -> bool:
+	if not ACCUSATION_FIELDS.has(field):
+		push_warning("Acusación: el campo «%s» no existe." % field)
+		return false
+	if not value.is_empty() and not _is_valid_choice(field, value, _discovered_ids()):
+		push_warning("Acusación: «%s» no vale para el campo «%s»." % [value, field])
+		return false
+	if str(GameState.accusation_draft.get(field, "")) == value:
+		return true
+	if value.is_empty():
+		GameState.accusation_draft.erase(field)
+	else:
+		GameState.accusation_draft[field] = value
+	EventBus.accusation_draft_changed.emit(field)
+	return true
+
+
+## Vacía el borrador entero.
+func clear_accusation_draft() -> void:
+	if GameState.accusation_draft.is_empty():
+		return
+	GameState.accusation_draft.clear()
+	EventBus.accusation_draft_changed.emit("")
+
+
+## Si un borrador (como el de `get_accusation_draft`) tiene los cuatro campos elegidos.
+func is_accusation_complete(draft: Dictionary) -> bool:
+	for field in ACCUSATION_FIELDS:
+		if str(draft.get(field, "")).is_empty():
+			return false
+	return true
+
+
+## Borrador válido a partir de unos datos cualesquiera, como los de una partida guardada: los cuatro
+## campos, con el valor sólo si es texto, el sospechoso lo es y cada prueba está entre `known_ids` (lo
+## descubierto) y pertenece a su categoría. Todo lo demás queda vacío; nunca falla.
+func clean_accusation_draft(raw: Variant, known_ids: Array) -> Dictionary:
+	var result := {}
+	for field in ACCUSATION_FIELDS:
+		result[field] = ""
+	if not raw is Dictionary:
+		return result
+	for field in ACCUSATION_FIELDS:
+		var value: Variant = (raw as Dictionary).get(field, "")
+		if value is String and not (value as String).is_empty() and _is_valid_choice(field, value, known_ids):
+			result[field] = value
+	return result
+
+
+func _is_valid_choice(field: String, value: String, known_ids: Array) -> bool:
+	if field == SUSPECT_FIELD:
+		return GameData.get_suspects().has(value)
+	return known_ids.has(value) and EvidenceCategories.belongs(value, field)
+
+
+func _discovered_ids() -> Array:
+	return GameState.clues + GameState.testimonies + GameState.deductions
+
+
+## Al cerrar el caso, el borrador ya no sirve: se descarta.
+func _on_flag_set(flag: String) -> void:
+	if flag == CASE_SOLVED_FLAG:
+		clear_accusation_draft()
 
 
 ## Hipótesis del jugador sobre un sospechoso: {"status", "note"}, vacías si aún no anotó nada.

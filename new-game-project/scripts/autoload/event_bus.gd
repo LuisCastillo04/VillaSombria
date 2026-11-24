@@ -16,6 +16,8 @@ signal testimony_recorded(testimony_id: String)
 signal deduction_made(deduction_id: String)
 ## El jugador ha anotado o cambiado su valoración o su hipótesis sobre un sospechoso.
 signal hypothesis_changed(suspect_id: String)
+## Ha cambiado el borrador de la acusación: un campo del formulario, o "" si se vació entero.
+signal accusation_draft_changed(field: String)
 signal flag_set(flag: String)
 
 signal time_changed(day: int, minutes: int)
