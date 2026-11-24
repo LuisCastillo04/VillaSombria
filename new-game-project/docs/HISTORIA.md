@@ -73,6 +73,10 @@ La acusación exige tres pruebas. Cualquiera de las aceptadas sirve.
 
 Una acusación errónea no termina la partida: Ortega explica por qué no se sostiene.
 
+Cada campo de la hoja ofrece sólo lo descubierto que tiene que ver con su pregunta, mezclando las
+pruebas aceptadas con otras que parecen razonables pero no se sostienen. La clasificación, elemento
+a elemento, está en [ACUSACION.md](ACUSACION.md#clasificación-deductiva).
+
 ## Deducciones
 
 Cada deducción se obtiene relacionando dos elementos en el tablero.

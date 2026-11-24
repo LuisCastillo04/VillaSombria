@@ -27,7 +27,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scenes/ui/` | Interfaz |
 | `scripts/autoload/` | Sistemas globales |
 | `scripts/audio/` | Piezas del sonido adaptativo: catálogo, música, ambiente, efectos, bucles y tensión de la historia |
-| `scripts/core/` | Escena de juego, condiciones y efectos |
+| `scripts/core/` | Escena de juego, condiciones, efectos y clasificación deductiva de las pruebas (`EvidenceCategories`) |
 | `scripts/save/` | Formato de las partidas, escritura segura e imagen de cada ranura |
 | `scripts/settings/` | Esquema de las preferencias del jugador y lo que las aplica, filtros visuales incluidos; ver [CONFIGURACION.md](CONFIGURACION.md) y [FILTROS.md](FILTROS.md) |
 | `scripts/input/` | Teclas reasignables y navegación de los menús con el mando; ver [CONTROLES.md](CONTROLES.md) |
@@ -35,7 +35,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `scripts/actors/` | Modelo procedural, NPC y rutinas |
 | `scripts/player/` | Controlador, cámara y detector de interacción |
 | `scripts/world/` | Kits de construcción, interactivos y escenarios |
-| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente; `scripts/ui/board/`, las piezas del tablero de deducción; `scripts/ui/dialogue/`, las piezas de las conversaciones |
+| `scripts/ui/` | Interfaz; `scripts/ui/map/`, la vista, la ilustración y los símbolos del mapa; `scripts/ui/hud/`, las piezas del HUD; `scripts/ui/journal/`, las piezas y secciones del expediente; `scripts/ui/board/`, las piezas del tablero de deducción; `scripts/ui/dialogue/`, las piezas de las conversaciones; `scripts/ui/accusation/`, las de la acusación formal |
 | `tests/unit/` | Pruebas automatizadas |
 | `tests/persistencia/` | Guardar y cargar en otro proceso; cierre real de la ventana |
 | `tests/visual/` | Herramientas de captura, de rendimiento y de escucha (`escucha.tscn` graba el audio real de un recorrido) |
@@ -49,7 +49,7 @@ Godot 4.7, GDScript tipado y sin complementos. El proyecto está en `new-game-pr
 | `GameData` | Carga los JSON de `data/` |
 | `GameState` | Estado guardable: marcas, pistas, testimonios, deducciones e hipótesis |
 | `GameClock` | Día y hora; el tiempo sólo avanza con acciones del jugador |
-| `Investigation` | Registro sin duplicados, deducciones, hipótesis validadas (`get_hypothesis`, `set_hypothesis`) y evaluación de la acusación |
+| `Investigation` | Registro sin duplicados, deducciones, hipótesis validadas (`get_hypothesis`, `set_hypothesis`), opciones de cada campo de la acusación (`get_accusation_options`), su borrador (`get_accusation_draft`, `set_accusation_choice`) y evaluación de la acusación |
 | `DialogueManager` | Flujo de conversaciones y escenas, sin interfaz |
 | `StoryDirector` | Objetivos, eventos por hora, escenas al entrar en un lugar, descanso |
 | `SaveSystem` | Cinco ranuras en `user://saves/`, ranura activa, flujo único de escritura, autoguardado y carga; ver [GUARDADO.md](GUARDADO.md) |
@@ -125,6 +125,7 @@ Game
 | `player_locks_changed` | Cambian los bloqueos del control del jugador (`GameState.lock_player`) |
 | `clue_discovered`, `testimony_recorded`, `deduction_made` | Avanza la investigación |
 | `hypothesis_changed` | El jugador anota o cambia una hipótesis en el tablero (`Investigation.set_hypothesis`) |
+| `accusation_draft_changed` | Cambia un campo del borrador de la acusación (`Investigation.set_accusation_choice`), o se vacía entero |
 | `flag_set`, `objectives_changed` | Cambia el progreso |
 | `time_changed`, `day_changed` | Avanza el calendario |
 | `story_action` | Los datos piden una acción: abrir la acusación, iniciar el epílogo, cerrar el caso |
@@ -177,6 +178,8 @@ el primer tramo que encaje. Así el sargento espera en el café hasta la llamada
 - **NPC:** añade su entrada en `characters.json` (con su bloque `ambient`), su rutina en
   `schedules.json` y su archivo en `data/dialogues/`. Ver [NPC.md](NPC.md).
 - **Deducción:** añádela a `data/deductions.json`; el tablero la detecta sola y dibuja su hilo.
+- **Pista, testimonio o deducción en la acusación:** clasifícala en `data/evidence_categories.json`
+  (motivo, oportunidad, medios y, si es una pista, su clase). Ver [ACUSACION.md](ACUSACION.md).
 - **Sospechoso:** `"suspect": true` en su entrada de `characters.json`; el tablero y el expediente
   le dan ficha sin tocar código.
 - **Estado que deba guardarse:** si es una decisión o un hecho de la historia, usa una marca
@@ -238,6 +241,18 @@ hipótesis se anotan con `Investigation.set_hypothesis`, que las valida y emite
 estilo (`BoardStyle`) están en `scripts/ui/board/` y reutilizan las del expediente y el HUD. Los
 hilos sólo unen deducciones registradas y pasan por detrás del papel. Detalle, recorrido con
 teclado y pruebas en [TABLERO.md](TABLERO.md).
+
+## Acusación formal
+
+`AccusationUi` (`scenes/ui/accusation_ui.tscn`) es una hoja de papel en un marco burdeos con los
+cuatro campos (sospechoso, motivo, oportunidad y medios), la línea de Ortega y dos botones. El
+sospechoso se elige en una lista desplegable propia y cada prueba en un panel lateral con
+buscador. Sólo coordina: las opciones las da `Investigation.get_accusation_options`, que filtra lo
+descubierto con la clasificación de `EvidenceCategories` (`data/evidence_categories.json`); cada
+elección se anota en el borrador (`GameState.accusation_draft`, guardado en la sección `state`) y
+la validación de siempre es `Investigation.evaluate_accusation`. Las piezas y su estilo
+(`AccusationStyle`) están en `scripts/ui/accusation/`. Detalle, clasificación y pruebas en
+[ACUSACION.md](ACUSACION.md).
 
 ## Menús
 

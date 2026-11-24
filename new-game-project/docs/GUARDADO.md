@@ -101,7 +101,8 @@ JSON legible:
   },
   "sections": {
     "state": {"flags": [], "clues": [], "testimonies": [], "deductions": [], "asked_topics": [],
-              "hypotheses": {}, "location_id": "mansion", "spawn_id": "desde_plaza",
+              "hypotheses": {}, "accusation_draft": {"suspect": "anselmo"},
+              "location_id": "mansion", "spawn_id": "desde_plaza",
               "accusation_attempts": 0, "play_seconds": 812.3},
     "clock": {"day": 2, "minutes": 870},
     "player": {"location_id": "mansion", "position": [1.2, 0.1, 5.7], "yaw": 2.0}
@@ -115,6 +116,9 @@ JSON legible:
 - `saved_at`: segundos Unix en UTC; el menú los muestra en hora local.
 - `save_id` y `preview` son opcionales: las partidas anteriores no los tienen y siguen siendo
   válidas, sin cambiar la versión del formato.
+- `accusation_draft` también es opcional: guarda, con identificadores, lo último elegido en cada
+  campo de la acusación. Al cargar se descarta lo que ya no vale y, si falta o está dañado, el
+  formulario empieza vacío; ver [ACUSACION.md](ACUSACION.md#guardado).
 
 Lo que muestra el expediente (lugar, día, hora, tiempo de juego, pistas) sale de las secciones;
 no se guarda por duplicado.
@@ -144,7 +148,7 @@ SaveSystem.register_section("clave", funcion_que_devuelve_un_diccionario, funcio
 
 | Sección | Quién la registra | Contenido |
 | --- | --- | --- |
-| `state` | `SaveSystem`, sobre `GameState` | Marcas, pistas, testimonios, deducciones, preguntas hechas, hipótesis, lugar, intentos de acusación, tiempo jugado |
+| `state` | `SaveSystem`, sobre `GameState` | Marcas, pistas, testimonios, deducciones, preguntas hechas, hipótesis, borrador de la acusación, lugar, intentos de acusación, tiempo jugado |
 | `clock` | `SaveSystem`, sobre `GameClock` | Día y minuto del calendario |
 | `player` | `Game` | Lugar, posición y orientación del detective |
 | `map` | `TownMap` | Lugares del mapa que el detective ya ha pisado; ver [MAPA.md](MAPA.md#guardado) |
