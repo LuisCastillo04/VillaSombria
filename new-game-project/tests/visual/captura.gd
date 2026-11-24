@@ -16,7 +16,9 @@ extends Node
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
 ##   --escena=id           reproduce una escena narrativa de escenas.json y la captura
 ##   --pasos=a,a,2         con --dialogue-shots o --escena, antes de capturar: «a» avanza una
-##                         intervención y un número elige esa respuesta (1 la primera)
+##                         intervención, un número elige la respuesta con ese número (como su
+##                         tecla), «d» despliega o pliega «Preguntas realizadas» y «b» y «s» bajan
+##                         y suben la selección
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar] | esperar
 ##                         | reasignar:n | mando:n | restaurar
@@ -125,8 +127,9 @@ func _ready() -> void:
 	get_tree().quit()
 
 
-## Recorre la conversación como el jugador: «a» avanza una intervención y un número elige esa
-## respuesta de las que muestra la interfaz.
+## Recorre la conversación como el jugador: «a» avanza una intervención, un número elige la respuesta
+## que lleva ese número (como su tecla), «d» despliega o pliega «Preguntas realizadas» y «b» y «s»
+## mueven la selección.
 func _follow_steps(game: Game, args: Dictionary) -> void:
 	if not args.has("pasos"):
 		return
@@ -135,8 +138,12 @@ func _follow_steps(game: Game, args: Dictionary) -> void:
 		await _wait_seconds(0.5)
 		if step == "a":
 			DialogueManager.advance()
-		elif step.is_valid_int() and int(step) >= 1 and int(step) <= ui.get_option_ids().size():
-			DialogueManager.choose(ui.get_option_ids()[int(step) - 1])
+		elif step == "d":
+			ui.get_choices().toggle_section()
+		elif step == "b" or step == "s":
+			ui.get_choices().move_selection(1 if step == "b" else -1)
+		elif step.is_valid_int() and int(step) >= 1:
+			ui.get_choices().choose_index(int(step) - 1)
 
 
 func _capture_menu(args: Dictionary) -> void:

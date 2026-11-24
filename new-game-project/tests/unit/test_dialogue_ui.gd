@@ -31,6 +31,7 @@ func before_each() -> void:
 
 func after_each() -> void:
 	DialogueManager.line_shown.disconnect(_count_line)
+	Settings.set_value(ConversationLog.MODE_KEY, SettingsSchema.default_value(ConversationLog.MODE_KEY))
 	await _free_game()
 	SaveSystem.take_pending_load()
 	GameState.reset()
@@ -482,7 +483,9 @@ func test_confirming_right_after_the_choices_appear_is_ignored() -> void:
 	check(ui.is_typing() or ui.is_waiting_for_input(), "y se muestra la respuesta")
 
 
+## Con la repetición libre, la pregunta hecha sigue en su sitio y conserva su número.
 func test_number_keys_choose_even_from_the_keypad() -> void:
+	Settings.set_value(ConversationLog.MODE_KEY, ConversationLog.MODE_FREE)
 	await _talk_to_eusebio()
 	await _read_until_choices()
 	await _press_key(KEY_KP_1)
@@ -506,7 +509,9 @@ func test_hovering_highlights_and_only_a_click_chooses() -> void:
 	check_equal(DialogueManager.get_current_topic(), "camino", "el clic elige la pregunta")
 
 
+## Con la repetición libre, la pregunta hecha no cambia de sitio y el foco vuelve a ella.
 func test_focus_returns_to_the_last_choice() -> void:
+	Settings.set_value(ConversationLog.MODE_KEY, ConversationLog.MODE_FREE)
 	await _talk_to_eusebio()
 	await _read_until_choices()
 	await _press_key(KEY_1)

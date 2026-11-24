@@ -160,7 +160,10 @@ func test_conversation_through_the_interface() -> void:
 		guard += 1
 	check(GameState.asked_topics.has("%s/%s" % [DialogueManager.npc_id, asked]), "oída la respuesta, la pregunta queda registrada")
 	check(ui.is_choosing(), "al terminar la respuesta vuelve el menú")
-	await _press_key((KEY_1 + ui.get_option_ids().size() - 1) as Key)
+	# La pregunta hecha pasa a «Preguntas realizadas», plegada: la de salir lleva el número visible.
+	var exit_number := ui.get_choices().get_item(DialogueManager.EXIT_OPTION).number
+	check(exit_number > 0, "la de salir tiene número")
+	await _press_key((KEY_1 + exit_number - 1) as Key)
 	check(not DialogueManager.active, "la última opción cierra la conversación")
 	check(not GameState.is_player_locked(), "y devuelve el control")
 

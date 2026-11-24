@@ -62,3 +62,52 @@ static func draw_corner_piece(canvas: CanvasItem, origin: Vector2, inward: Vecto
 	for tip: Vector2 in [Vector2(0.0, inward.y * length), Vector2(inward.x * length, 0.0)]:
 		canvas.draw_circle(origin + tip, 2.2, color, true, -1.0, true)
 	HudOrnaments.draw_diamond(canvas, origin, 5.0, color, fill)
+
+# --- Iconos de estado de las preguntas ---
+
+## Marca de verificación, como un visto bueno a pluma: pregunta ya hecha.
+static func draw_check(canvas: CanvasItem, center: Vector2, size: float, color: Color) -> void:
+	var points := PackedVector2Array([
+		center + Vector2(-size, 0.05 * size),
+		center + Vector2(-0.3 * size, 0.7 * size),
+		center + Vector2(size, -0.75 * size),
+	])
+	canvas.draw_polyline(points, color, maxf(size * 0.32, 2.0), true)
+
+
+## Candado: pregunta que ya no se puede repetir.
+static func draw_padlock(canvas: CanvasItem, center: Vector2, size: float, color: Color) -> void:
+	var body := Rect2(center + Vector2(-size, -0.1 * size), Vector2(size * 2.0, size * 1.25))
+	canvas.draw_rect(body, color, true)
+	# El arco del candado, de lado a lado del cuerpo.
+	var radius := size * 0.62
+	canvas.draw_arc(center + Vector2(0.0, -0.1 * size), radius, PI, TAU, 14, color, maxf(size * 0.28, 2.0), true)
+	canvas.draw_line(center + Vector2(-radius, -0.1 * size), center + Vector2(-radius, -0.45 * size), color, maxf(size * 0.28, 2.0), true)
+	canvas.draw_line(center + Vector2(radius, -0.1 * size), center + Vector2(radius, -0.45 * size), color, maxf(size * 0.28, 2.0), true)
+	# El ojo de la cerradura, del color del papel que hay debajo.
+	canvas.draw_circle(center + Vector2(0.0, 0.42 * size), size * 0.2, Color(0.97, 0.93, 0.84, color.a), true, -1.0, true)
+
+
+## Flecha circular: pregunta que se puede repetir.
+static func draw_repeat(canvas: CanvasItem, center: Vector2, radius: float, color: Color) -> void:
+	var width := maxf(radius * 0.24, 1.8)
+	canvas.draw_arc(center, radius, deg_to_rad(-60.0), deg_to_rad(230.0), 24, color, width, true)
+	var tip_angle := deg_to_rad(-60.0)
+	var tip := center + Vector2(cos(tip_angle), sin(tip_angle)) * radius
+	var tangent := Vector2(-sin(tip_angle), cos(tip_angle))
+	var normal := Vector2(cos(tip_angle), sin(tip_angle))
+	var head := radius * 0.62
+	canvas.draw_colored_polygon(PackedVector2Array([
+		tip - tangent * head * 0.95,
+		tip + normal * head * 0.7,
+		tip - normal * head * 0.7,
+	]), color)
+
+
+## Cheurón de una sección plegable: `turn` 0 apunta a la derecha (plegada), 1 hacia abajo (desplegada).
+static func draw_chevron(canvas: CanvasItem, center: Vector2, size: float, turn: float, color: Color) -> void:
+	var angle := lerpf(0.0, PI * 0.5, clampf(turn, 0.0, 1.0))
+	var points := PackedVector2Array()
+	for local: Vector2 in [Vector2(-0.45, -1.0), Vector2(0.75, 0.0), Vector2(-0.45, 1.0)]:
+		points.append(center + (local * size).rotated(angle))
+	canvas.draw_colored_polygon(points, color)

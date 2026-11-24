@@ -62,6 +62,14 @@ static func continue_text() -> String:
 	return "Continuar" if key.is_empty() else "[%s] Continuar" % key
 
 
+## Recordatorio del pie cuando hay preguntas bloqueadas (diálogo único): lo respondido se relee en el
+## expediente, con su tecla real.
+static func locked_hint() -> String:
+	var keys := InputLabels.keys_of("open_journal", InputLabels.Device.CURRENT)
+	var text := "Lo ya respondido se relee en el expediente"
+	return "%s [%s]" % [text, keys[0]] if not keys.is_empty() else text
+
+
 ## Ayuda bajo las respuestas. Siempre se puede elegir con el ratón; las teclas numéricas sólo
 ## llegan a las nueve primeras, así que sólo se mencionan si hay alguna respuesta que elegir.
 static func choice_hint(option_count: int) -> String:
