@@ -6,9 +6,14 @@ extends Node
 ##   --frames=N            fotogramas de espera antes de capturar
 ##   --location=id         escenario inicial        --spawn=id  punto de aparición
 ##   --pos=x,y,z           coloca al detective
+##   --junto=npc           coloca al detective delante de ese personaje, que queda enfocado (su
+##                         aviso de interacción y cómo va su interrogatorio)
 ##   --shots=x,y,z;x,y,z   guarda una imagen numerada por cada posición
 ##   --day=N --time=HH:MM  fija el calendario
 ##   --seed=todo           concede todas las pistas y testimonios
+##   --visto=A,B           da por vistas las preguntas que esos personajes ofrecen antes de
+##                         --pistas: lo que éstas desbloqueen aparecerá con «Nuevo»
+##   --hecho=npc/pregunta,...  da por completadas esas preguntas (como al oír su respuesta)
 ##   --pistas=a,b          concede sólo esas pistas, testimonios o deducciones (en ese orden)
 ##   --hipotesis=id=valoración[=nota],...   anota hipótesis antes de abrir el tablero
 ##   --flags=a,b           marca esos hechos de la historia antes de entrar en el escenario
@@ -16,7 +21,9 @@ extends Node
 ##   --dialogue-shots=A,B  abre una conversación con cada NPC y la captura
 ##   --escena=id           reproduce una escena narrativa de escenas.json y la captura
 ##   --pasos=a,a,2         con --dialogue-shots o --escena, antes de capturar: «a» avanza una
-##                         intervención y un número elige esa respuesta (1 la primera)
+##                         intervención, un número elige la respuesta con ese número (como su
+##                         tecla), «d» despliega o pliega «Preguntas realizadas» y «b» y «s» bajan
+##                         y suben la selección
 ##   --open=clue:id | journal:n[:ficha] | board | accusation | pause | closed | save | load | confirm
 ##                         | exit | saving | saved | settings:n | controls:n | map[:lugar] | esperar
 ##                         | reasignar:n | mando:n | restaurar
@@ -86,6 +93,13 @@ func _ready() -> void:
 		GameClock.advance(1)
 	if args.get("seed", "") == "todo":
 		_grant_everything()
+	if args.has("hecho"):
+		for topic_key: String in (args["hecho"] as String).split(","):
+			var topic := ConversationLog.find_topic(topic_key.get_slice("/", 0), topic_key.get_slice("/", 1))
+			ConversationLog.record(topic_key.get_slice("/", 0), topic_key.get_slice("/", 1), ConversationLog.current_variant(topic))
+	if args.has("visto"):
+		for npc_id: String in (args["visto"] as String).split(","):
+			ConversationLog.mark_seen(npc_id, ConversationLog.menu(npc_id))
 	if args.has("pistas"):
 		_grant_items((args["pistas"] as String).split(","))
 	if args.has("hipotesis"):
@@ -119,14 +133,21 @@ func _ready() -> void:
 	else:
 		if args.has("pos"):
 			_place_player(game, args["pos"])
+		if args.has("junto"):
+			var npc := game.current_location.get_npc(args["junto"])
+			if npc != null:
+				var front := npc.global_position + Vector3(0.0, 0.0, 1.0).rotated(Vector3.UP, npc.model.rotation.y) * 1.0
+				game.player.teleport(front, 0.0)
+				game.camera.snap()
 		if args.has("open"):
 			await _open_panel(game, args["open"])
 		await _save_frame(out, frames)
 	get_tree().quit()
 
 
-## Recorre la conversación como el jugador: «a» avanza una intervención y un número elige esa
-## respuesta de las que muestra la interfaz.
+## Recorre la conversación como el jugador: «a» avanza una intervención, un número elige la respuesta
+## que lleva ese número (como su tecla), «d» despliega o pliega «Preguntas realizadas» y «b» y «s»
+## mueven la selección.
 func _follow_steps(game: Game, args: Dictionary) -> void:
 	if not args.has("pasos"):
 		return
@@ -135,8 +156,12 @@ func _follow_steps(game: Game, args: Dictionary) -> void:
 		await _wait_seconds(0.5)
 		if step == "a":
 			DialogueManager.advance()
-		elif step.is_valid_int() and int(step) >= 1 and int(step) <= ui.get_option_ids().size():
-			DialogueManager.choose(ui.get_option_ids()[int(step) - 1])
+		elif step == "d":
+			ui.get_choices().toggle_section()
+		elif step == "b" or step == "s":
+			ui.get_choices().move_selection(1 if step == "b" else -1)
+		elif step.is_valid_int() and int(step) >= 1:
+			ui.get_choices().choose_index(int(step) - 1)
 
 
 func _capture_menu(args: Dictionary) -> void:

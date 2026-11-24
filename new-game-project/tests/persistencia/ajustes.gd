@@ -16,6 +16,7 @@ const CHANGES := {
 	"jugabilidad/velocidad_texto": "rapido",
 	"jugabilidad/avance_automatico": true,
 	"jugabilidad/confirmaciones": false,
+	"jugabilidad/sistema_dialogos": "unico",
 	"filtros/activo": "sepia",
 	"accesibilidad/tamano_letra": "grande",
 	"accesibilidad/contraste_alto": true,

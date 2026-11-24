@@ -30,6 +30,13 @@ const RESOLUTION_DETAIL := "Tamaño de la ventana; la interfaz se escala sin def
 ## debajo y la pregunta de confirmación usan los completos de `SettingsSchema`.
 const MODE_LABELS := {"ventana": "Ventana", "sin_bordes": "Sin bordes", "pantalla_completa": "Pantalla completa", "exclusiva": "Completa exclusiva"}
 const FILTERS_INTRO := "Activa filtros de pantalla que solo cambian los colores del juego."
+const DIALOGUE_MODE_KEY := ConversationLog.MODE_KEY
+## Explicación de cada modalidad de los interrogatorios, bajo su selector: cambia con lo elegido.
+const DIALOGUE_MODE_DETAILS := {
+	"libre": "Todas las preguntas siguen a mano y se pueden repetir cuando quieras.",
+	"inteligente": "Las preguntas nuevas, primero; las ya hechas se agrupan aparte y se pueden repetir.",
+	"unico": "Cada pregunta se hace una vez; lo respondido se relee en el expediente.",
+}
 
 var _sliders: Dictionary = {}
 var _percentages: Dictionary = {}
@@ -68,6 +75,7 @@ func refresh() -> void:
 		if key != RESOLUTION_KEY:
 			(_selectors[key] as OptionSelector).set_value_no_signal(String(Settings.get_value(key)))
 	_refresh_resolution()
+	_refresh_dialogue_mode()
 	var active := VisualFilters.current()
 	for id: String in _filter_cards:
 		(_filter_cards[id] as FilterCard).set_active(id == active)
@@ -145,6 +153,7 @@ func _build_gameplay(page: VBoxContainer) -> void:
 	_add_switch_row(page, "Avance automático de diálogos",
 		"Pasa de línea cuando ha dado tiempo a leerla. Nunca elige una respuesta.",
 		Callable(), "jugabilidad/avance_automatico")
+	_add_selector(page, DIALOGUE_MODE_KEY, "Sistema de diálogos", DIALOGUE_MODE_DETAILS["inteligente"])
 	_add_switch_row(page, "Confirmaciones",
 		"Preguntar antes de acciones como dejar pasar una hora. Borrar o sobrescribir partidas pregunta siempre.",
 		Callable(), "jugabilidad/confirmaciones")
@@ -342,6 +351,13 @@ func _refresh_resolution(mode: String = "", trying: Vector2i = Vector2i.ZERO) ->
 	var screen := DisplaySettings.screen_size()
 	selector.set_detail("En pantalla completa se usa la del monitor (%d × %d)." % [screen.x, screen.y] if fullscreen else RESOLUTION_DETAIL)
 	_syncing = was_syncing
+
+
+## La explicación del sistema de diálogos describe la modalidad elegida.
+func _refresh_dialogue_mode() -> void:
+	var selector: OptionSelector = _selectors.get(DIALOGUE_MODE_KEY)
+	if selector != null:
+		selector.set_detail(String(DIALOGUE_MODE_DETAILS.get(ConversationLog.mode(), "")))
 
 
 static func _labels(values: Array[String]) -> Array[String]:

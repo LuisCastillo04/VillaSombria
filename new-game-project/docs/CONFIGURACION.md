@@ -13,7 +13,7 @@ hay dos pestañas más, Filtros y Accesibilidad.
 | --- | --- |
 | Audio | Volumen general, música, ambiente y efectos (barras); ver [AUDIO.md](AUDIO.md) |
 | Gráficos | Pantalla completa y sincronización vertical (interruptores); modo de ventana, resolución de pantalla, calidad de sombras e iluminación y efectos y partículas (selectores) |
-| Jugabilidad | Velocidad del texto (selector); avance automático de diálogos y confirmaciones (interruptores) |
+| Jugabilidad | Velocidad del texto y sistema de diálogos (selectores); avance automático de diálogos y confirmaciones (interruptores) |
 | Filtros | Modo noir, sepia, frío nocturno o colores originales (tarjetas, uno a la vez); ver [FILTROS.md](FILTROS.md) |
 | Accesibilidad | Tamaño de letra (selector); contraste aumentado, subtítulos y reducir movimiento (interruptores) |
 
@@ -55,6 +55,7 @@ calidad_efectos="alto"
 [jugabilidad]
 velocidad_texto="normal"
 avance_automatico=false
+sistema_dialogos="inteligente"
 confirmaciones=true
 
 [filtros]
@@ -76,6 +77,7 @@ movimiento_reducido=false
 | | `calidad_iluminacion`, `calidad_efectos` | `bajo`, `medio`, `alto` |
 | `jugabilidad` | `velocidad_texto` | `lento`, `normal`, `rapido`, `instantaneo` |
 | | `avance_automatico`, `confirmaciones` | Sí o no |
+| | `sistema_dialogos` | `libre`, `inteligente` (por defecto), `unico`; ver [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md) |
 | `filtros` | `activo` | `original`, `noir`, `sepia`, `cold_night` |
 | `accesibilidad` | `tamano_letra` | `normal`, `grande`, `muy_grande` |
 | | `contraste_alto`, `subtitulos`, `movimiento_reducido` | Sí o no |
@@ -209,7 +211,10 @@ godot --path . --resolution 1920x1080 res://tests/visual/rendimiento.tscn -- --l
 
 `DialogueUi` lee `jugabilidad/velocidad_texto` y `jugabilidad/avance_automatico` al crearse y escucha
 `Settings.changed`, así que un cambio se nota en el acto, también a mitad de una intervención.
-`DialogueManager` y los datos de las conversaciones no cambian.
+`jugabilidad/sistema_dialogos` lo lee `ConversationLog.mode()` cada vez que se monta un menú de
+preguntas: decide cómo se presentan las ya hechas (en su sitio, apartadas o bloqueadas), nunca el
+progreso de la partida. Su explicación, bajo el selector, cambia con la modalidad elegida. Ver
+[DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md).
 
 ### Velocidad del texto
 

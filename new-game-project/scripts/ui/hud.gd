@@ -51,6 +51,7 @@ func _ready() -> void:
 	# El aviso de guardado sube para no tapar la barra de teclas.
 	SaveIndicator.set_bottom_margin(HudStyle.BOTTOM_MARGIN + HudStyle.BAR_HEIGHT + HudStyle.PANEL_GAP)
 	EventBus.interaction_focus_changed.connect(_on_focus_changed)
+	EventBus.interaction_status_changed.connect(_prompt.set_status)
 	EventBus.notification_requested.connect(_on_notification)
 	EventBus.time_changed.connect(_on_time_changed)
 	EventBus.location_changed.connect(_on_location_changed)

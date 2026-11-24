@@ -30,6 +30,8 @@ var _waiting_input := false
 var _first_line := false
 ## Respuestas en pantalla, para rehacer su ayuda si cambia el dispositivo.
 var _option_count := 0
+## Si hay preguntas bloqueadas en pantalla: el pie lo recuerda.
+var _has_locked := false
 var _npc_id := ""
 ## Última respuesta elegida: al volver al menú, el foco regresa a ella.
 var _last_choice := ""
@@ -75,6 +77,7 @@ func _ready() -> void:
 	_root.hide()
 	_text.completed.connect(_on_text_completed)
 	_choices.chosen.connect(_choose)
+	_choices.layout_changed.connect(_on_choices_layout_changed)
 	DialogueManager.opened.connect(_on_opened)
 	Controls.input_device_changed.connect(_on_input_device_changed.unbind(1))
 	DialogueManager.line_shown.connect(_on_line_shown)
@@ -192,7 +195,7 @@ func _process(delta: float) -> void:
 func _on_input_device_changed() -> void:
 	_continue.refresh()
 	if _mode == Mode.CHOOSING:
-		_hint.set_text(DialogueControls.choice_hint(_option_count))
+		_hint.set_text(_choice_hint())
 
 
 func _input(event: InputEvent) -> void:
@@ -206,9 +209,10 @@ func _input(event: InputEvent) -> void:
 			_advance()
 
 
-## Con las respuestas en pantalla: su número las elige, arriba y abajo las recorren y la tecla de
-## interactuar o la de aceptar confirman la señalada. Se consumen aquí para que ninguna llegue al
-## juego (la tecla de interactuar volvería a abrir la conversación recién cerrada) ni a otra pantalla.
+## Con las respuestas en pantalla: su número las elige, arriba y abajo las recorren, derecha e
+## izquierda despliegan y pliegan «Preguntas realizadas» y la tecla de interactuar o la de aceptar
+## confirman la señalada (o despliegan la sección). Se consumen aquí para que ninguna llegue al juego
+## (la tecla de interactuar volvería a abrir la conversación recién cerrada) ni a otra pantalla.
 func _choices_input(event: InputEvent) -> void:
 	var index := DialogueControls.number_index(event)
 	if index >= 0:
@@ -220,6 +224,12 @@ func _choices_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("ui_up", true):
 		get_viewport().set_input_as_handled()
 		_choices.move_selection(-1)
+	elif event.is_action_pressed("ui_right") and _choices.is_section_focused():
+		get_viewport().set_input_as_handled()
+		_choices.set_section_expanded(true)
+	elif event.is_action_pressed("ui_left") and (_choices.is_section_focused() or _choices.is_asked_focused()):
+		get_viewport().set_input_as_handled()
+		_choices.set_section_expanded(false)
 	elif DialogueControls.is_confirm(event):
 		get_viewport().set_input_as_handled()
 		_choices.confirm_selected()
@@ -287,6 +297,8 @@ func _on_opened(npc_id: String) -> void:
 	_waiting_input = false
 	_text.clear_line()
 	_choices.clear_options()
+	# Cada conversación empieza con «Preguntas realizadas» plegada.
+	_choices.reset_sections()
 	_plate.set_text("", false)
 	_continue.refresh()
 	_continue.set_waiting(false)
@@ -322,7 +334,8 @@ func _on_options_shown(options: Array) -> void:
 	_continue.set_waiting(false)
 	_enter_mode(Mode.CHOOSING, animate)
 	_option_count = options.size()
-	_hint.set_text(DialogueControls.choice_hint(_option_count))
+	_has_locked = DialogueChoices.has_locked(options)
+	_hint.set_text(_choice_hint())
 	_choices.show_options(options)
 	_plate.set_text(DialogueChoices.heading_for(options))
 	var list_height := _choices_list_height()
@@ -336,6 +349,12 @@ func _on_options_shown(options: Array) -> void:
 	# El foco vuelve a la última respuesta elegida si sigue en el menú; si no, a la primera.
 	_choices.focus_option(_last_choice)
 	_choices.hold_confirmation(DialogueStyle.CONFIRM_GUARD_SECONDS)
+
+
+## Ayuda del pie: cómo elegir y, con preguntas bloqueadas, dónde releer lo respondido.
+func _choice_hint() -> String:
+	var hint := DialogueControls.choice_hint(_option_count)
+	return "%s · %s" % [hint, DialogueControls.locked_hint()] if _has_locked else hint
 
 
 ## Se elige una respuesta: su consecuencia la decide `DialogueManager`, que contesta enseguida con
@@ -453,6 +472,16 @@ func _choices_list_height() -> float:
 	var limit := _root.size.y * DialogueStyle.MAX_WINDOW_RATIO - _choices_chrome()
 	var minimum := _choices.get_min_height()
 	return clampf(_choices.get_content_height(), minimum, maxf(limit, minimum))
+
+
+## Se desplegó o se plegó «Preguntas realizadas»: la lista y la ventana toman su nuevo alto con la
+## misma transición que al cambiar de modo; lo de dentro sigue anclado al pie.
+func _on_choices_layout_changed() -> void:
+	if _mode != Mode.CHOOSING:
+		return
+	var list_height := _choices_list_height()
+	_choices.offset_top = _choices.offset_bottom - list_height
+	_set_height(list_height + _choices_chrome(), true)
 
 
 ## Con otro tamaño de pantalla, la lista de respuestas puede necesitar otro alto.

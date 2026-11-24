@@ -4,6 +4,9 @@ extends Node
 @warning_ignore_start("unused_signal")
 
 signal interaction_focus_changed(prompt: String)
+## Estado de lo que se está mirando, junto al aviso de interacción: texto («Preguntas pendientes») y
+## clase para su icono, o vacíos. Lo emite el detector al cambiar de foco y el elemento al cambiar.
+signal interaction_status_changed(text: String, kind: String)
 signal notification_requested(title: String, body: String, kind: String)
 signal location_change_requested(location_id: String, spawn_id: String)
 signal location_changed(location_id: String)
@@ -14,6 +17,9 @@ signal player_locks_changed
 signal clue_discovered(clue_id: String)
 signal testimony_recorded(testimony_id: String)
 signal deduction_made(deduction_id: String)
+## El jugador ha terminado de oír la respuesta a una pregunta (la primera vez o al repetirla). El
+## registro está en `ConversationLog`.
+signal conversation_recorded(npc_id: String, topic_id: String)
 ## El jugador ha anotado o cambiado su valoración o su hipótesis sobre un sospechoso.
 signal hypothesis_changed(suspect_id: String)
 ## Ha cambiado el borrador de la acusación: un campo del formulario, o "" si se vació entero.

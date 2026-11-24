@@ -24,6 +24,11 @@ var _after_lines: Callable
 var _choices: Array = []
 var _pending_after: Dictionary = {}
 var _is_scene := false
+## Pregunta cuya respuesta se está oyendo: se anota en `ConversationLog` cuando termina, nunca
+## antes, así que una conversación interrumpida la deja pendiente.
+var _topic_in_progress: Dictionary = {}
+## Preguntas presentadas como nuevas en esta conversación: siguen con «Nuevo» mientras dure.
+var _fresh_keys: Dictionary = {}
 
 
 ## Abre una conversación con un NPC.
@@ -96,6 +101,12 @@ func choose(option_id: String) -> void:
 	_play_topic(topic)
 
 
+## Preguntas que ofrece ahora el NPC, ordenadas y con su estado según la modalidad de Configuración
+## (ver `ConversationLog.menu`).
+func get_topic_menu(target_npc: String) -> Array[Dictionary]:
+	return ConversationLog.menu(target_npc)
+
+
 func close() -> void:
 	if not active:
 		return
@@ -107,6 +118,8 @@ func close() -> void:
 	_choices = []
 	_pending_after = {}
 	_after_lines = Callable()
+	_topic_in_progress = {}
+	_fresh_keys = {}
 	GameState.unlock_player("dialogo")
 	closed.emit(finished_npc)
 
@@ -120,21 +133,26 @@ func get_available_topics(target_npc: String) -> Array[Dictionary]:
 	return available
 
 
-## Indica si el NPC tiene alguna pregunta que el jugador aún no ha hecho.
+## Indica si el NPC tiene alguna pregunta que el jugador aún no ha hecho (o una variante nueva de
+## una que ya hizo).
 func has_new_topics(target_npc: String) -> bool:
-	for topic in get_available_topics(target_npc):
-		if not was_asked(target_npc, topic["id"]):
-			return true
-	return false
+	return ConversationLog.has_pending(target_npc)
 
 
+## Pregunta cuya respuesta se está oyendo ahora mismo, o vacío. Todavía no cuenta como hecha.
+func get_current_topic() -> String:
+	return String(_topic_in_progress.get("topic", ""))
+
+
+## Si el jugador ya completó alguna vez esa pregunta, con cualquiera de sus variantes.
 func was_asked(target_npc: String, topic_id: String) -> bool:
-	return GameState.asked_topics.has("%s/%s" % [target_npc, topic_id])
+	return ConversationLog.was_asked(target_npc, topic_id)
 
 
 func _open(target_npc: String, is_scene: bool) -> void:
 	active = true
 	npc_id = target_npc
+	_fresh_keys = {}
 	_is_scene = is_scene
 	GameState.lock_player("dialogo")
 	opened.emit(target_npc)
@@ -146,20 +164,26 @@ func _play(lines: Array, then: Callable) -> void:
 	advance()
 
 
+## Reproduce la variante vigente de una pregunta. Cada variante es una conversación independiente:
+## la primera vez que se completa cuesta tiempo y aplica sus consecuencias (marcas, pistas,
+## testimonios, avisos, acciones). Repetirla sólo reproduce lo que se dijo: no cuesta tiempo ni
+## vuelve a ejecutar nada, salvo en las conversaciones pensadas para repetirse (`repeatable`), cuyas
+## consecuencias se aplican cada vez.
 func _play_topic(topic: Dictionary) -> void:
-	var key := "%s/%s" % [npc_id, topic["id"]]
-	var first_time := not GameState.asked_topics.has(key)
-	GameState.asked_topics[key] = true
-	var block := topic
-	if topic.has("variants"):
-		block = _first_matching(topic["variants"])
+	var topic_id := String(topic["id"])
+	var variant_id := ConversationLog.current_variant(topic)
+	var block := ConversationLog.variant_block(topic, variant_id)
+	var first_time := not ConversationLog.is_variant_done(npc_id, topic_id, variant_id)
 	var effects: Dictionary = block.get("effects", {}).duplicate()
+	if not first_time and not ConversationLog.is_repeatable(topic):
+		effects = {}
 	if first_time and not effects.has("minutes"):
 		effects["minutes"] = TOPIC_MINUTES
 	elif not first_time:
 		effects.erase("minutes")
 	var with_effects := block.duplicate()
 	with_effects["effects"] = effects
+	_topic_in_progress = {"npc": npc_id, "topic": topic_id, "variant": variant_id}
 	_play_block(with_effects)
 
 
@@ -168,17 +192,45 @@ func _play_block(block: Dictionary) -> void:
 	_play(block.get("lines", []), func() -> void:
 		var effects: Dictionary = block.get("effects", {})
 		var choices: Array = block.get("choices", [])
+		var completion := _complete_topic()
 		if not choices.is_empty():
 			Effects.apply(effects)
+			_note_gained(completion)
 			_show_choices(choices, block.get("after", {}))
 		elif effects.has("action"):
 			# La acción puede abrir otra pantalla, así que la conversación termina antes.
 			close()
 			Effects.apply(effects)
+			_note_gained(completion)
 		else:
 			Effects.apply(effects)
+			_note_gained(completion)
 			_finish_conversation_step()
 	)
+
+
+## Terminada la respuesta de una pregunta, la anota en el registro antes de aplicar sus efectos.
+## Devuelve lo necesario para saber después qué entregó, o vacío si no era una pregunta.
+func _complete_topic() -> Dictionary:
+	if _topic_in_progress.is_empty():
+		return {}
+	var topic := _topic_in_progress
+	_topic_in_progress = {}
+	return {
+		"npc": topic["npc"],
+		"topic": topic["topic"],
+		"entry": ConversationLog.record(topic["npc"], topic["topic"], topic["variant"]),
+		"clues": GameState.clues.size(),
+		"testimonies": GameState.testimonies.size(),
+	}
+
+
+## Apunta las pistas y los testimonios que llegaron con la respuesta y avisa del registro.
+func _note_gained(completion: Dictionary) -> void:
+	if completion.is_empty():
+		return
+	ConversationLog.note_gained(completion["entry"], GameState.clues.slice(completion["clues"]), GameState.testimonies.slice(completion["testimonies"]))
+	EventBus.conversation_recorded.emit(completion["npc"], completion["topic"])
 
 
 func _finish_conversation_step() -> void:
@@ -188,11 +240,18 @@ func _finish_conversation_step() -> void:
 		_show_topics()
 
 
+## Menú de preguntas: lo ordena `ConversationLog` según la modalidad y termina con la de salir. Lo
+## que aparece por primera vez desbloqueado por la investigación llega como nuevo; después, todo lo
+## mostrado queda como visto.
 func _show_topics() -> void:
+	var entries := ConversationLog.menu(npc_id, ConversationLog.mode(), _fresh_keys)
 	var options: Array = []
-	for topic in get_available_topics(npc_id):
-		options.append({"id": topic["id"], "label": topic["label"], "asked": was_asked(npc_id, topic["id"])})
-	options.append({"id": EXIT_OPTION, "label": "Terminar la conversación.", "asked": true})
+	for entry in entries:
+		if entry["fresh"]:
+			_fresh_keys[ConversationLog.variant_key(npc_id, entry["id"], entry["variant"])] = true
+		options.append(entry)
+	ConversationLog.mark_seen(npc_id, entries)
+	options.append({"id": EXIT_OPTION, "label": "Terminar la conversación.", "asked": true, "section": "salida"})
 	options_shown.emit(options)
 
 
@@ -205,11 +264,13 @@ func _show_choices(choices: Array, after: Dictionary) -> void:
 	options_shown.emit(options)
 
 
+## La pregunta, si el menú la ofrece ahora mismo y se puede elegir; si no (no está o, en la
+## modalidad de diálogo único, ya se hizo), vacía.
 func _find_topic(topic_id: String) -> Dictionary:
-	for topic in get_available_topics(npc_id):
-		if topic["id"] == topic_id:
-			return topic
-	return {}
+	var entry := ConversationLog.menu_entry(npc_id, topic_id)
+	if entry.is_empty() or entry["state"] == ConversationLog.LOCKED:
+		return {}
+	return ConversationLog.find_topic(npc_id, topic_id)
 
 
 func _first_matching(variants: Array) -> Dictionary:

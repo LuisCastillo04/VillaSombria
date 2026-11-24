@@ -101,6 +101,9 @@ JSON legible:
   },
   "sections": {
     "state": {"flags": [], "clues": [], "testimonies": [], "deductions": [], "asked_topics": [],
+              "conversations": {"elena/coartada": {"variants": {"base": {"count": 1, "order": 0,
+                                "day": 1, "minutes": 620, "gained": {"testimonies": ["t_elena_jaqueca"]}}}}},
+              "seen_topics": ["elena/coartada#base"],
               "hypotheses": {}, "accusation_draft": {"suspect": "anselmo"},
               "location_id": "mansion", "spawn_id": "desde_plaza",
               "accusation_attempts": 0, "play_seconds": 812.3},
@@ -119,6 +122,10 @@ JSON legible:
 - `accusation_draft` también es opcional: guarda, con identificadores, lo último elegido en cada
   campo de la acusación. Al cargar se descarta lo que ya no vale y, si falta o está dañado, el
   formulario empieza vacío; ver [ACUSACION.md](ACUSACION.md#guardado).
+- `conversations` y `seen_topics` también lo son: el registro de los interrogatorios (qué pregunta y
+  variante se completó, cuántas veces, cuándo y qué entregó) y lo que ya apareció en cada menú. Las
+  partidas anteriores los rehacen con `asked_topics` y lo que tienen, sin inventar conversaciones;
+  ver [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md#guardado).
 
 Lo que muestra el expediente (lugar, día, hora, tiempo de juego, pistas) sale de las secciones;
 no se guarda por duplicado.
@@ -148,7 +155,7 @@ SaveSystem.register_section("clave", funcion_que_devuelve_un_diccionario, funcio
 
 | Sección | Quién la registra | Contenido |
 | --- | --- | --- |
-| `state` | `SaveSystem`, sobre `GameState` | Marcas, pistas, testimonios, deducciones, preguntas hechas, hipótesis, borrador de la acusación, lugar, intentos de acusación, tiempo jugado |
+| `state` | `SaveSystem`, sobre `GameState` | Marcas, pistas, testimonios, deducciones, preguntas hechas y su registro, preguntas vistas, hipótesis, borrador de la acusación, lugar, intentos de acusación, tiempo jugado |
 | `clock` | `SaveSystem`, sobre `GameClock` | Día y minuto del calendario |
 | `player` | `Game` | Lugar, posición y orientación del detective |
 | `map` | `TownMap` | Lugares del mapa que el detective ya ha pisado; ver [MAPA.md](MAPA.md#guardado) |

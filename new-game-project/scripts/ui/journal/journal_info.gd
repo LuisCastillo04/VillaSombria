@@ -146,6 +146,71 @@ static func testimonies() -> Array[Dictionary]:
 	return result
 
 
+# --- Interrogatorios ---
+
+## Historial de declaraciones: cada pregunta completada (cada variante, una vez), agrupada por
+## personaje en el orden de `characters.json` y, dentro de cada uno, en el orden en que se hizo. Sale
+## de `ConversationLog.history()`: leerlo no reproduce nada.
+static func statements() -> Array[Dictionary]:
+	var history := ConversationLog.history()
+	var result: Array[Dictionary] = []
+	for character_id: String in GameData.characters:
+		var character: Dictionary = GameData.characters[character_id]
+		for item in history:
+			if item["npc"] != character_id:
+				continue
+			result.append({
+				"id": ConversationLog.variant_key(item["npc"], item["topic"], item["variant"]),
+				"npc": character_id,
+				"name": character.get("name", ""),
+				"role": character.get("role", ""),
+				"portrait": character.get("portrait", ""),
+				"question": item["label"],
+				"transcript": transcript(item["lines"]),
+				"when": moment(item["day"], item["minutes"]),
+				"count": item["count"],
+				"gained": gained_rows(item["gained"]),
+			})
+	return result
+
+
+## Lo que se oyó, intervención por intervención: «Nombre: «…»», y la narración entre paréntesis.
+static func transcript(lines: Array) -> String:
+	var parts: PackedStringArray = []
+	for line: Dictionary in lines:
+		var speaker := String(line.get("s", "narrador"))
+		var text := String(line.get("t", ""))
+		if speaker == "narrador":
+			parts.append("(%s)" % text)
+		else:
+			var character: Dictionary = GameData.characters.get(speaker, {})
+			parts.append("%s: «%s»" % [character.get("short", character.get("name", speaker)), text])
+	return "\n".join(parts)
+
+
+## Día y hora en que se completó, o vacío si no se anotó (partidas anteriores al registro).
+static func moment(day: int, minutes: int) -> String:
+	var days: Dictionary = GameData.story.get("days", {})
+	if day <= 0 or not days.has(str(day)):
+		return ""
+	var title := String(days[str(day)].get("title", ""))
+	return title if minutes < 0 else "%s, %02d:%02d" % [title, minutes / 60, minutes % 60]
+
+
+## Pistas y testimonios que entregó la conversación, como filas de la ficha.
+static func gained_rows(gained: Dictionary) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	for testimony_id: Variant in gained.get("testimonies", []):
+		var testimony: Dictionary = GameData.testimonies.get(testimony_id, {})
+		if not testimony.is_empty():
+			rows.append({"icon": "testigos", "title": "Testimonio: %s" % testimony.get("topic", "")})
+	for clue_id: Variant in gained.get("clues", []):
+		var clue: Dictionary = GameData.clues.get(clue_id, {})
+		if not clue.is_empty():
+			rows.append({"icon": "lupa", "title": "Pista: %s" % clue.get("name", "")})
+	return rows
+
+
 # --- Sospechosos ---
 
 static func suspects() -> Array[Dictionary]:
@@ -165,6 +230,8 @@ static func suspects() -> Array[Dictionary]:
 			"status_label": STATUS_LABELS.get(status, status),
 			"note": hypothesis.get("note", ""),
 			"testimonies": testimony_count(suspect_id),
+			# Cómo va su interrogatorio: lo mismo que se anuncia al acercarse a él.
+			"interrogation": ConversationLog.STATUS_LABELS.get(ConversationLog.npc_status(suspect_id), ""),
 		})
 	return result
 

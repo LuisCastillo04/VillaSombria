@@ -45,7 +45,8 @@ const TRANSITION_LOCK := "transicion"
 const CASE_CLOSED_FLAG := "caso_resuelto"
 ## Datos que cambian sin que la partida avance: no cuentan como progreso sin guardar.
 const NON_PROGRESS_SECTIONS: Array[String] = ["player"]
-const NON_PROGRESS_STATE_KEYS: Array[String] = ["play_seconds"]
+## Lo que el jugador ha visto en los menús de preguntas tampoco es progreso.
+const NON_PROGRESS_STATE_KEYS: Array[String] = ["play_seconds", "seen_topics"]
 ## Espera entre comprobaciones mientras el momento no es seguro para guardar.
 const AUTOSAVE_RETRY_SECONDS := 1.0
 ## Al salir se espera a que termine una transición en curso, como mucho este tiempo.
@@ -835,6 +836,15 @@ func _digest_of(sections: Dictionary) -> String:
 	var state: Dictionary = tracked.get("state", {})
 	for key in NON_PROGRESS_STATE_KEYS:
 		state.erase(key)
+	# Repetir una pregunta ya hecha sólo suma a su contador: no hay nada nuevo que guardar.
+	var conversations: Variant = state.get("conversations")
+	if conversations is Dictionary:
+		for topic_key: Variant in conversations:
+			var variants: Variant = (conversations[topic_key] as Dictionary).get("variants") if conversations[topic_key] is Dictionary else null
+			if variants is Dictionary:
+				for variant_id: Variant in variants:
+					if variants[variant_id] is Dictionary:
+						(variants[variant_id] as Dictionary).erase("count")
 	return JSON.stringify(tracked, "", true).sha256_text()
 
 

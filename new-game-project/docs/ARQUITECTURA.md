@@ -114,12 +114,17 @@ Game
   sus parámetros.
 - `FallGuard`: red de seguridad contra caídas del detective y de los NPC.
 - `Conditions` y `Effects`: interpretan los bloques `if` y `effects` de los datos.
+- `ConversationLog`: registro de los interrogatorios, modalidades de diálogo, menú de preguntas,
+  situación de cada personaje e historial de declaraciones, sobre `GameState`. Ver
+  [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md).
 
 ## Señales de `EventBus`
 
 | Señal | Se emite cuando |
 | --- | --- |
 | `interaction_focus_changed` | Cambia el elemento al alcance |
+| `interaction_status_changed` | Cambia el estado de lo que está al alcance (cómo va el interrogatorio de un personaje) |
+| `conversation_recorded` | El jugador termina de oír la respuesta a una pregunta (`ConversationLog`) |
 | `notification_requested` | Hay que mostrar un aviso |
 | `location_change_requested`, `location_changed` | Se pide y se completa un cambio de lugar |
 | `player_locks_changed` | Cambian los bloqueos del control del jugador (`GameState.lock_player`) |
@@ -139,7 +144,8 @@ usan los menús, el indicador y `ExitManager`. Ver [GUARDADO.md](GUARDADO.md).
 ## Formato de los datos
 
 Las **condiciones** (`if`) admiten `flags`, `not_flags`, `clues`, `not_clues`, `testimonies`,
-`deductions`, `day_min`, `day_max` y `any`.
+`deductions`, `day_min`, `day_max`, `asked` y `not_asked` (conversaciones completadas,
+«npc/pregunta»), `visited` (lugares ya pisados) y `any`.
 
 Los **efectos** (`effects`) admiten `flags`, `clues`, `testimonies`, `minutes`, `notify` y
 `action`.
@@ -156,7 +162,9 @@ Pregunta de un diálogo:
 }
 ```
 
-Una pregunta puede llevar `variants` para responder según el estado, y una escena puede llevar
+Una pregunta puede llevar `variants` para responder según el estado (cada una con su `id`, que la
+hace una conversación independiente) y `"repeatable": true` si debe poder repetirse con sus efectos
+(ver [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md#cómo-añadir-preguntas-y-condiciones)), y una escena puede llevar
 `choices`, `after` y `cast`: los personajes que intervienen en persona y que, si están en el
 escenario, se detienen y miran al detective mientras dura.
 
@@ -204,7 +212,9 @@ respuestas»). Sólo coordina: la conversación la lleva `DialogueManager`, que 
 interfaz contesta con `advance()` y `choose()`. Las siluetas y su iluminación son de `DialogueCast`,
 las entradas de `DialogueControls` y el estilo de `DialogueStyle`; el resto de piezas están en
 `scripts/ui/dialogue/`. No guarda estado propio. Detalle, controles, animaciones y pruebas en
-[DIALOGOS.md](DIALOGOS.md).
+[DIALOGOS.md](DIALOGOS.md). Las preguntas ya hechas se presentan según la modalidad de Configuración
+(libre, inteligente o única) a partir del registro de `ConversationLog`; ver
+[DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md).
 
 ## Expediente
 

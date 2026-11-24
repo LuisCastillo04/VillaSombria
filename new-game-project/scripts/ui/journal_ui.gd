@@ -1,7 +1,7 @@
 class_name JournalUi
 extends CanvasLayer
-## Expediente del detective: objetivos, pistas, testimonios, sospechosos y deducciones, en una carpeta
-## de cuero con páginas de pergamino.
+## Expediente del detective: objetivos, pistas, testimonios, sospechosos, deducciones y el historial
+## de los interrogatorios, en una carpeta de cuero con páginas de pergamino.
 ##
 ## Este nodo sólo coordina: abre y cierra la carpeta (con un fundido breve), cambia de sección,
 ## atiende el teclado y mantiene las secciones al día con las señales de `EventBus`. Lo que se ve lo
@@ -9,10 +9,10 @@ extends CanvasLayer
 ## crean una vez y se conservan entre aperturas, así el expediente recuerda la pestaña y la ficha
 ## elegidas.
 
-enum Tab { OBJECTIVES, CLUES, TESTIMONIES, SUSPECTS, DEDUCTIONS }
+enum Tab { OBJECTIVES, CLUES, TESTIMONIES, SUSPECTS, DEDUCTIONS, INTERROGATIONS }
 
-const TAB_TITLES: Array[String] = ["Objetivos", "Pistas", "Testimonios", "Sospechosos", "Deducciones"]
-const TAB_ICONS: Array[String] = ["objetivo", "lupa", "testigos", "antifaz", "cerebro"]
+const TAB_TITLES: Array[String] = ["Objetivos", "Pistas", "Testimonios", "Sospechosos", "Deducciones", "Preguntas"]
+const TAB_ICONS: Array[String] = ["objetivo", "lupa", "testigos", "antifaz", "cerebro", "microfono"]
 ## Lo usa también el tablero para las valoraciones de los sospechosos.
 const STATUS_LABELS := JournalInfo.STATUS_LABELS
 ## Desplazamiento de una ficha larga con Av Pág y Re Pág.
@@ -41,6 +41,7 @@ func _ready() -> void:
 	EventBus.clue_discovered.connect(_on_state_changed.unbind(1))
 	EventBus.testimony_recorded.connect(_on_state_changed.unbind(1))
 	EventBus.deduction_made.connect(_on_state_changed.unbind(1))
+	EventBus.conversation_recorded.connect(_on_state_changed.unbind(2))
 	EventBus.hypothesis_changed.connect(_on_state_changed.unbind(1))
 	EventBus.objectives_changed.connect(_on_state_changed)
 	EventBus.time_changed.connect(_on_state_changed.unbind(2))
@@ -153,6 +154,7 @@ func _build_sections() -> void:
 		JournalTestimoniesSection.new(),
 		JournalSuspectsSection.new(),
 		JournalDeductionsSection.new(),
+		JournalInterrogationsSection.new(),
 	]
 	var definitions: Array[Dictionary] = []
 	for index in _sections.size():

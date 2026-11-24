@@ -55,6 +55,7 @@ func _set_focused(next: Interactable) -> void:
 	if _focused != null:
 		_focused.set_focused(true)
 	EventBus.interaction_focus_changed.emit(_focused.get_prompt() if _focused != null else "")
+	EventBus.interaction_status_changed.emit(_focused.get_status_text() if _focused != null else "", _focused.get_status_kind() if _focused != null else "")
 
 
 func _on_area_entered(area: Area3D) -> void:

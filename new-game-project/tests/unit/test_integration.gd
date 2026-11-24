@@ -150,14 +150,20 @@ func test_conversation_through_the_interface() -> void:
 
 	await _press_key(KEY_1)
 	check(ui.is_typing() or ui.is_waiting_for_input(), "una tecla numérica hace la pregunta")
-	check(GameState.asked_topics.size() > 0, "la pregunta queda registrada")
+	var asked := DialogueManager.get_current_topic()
+	check(not asked.is_empty(), "la respuesta es la de una pregunta")
+	check(not GameState.asked_topics.has("%s/%s" % [DialogueManager.npc_id, asked]), "que no cuenta como hecha hasta oírla entera")
 	var guard := 0
 	while not ui.is_choosing() and guard < 30:
 		_press("interact")
 		await wait_physics_frames(2)
 		guard += 1
+	check(GameState.asked_topics.has("%s/%s" % [DialogueManager.npc_id, asked]), "oída la respuesta, la pregunta queda registrada")
 	check(ui.is_choosing(), "al terminar la respuesta vuelve el menú")
-	await _press_key((KEY_1 + ui.get_option_ids().size() - 1) as Key)
+	# La pregunta hecha pasa a «Preguntas realizadas», plegada: la de salir lleva el número visible.
+	var exit_number := ui.get_choices().get_item(DialogueManager.EXIT_OPTION).number
+	check(exit_number > 0, "la de salir tiene número")
+	await _press_key((KEY_1 + exit_number - 1) as Key)
 	check(not DialogueManager.active, "la última opción cierra la conversación")
 	check(not GameState.is_player_locked(), "y devuelve el control")
 

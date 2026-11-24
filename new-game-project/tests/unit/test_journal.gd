@@ -137,12 +137,12 @@ func test_open_and_close_are_animated_and_ignore_clicks_while_fading() -> void:
 func test_five_sections_with_their_tabs_and_icons() -> void:
 	await _open(0)
 	var tabs := journal.get_folder().tabs
-	check_equal(tabs.get_tab_count(), 5, "cinco pestañas")
+	check_equal(tabs.get_tab_count(), 6, "seis pestañas: las cinco de siempre y Preguntas")
 	var titles := PackedStringArray()
 	for index in tabs.get_tab_count():
 		titles.append(tabs.get_tab(index).text)
 		check(tabs.get_tab(index).icon != null, "cada pestaña lleva su icono")
-	check_equal(titles, PackedStringArray(["Objetivos", "Pistas", "Testimonios", "Sospechosos", "Deducciones"]), "en el orden del expediente")
+	check_equal(titles, PackedStringArray(["Objetivos", "Pistas", "Testimonios", "Sospechosos", "Deducciones", "Preguntas"]), "en el orden del expediente")
 	for icon_name in JournalUi.TAB_ICONS:
 		check(ResourceLoader.exists(CaseFileStyle.ICONS % icon_name), "el icono existe: " + icon_name)
 	check_equal(journal.get_folder().header.get_title(), "EXPEDIENTE 1948/17 · CASO VALDÉS", "el rótulo de la carpeta")
@@ -456,7 +456,7 @@ func test_layout_fits_every_screen_shape() -> void:
 		journal.open(0)
 		# Se mide con la carpeta ya abierta: durante la apertura crece desde algo menos de su tamaño.
 		await _wait(OPEN_SECONDS)
-		for tab in 5:
+		for tab in JournalUi.TAB_TITLES.size():
 			journal.select_tab(tab)
 			await wait_physics_frames(4)
 			var label := "%dx%d, pestaña %d" % [int(view.x), int(view.y), tab]

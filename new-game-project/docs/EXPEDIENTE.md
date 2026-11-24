@@ -7,7 +7,7 @@ pantalla y cómo ampliarlo.
 
 Una carpeta de cuero con una banda de pergamino arriba: la pila de fotos con su clip (la mansión
 Valdés, escena del crimen), el rótulo «EXPEDIENTE 1948/17 · CASO VALDÉS», el matasellos con el sello
-«VILLA SOMBRÍA · 1948» y cinco pestañas. Debajo, dos páginas de pergamino y, al pie, las ayudas de
+«VILLA SOMBRÍA · 1948» y seis pestañas. Debajo, dos páginas de pergamino y, al pie, las ayudas de
 teclado y «J Cerrar el expediente».
 
 | Pestaña | Página izquierda | Página derecha |
@@ -17,6 +17,7 @@ teclado y «J Cerrar el expediente».
 | Testimonios | «TESTIMONIOS (N)», agrupados por personaje con su retrato; grabado del interrogatorio | Quién declara, su papel, el tema, el texto completo y las deducciones en que ya sirvió; su retrato con clip |
 | Sospechosos | «SOSPECHOSOS (5)» con sus retratos; grabado del Café La Luna | Relación con el caso, biografía, paradero, valoración, hipótesis del tablero, declaraciones oídas y retrato con clip |
 | Deducciones | «DEDUCCIONES (N)», contradicciones y conexiones; libros y lupa | Conclusión, tipo y las pruebas y declaraciones que la sostienen |
+| Preguntas | «PREGUNTAS (N)»: cada pregunta completada, agrupada por personaje y en el orden en que se hizo; grabado del interrogatorio | Personaje, pregunta, fecha y hora, veces, la respuesta tal como se oyó y la información que aportó; su retrato. Ver [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md#historial-de-declaraciones) |
 
 Estados vacíos: Pistas y Testimonios muestran un emblema, un rótulo, un filete y una línea de
 ayuda («Examina objetos y documentos con [E]…»). Deducciones, sin conclusiones, es una sola página
@@ -38,14 +39,14 @@ dibujo en código.
 | `journal_folder.gd` | `JournalFolder`: la carpeta de cuero; coloca encabezado, sello, pestañas, cuerpo y pie |
 | `journal_header.gd`, `journal_photo_stack.gd`, `journal_seal.gd` | Encabezado: rótulo, pila de fotos con clip y matasellos (hereda el texto en arco de `CaseStamp`) |
 | `journal_tabs.gd`, `journal_tab.gd` | Pestañas con icono; compactas si no caben |
-| `journal_section.gd` | `JournalSection`: base de las cinco secciones (lista a la izquierda, ficha a la derecha) |
+| `journal_section.gd` | `JournalSection`: base de las seis secciones (lista a la izquierda, ficha a la derecha) |
 | `journal_list_column.gd`, `journal_list.gd`, `journal_list_item.gd`, `journal_thumb.gd` | Página de la lista, la lista elegible, sus fichas y las miniaturas |
 | `journal_detail.gd` | `JournalDetail`: la ficha (insignia, título, datos, recuadro de texto, foto, estado vacío) |
 | `journal_page.gd`, `journal_banner.gd` | Página de pergamino con grabado opcional y la cinta burdeos de cada página |
 | `journal_photo.gd` | `JournalPhoto`: fotografía sepia con marco de papel y clip |
 | `journal_empty_state.gd` | `JournalEmptyState`: estados vacíos con grabado o emblema y tecla real |
 | `journal_objective_card.gd` | Tarjeta de un objetivo con su casilla de estado |
-| `journal_*_section.gd` | Las cinco secciones: de dónde salen sus datos y cómo se pinta su ficha |
+| `journal_*_section.gd` | Las seis secciones: de dónde salen sus datos y cómo se pinta su ficha |
 | `assets/shaders/leather.gdshader` | Cuero de la carpeta |
 | `assets/shaders/sepia_photo.gdshader` | Virado a sepia, fondo de estudio, viñeta y grano de las fotos |
 | `assets/ui/expediente/` | Grabados: `cafe_la_luna`, `escritorio`, `interrogatorio`, `tablero`, `libros_lupa` |
@@ -83,7 +84,7 @@ valoraciones e hipótesis siguen siendo cosa del tablero y la combinación de pr
 | Esc (`pause`) | Cerrar, sin abrir la pausa |
 | ← → | Cambiar de sección, desde una ficha o desde las pestañas |
 | ↑ ↓ | Elegir ficha; desde las pestañas, ↓ baja a la ficha elegida y desde la primera ficha ↑ sube a su pestaña |
-| 1 a 5 | Ir directamente a una sección |
+| 1 a 6 | Ir directamente a una sección |
 | Av Pág, Re Pág | Desplazar una ficha larga (y, en Objetivos, también la lista) |
 | Ratón | Pestañas, fichas, rueda en listas y fichas, y «Cerrar el expediente» |
 
@@ -138,7 +139,7 @@ Comprobado con pruebas a 16:9, 4:3, 5:4, 16:10 y 21:9, y con capturas a 1280 × 
 `tests/unit/test_journal.gd` comprueba con la escena de juego real:
 
 - que J, Tab y Esc abren y cierran sin dejar bloqueos, sin abrir la pausa y con fundido;
-- que las cinco pestañas existen con sus iconos y que el tablero sigue leyendo las valoraciones;
+- que las seis pestañas existen con sus iconos y que el tablero sigue leyendo las valoraciones;
 - que objetivos, recuentos, reglas, pistas, testimonios, sospechosos y deducciones son los de los
   sistemas del juego, que se ponen al día con el expediente abierto y que nada no descubierto
   aparece (ni fechas o lugares inventados, ni declaraciones que no se han oído);

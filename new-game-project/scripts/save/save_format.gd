@@ -160,6 +160,10 @@ static func _validate_state(state: Dictionary) -> Dictionary:
 		return failure(Status.CORRUPT, "Las hipótesis del tablero están dañadas.")
 	state["hypotheses"] = _clean_hypotheses(hypotheses)
 	state["accusation_draft"] = _clean_accusation_draft(state)
+	# Registro de los interrogatorios: opcional (las partidas anteriores no lo tienen) y, si está
+	# dañado, se descarta lo que no se entiende; `GameState.from_dict` rehace lo que falte.
+	state["conversations"] = ConversationLog.clean_records(state.get("conversations", {}))
+	state["seen_topics"] = ConversationLog.clean_seen(state.get("seen_topics", [])).keys()
 	var location: Variant = state.get("location_id")
 	if not location is String:
 		return failure(Status.CORRUPT, "Falta el lugar de la partida.")

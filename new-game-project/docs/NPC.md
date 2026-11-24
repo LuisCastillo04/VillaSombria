@@ -174,7 +174,8 @@ café; después rige el tramo siguiente, el de la mansión.
 - **Paseos:** punto al azar dentro del radio, sobre el suelo (no sobre un mueble), libre de lo
   anterior y con un camino corto que no cruce puertas: un paseo nunca cambia de estancia.
 - **Visitas:** sólo si el sitio está libre y el NPC no tiene preguntas pendientes
-  (`DialogueManager.has_new_topics`): si la investigación lo necesita, no se va.
+  (`DialogueManager.has_new_topics`): si la investigación lo necesita, no se va. Su rombo y el aviso
+  del HUD dicen cómo va su interrogatorio; ver [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md#indicadores-de-los-personajes).
 - **Camino cortado:** si en 1,5 s no avanza, se detiene y vuelve a decidir. Sólo si tres veces
   seguidas no consigue volver a su puesto se le recoloca allí (con un aviso en el registro; no ha
   ocurrido en ninguna prueba).

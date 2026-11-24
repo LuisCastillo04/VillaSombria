@@ -2,3 +2,6 @@
 *.blend1
 *.blend@
 blender/**/__pycache__/
+
+# Ejecutables exportados del juego
+/build/

@@ -29,6 +29,11 @@ const CREAM := BoardStyle.CREAM
 ## Tinta del texto principal: casi negra, con un punto de sepia.
 const INK := Color("24170f")
 const INK_SOFT := JournalStyle.INK_SOFT
+## Tinta de las preguntas ya hechas y de los avisos: sepia, menos destacada pero bien legible sobre
+## el pergamino (contraste de unos 6,5:1).
+const INK_MUTED := Color("5e4a37")
+## Marca de verificación de las preguntas hechas: ocre oscuro, como una pluma ya seca.
+const CHECK := Color("7a5c22")
 ## Filete de tinta del pergamino y bordes marrones de las respuestas.
 const RULE := Color(0.36, 0.25, 0.15, 0.62)
 const SHADOW := Color(0.0, 0.0, 0.0, 0.55)
@@ -91,6 +96,10 @@ const NAME_SIZE := 34
 const OPTION_SIZE := 33
 const OPTION_SIZE_COMPACT := 30
 const HINT_SIZE := 22
+## Cabecera de «Preguntas realizadas», cinta «Nuevo» y aviso sin preguntas pendientes.
+const SECTION_SIZE := 22
+const TAG_SIZE := 16
+const NOTICE_SIZE := 27
 const CONTINUE_SIZE := 28
 const KEY_SIZE := 21
 
@@ -137,6 +146,8 @@ const AUTO_MAX_HOLD := 8.0
 const PULSE_SECONDS := 1.1
 ## Resaltado de la respuesta señalada y destello al confirmarla.
 const SELECT_SECONDS := 0.14
+## Giro del cheurón al desplegar o plegar «Preguntas realizadas».
+const SECTION_SECONDS := 0.18
 const CONFIRM_SECONDS := 0.22
 ## Tras aparecer las respuestas, la confirmación espera este instante: una pulsación de más al
 ## terminar de leer no elige la primera por accidente. Las teclas numéricas no esperan.
@@ -186,6 +197,12 @@ static func option_font() -> Font:
 
 static func hint_font() -> Font:
 	return CaseFileStyle.display_serif_italic()
+
+
+## Versalitas espaciadas de la cabecera «Preguntas realizadas» y de la cinta «Nuevo», como las cintas
+## del expediente.
+static func section_font() -> Font:
+	return JournalStyle.banner_font()
 
 
 static func make_label(text: String, font: Font, font_size: int, color: Color) -> Label:

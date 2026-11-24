@@ -11,6 +11,7 @@ signal interacted(actor: Node)
 @export var trigger_radius := 1.1
 
 var _marker: InteractionMarker
+var _focused := false
 
 
 func _ready() -> void:
@@ -43,8 +44,19 @@ func interact(actor: Node) -> void:
 
 
 func set_focused(value: bool) -> void:
+	_focused = value
 	if _marker != null:
 		_marker.set_focused(value)
+
+
+## Estado opcional que acompaña al aviso de interacción («Preguntas pendientes»), o vacío.
+func get_status_text() -> String:
+	return ""
+
+
+## Clase del estado, para su icono en el HUD (por ejemplo, las de `ConversationLog.npc_status`).
+func get_status_kind() -> String:
+	return ""
 
 
 func set_marker_height(height: float) -> void:
@@ -58,9 +70,22 @@ func wants_attention() -> bool:
 	return false
 
 
+## Pone al día el marcador y, si el detective lo está mirando, el estado que enseña el HUD.
 func refresh_marker() -> void:
 	if _marker != null:
 		_marker.set_attention(wants_attention())
+		_marker.set_emphasis(wants_emphasis())
+	if _focused:
+		EventBus.interaction_status_changed.emit(get_status_text(), get_status_kind())
+
+
+## Si el marcador debe destacar más de lo normal (algo nuevo que atender).
+func wants_emphasis() -> bool:
+	return false
+
+
+func get_marker() -> InteractionMarker:
+	return _marker
 
 
 func _has_shape() -> bool:

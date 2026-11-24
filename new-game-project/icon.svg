@@ -1,1 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><rect width="124" height="124" x="2" y="2" fill="#363d52" stroke="#212532" stroke-width="4" rx="14"/><g fill="#fff" transform="translate(12.322 12.322)scale(.101)"><path d="M105 673v33q407 354 814 0v-33z"/><path fill="#478cbf" d="m105 673 152 14q12 1 15 14l4 67 132 10 8-61q2-11 15-15h162q13 4 15 15l8 61 132-10 4-67q3-13 15-14l152-14V427q30-39 56-81-35-59-83-108-43 20-82 47-40-37-88-64 7-51 8-102-59-28-123-42-26 43-46 89-49-7-98 0-20-46-46-89-64 14-123 42 1 51 8 102-48 27-88 64-39-27-82-47-48 49-83 108 26 42 56 81zm0 33v39c0 276 813 276 814 0v-39l-134 12-5 69q-2 10-14 13l-162 11q-12 0-16-11l-10-65H446l-10 65q-4 11-16 11l-162-11q-12-3-14-13l-5-69z"/><path d="M483 600c0 34 58 34 58 0v-86c0-34-58-34-58 0z"/><circle cx="725" cy="526" r="90"/><circle cx="299" cy="526" r="90"/></g><g fill="#414042" transform="translate(12.322 12.322)scale(.101)"><circle cx="307" cy="532" r="60"/><circle cx="717" cy="532" r="60"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <title>Villa Sombría — El detective</title>
+  <desc>Emblema noir de un detective a contraluz, en azul carbón y ámbar antiguo.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#26333c"/><stop offset="1" stop-color="#0b1018"/></linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f3d39a"/><stop offset=".55" stop-color="#c99453"/><stop offset="1" stop-color="#8e5933"/></linearGradient>
+    <linearGradient id="light" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f2d2a0"/><stop offset="1" stop-color="#b17a43"/></linearGradient>
+    <clipPath id="arch"><path d="M49 211V112a79 79 0 0 1 158 0v99Z"/></clipPath>
+  </defs>
+  <rect x="5" y="5" width="246" height="246" rx="43" fill="url(#bg)" stroke="#0b1018" stroke-width="4"/>
+  <rect x="14" y="14" width="228" height="228" rx="34" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <path d="M49 211V112a79 79 0 0 1 158 0v99Z" fill="url(#light)"/>
+  <g clip-path="url(#arch)">
+    <path d="M49 143H207M49 153H207M49 163H207" stroke="#825735" stroke-width="2" opacity=".35"/>
+    <path d="M44 217v-25l28-24 25-8 5-15 53 0 7 15 25 8 26 24v25Z" fill="#101821"/>
+    <path d="M96 104h65l-4 31-12 18-17 8-17-8-12-18Z" fill="#101821"/>
+    <path d="M76 99 89 61Q92 53 101 54l24 8 22-8q10-3 14 8l15 37Z" fill="#101821"/>
+    <path d="m84 81 83 0 5 13H80Z" fill="#8d663e"/>
+    <path d="M53 96Q126 89 203 96l-3 13Q128 124 56 109Z" fill="#101821"/>
+    <path d="M148 120l-2 17-10 12" fill="none" stroke="#b48752" stroke-width="3" stroke-linecap="round" opacity=".8"/>
+    <path d="m97 158-15 22 20 3-7 11 33 24-16-46Z" fill="#42505a"/>
+    <path d="m159 158 15 22-20 3 7 11-33 24 16-46Z" fill="#a77946"/>
+    <path d="m113 166 15 8 15-8-15 36Z" fill="#e0b87f"/>
+    <path d="m128 174-6 8 6 20 6-20Z" fill="#17212b"/>
+  </g>
+  <path d="M49 211V112a79 79 0 0 1 158 0v99" fill="none" stroke="url(#gold)" stroke-width="3"/>
+  <path d="M41 211h174M68 222h44m32 0h44" fill="none" stroke="url(#gold)" stroke-width="3" stroke-linecap="round"/>
+  <path d="m128 216 6 6-6 6-6-6Z" fill="#edc68c"/>
+</svg>
