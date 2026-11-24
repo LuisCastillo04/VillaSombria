@@ -165,6 +165,8 @@ static func suspects() -> Array[Dictionary]:
 			"status_label": STATUS_LABELS.get(status, status),
 			"note": hypothesis.get("note", ""),
 			"testimonies": testimony_count(suspect_id),
+			# Cómo va su interrogatorio: lo mismo que se anuncia al acercarse a él.
+			"interrogation": ConversationLog.STATUS_LABELS.get(ConversationLog.npc_status(suspect_id), ""),
 		})
 	return result
 

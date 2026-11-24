@@ -4,6 +4,9 @@ extends Node
 @warning_ignore_start("unused_signal")
 
 signal interaction_focus_changed(prompt: String)
+## Estado de lo que se está mirando, junto al aviso de interacción: texto («Preguntas pendientes») y
+## clase para su icono, o vacíos. Lo emite el detector al cambiar de foco y el elemento al cambiar.
+signal interaction_status_changed(text: String, kind: String)
 signal notification_requested(title: String, body: String, kind: String)
 signal location_change_requested(location_id: String, spawn_id: String)
 signal location_changed(location_id: String)

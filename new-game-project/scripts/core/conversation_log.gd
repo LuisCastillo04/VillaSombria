@@ -39,6 +39,23 @@ const LOCKED := "bloqueada"
 const SECTION_MAIN := "principal"
 const SECTION_ASKED := "realizadas"
 
+## Cómo está un personaje respecto al interrogatorio, para sus indicadores (`npc_status`).
+## Tiene preguntas desbloqueadas que el jugador aún no ha visto.
+const STATUS_NEW := "nuevo"
+## Tiene preguntas que todavía no se le han hecho.
+const STATUS_PENDING := "pendiente"
+## Ha respondido a todo lo disponible, pero la investigación aún puede abrir conversaciones nuevas.
+const STATUS_WAITING := "en_espera"
+## Ha respondido a todo y no queda nada que se pueda desbloquear.
+const STATUS_DONE := "completo"
+## Cómo se anuncia cada situación al acercarse al personaje y en el expediente.
+const STATUS_LABELS := {
+	STATUS_NEW: "Nuevas preguntas",
+	STATUS_PENDING: "Preguntas pendientes",
+	STATUS_WAITING: "Sin novedades por ahora",
+	STATUS_DONE: "Interrogatorio completo",
+}
+
 
 ## Modalidad vigente: `MODE_FREE`, `MODE_SMART` (por defecto) o `MODE_SINGLE`. Sólo cambia cómo se
 ## presenta el menú de preguntas: cambiarla nunca borra ni altera el registro.
@@ -264,6 +281,53 @@ static func has_met(npc_id: String) -> bool:
 static func has_pending(npc_id: String) -> bool:
 	for topic: Dictionary in GameData.get_dialogue(npc_id).get("topics", []):
 		if is_available(topic) and not is_variant_done(npc_id, topic["id"], current_variant(topic)):
+			return true
+	return false
+
+
+## Situación del personaje para sus indicadores: `STATUS_NEW` (le queda alguna pregunta que aún no
+## ha aparecido en su menú), `STATUS_PENDING` (preguntas sin hacer), `STATUS_WAITING` (todo lo
+## disponible está hecho, pero la investigación todavía puede abrir algo más) o `STATUS_DONE`.
+## No depende de la modalidad.
+static func npc_status(npc_id: String) -> String:
+	var met := has_met(npc_id)
+	var pending := false
+	for topic: Dictionary in GameData.get_dialogue(npc_id).get("topics", []):
+		if not is_available(topic):
+			continue
+		var variant_id := current_variant(topic)
+		if is_variant_done(npc_id, topic["id"], variant_id):
+			continue
+		pending = true
+		if met and not GameState.seen_topics.has(variant_key(npc_id, topic["id"], variant_id)):
+			return STATUS_NEW
+	if pending:
+		return STATUS_PENDING
+	for topic: Dictionary in GameData.get_dialogue(npc_id).get("topics", []):
+		if can_still_open(npc_id, topic):
+			return STATUS_WAITING
+	return STATUS_DONE
+
+
+## Si la investigación aún puede abrir una conversación de esta pregunta que el jugador no ha tenido:
+## una variante sin hacer cuya condición (y la de la pregunta) no esté descartada para siempre.
+## Una pregunta ya hecha que su propia condición retiró del menú (un «not_clues» con lo que ella
+## misma entregó) no vuelve a abrirse.
+static func can_still_open(npc_id: String, topic: Dictionary) -> bool:
+	var topic_id := String(topic.get("id", ""))
+	var variants := variant_ids(topic)
+	var asked_any := false
+	for variant_id in variants:
+		if is_variant_done(npc_id, topic_id, variant_id):
+			asked_any = true
+	if asked_any and not Conditions.check(topic.get("if", {})):
+		return false
+	if Conditions.is_closed(topic.get("if", {})):
+		return false
+	for variant_id in variants:
+		if is_variant_done(npc_id, topic_id, variant_id):
+			continue
+		if not Conditions.is_closed(variant_block(topic, variant_id).get("if", {})):
 			return true
 	return false
 

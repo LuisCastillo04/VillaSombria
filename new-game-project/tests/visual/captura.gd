@@ -6,6 +6,8 @@ extends Node
 ##   --frames=N            fotogramas de espera antes de capturar
 ##   --location=id         escenario inicial        --spawn=id  punto de aparición
 ##   --pos=x,y,z           coloca al detective
+##   --junto=npc           coloca al detective delante de ese personaje, que queda enfocado (su
+##                         aviso de interacción y cómo va su interrogatorio)
 ##   --shots=x,y,z;x,y,z   guarda una imagen numerada por cada posición
 ##   --day=N --time=HH:MM  fija el calendario
 ##   --seed=todo           concede todas las pistas y testimonios
@@ -131,6 +133,12 @@ func _ready() -> void:
 	else:
 		if args.has("pos"):
 			_place_player(game, args["pos"])
+		if args.has("junto"):
+			var npc := game.current_location.get_npc(args["junto"])
+			if npc != null:
+				var front := npc.global_position + Vector3(0.0, 0.0, 1.0).rotated(Vector3.UP, npc.model.rotation.y) * 1.0
+				game.player.teleport(front, 0.0)
+				game.camera.snap()
 		if args.has("open"):
 			await _open_panel(game, args["open"])
 		await _save_frame(out, frames)

@@ -2,8 +2,8 @@ class_name JournalSuspectsSection
 extends JournalSection
 ## Pestaña Sospechosos. A la izquierda, los cinco sospechosos con su retrato y el grabado del Café La
 ## Luna al pie. A la derecha, la ficha del elegido: relación con el caso, biografía, paradero según
-## su rutina a la hora actual, la valoración y la hipótesis que el jugador anotó en el tablero, y su
-## retrato en una fotografía con clip. Todo sale de los datos y del estado reales del juego.
+## su rutina a la hora actual, la valoración y la hipótesis que el jugador anotó en el tablero, cómo
+## va su interrogatorio y su retrato en una fotografía con clip. Todo sale de los datos y del estado reales del juego.
 
 const ART := preload("res://assets/ui/expediente/cafe_la_luna.svg")
 
@@ -42,6 +42,8 @@ func _show_detail(entry: Dictionary) -> void:
 	var count: int = entry["testimonies"]
 	if count > 0:
 		detail.add_field("microfono", "Declaraciones:", "%d registrada%s" % [count, "" if count == 1 else "s"])
+	if not String(entry.get("interrogation", "")).is_empty():
+		detail.add_field("testigos", "Interrogatorio:", entry["interrogation"])
 	var bust := JournalSection.bust_of(entry["portrait_path"])
 	if bust != null:
 		detail.set_photo(bust, JournalPhoto.Mode.PORTRAIT)
