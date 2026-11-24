@@ -54,6 +54,7 @@ El HUD no guarda estado propio ni duplica lógica: pregunta a `HudInfo`, que só
 | Objetivo | Primer pendiente de `StoryDirector.get_objectives()` | `EventBus.objectives_changed` y `time_changed` |
 | Teclas | InputMap, a través de `InputLabels` | Al crear el HUD y cada vez que vuelve a aparecer |
 | Algo al alcance | `EventBus.interaction_focus_changed` | Esa misma señal |
+| Estado de lo que está al alcance (cómo va el interrogatorio de un personaje) | `EventBus.interaction_status_changed`, de `ConversationLog.npc_status`; ver [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md#indicadores-de-los-personajes) | Esa misma señal |
 | Se puede esperar | `GameClock.is_at_limit()` | `EventBus.time_changed` |
 
 Al cargar una partida, la escena de juego emite `time_changed` y `objectives_changed`

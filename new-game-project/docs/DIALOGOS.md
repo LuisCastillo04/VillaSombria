@@ -1,7 +1,9 @@
 # Conversaciones y decisiones
 
 Qué muestra una conversación, de dónde saca los datos, cómo se maneja, cómo se adapta a la pantalla
-y cómo ampliarla. La lógica es la de siempre (`DialogueManager`); aquí se describe su interfaz.
+y cómo ampliarla. La lógica es la de siempre (`DialogueManager`); aquí se describe su interfaz. El
+registro de lo preguntado, las tres modalidades, la sección «Preguntas realizadas», los indicadores de
+los personajes y el historial del expediente están en [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md).
 
 ## Qué muestra
 
@@ -24,8 +26,10 @@ dentro de la ventana.
 **Respuestas.** La misma ventana crece hacia arriba y cambia su contenido por una columna centrada
 de tarjetas: pergamino claro con borde marrón, y la señalada en burdeos con borde dorado encendido,
 letra crema y una flecha. Cada una lleva el número de su tecla; las preguntas que aún no se han
-hecho, un rombo a la izquierda. Al pie, un separador y «Elige con el ratón o con las teclas
-numéricas» con un icono de ratón.
+hecho, un rombo a la izquierda; las ya hechas, una verificación y tinta sepia, y según la modalidad
+van tras la cabecera plegable «Preguntas realizadas» (ver
+[DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md#cómo-se-ve)). Al pie, un separador y «Elige con el
+ratón o con las teclas numéricas» con un icono de ratón.
 
 La placa nunca atribuye al interlocutor lo que va a decir el detective: en un interrogatorio rotula
 «Tus preguntas» y en una escena, «Tus respuestas». Mientras se elige, la luz sigue en quien escucha
@@ -45,7 +49,8 @@ editables. El cuero y el pergamino son los shaders del expediente y del tablero.
 | `scripts/ui/dialogue/dialogue_text.gd` | `DialogueText`: escritura progresiva, páginas y voz de la narración |
 | `scripts/ui/dialogue/dialogue_continue_button.gd` | `DialogueContinueButton`: la pestaña «Continuar» |
 | `scripts/ui/dialogue/dialogue_choices.gd` | `DialogueChoices`: la lista de respuestas, su selección y su desplazamiento |
-| `scripts/ui/dialogue/dialogue_choice_item.gd` | `DialogueChoiceItem`: una tarjeta de respuesta |
+| `scripts/ui/dialogue/dialogue_choice_item.gd` | `DialogueChoiceItem`: una tarjeta de respuesta, con el estado de su pregunta |
+| `scripts/ui/dialogue/dialogue_choice_section.gd` | `DialogueChoiceSection`: la cabecera plegable «Preguntas realizadas» |
 | `scripts/ui/dialogue/dialogue_choice_hint.gd` | `DialogueChoiceHint`: el pie de las respuestas |
 | `scripts/ui/dialogue/dialogue_controls.gd` | `DialogueControls`: qué entradas avanzan, eligen y confirman, y sus rótulos desde el InputMap |
 | `scripts/ui/dialogue/dialogue_cast.gd` | `DialogueCast`: las siluetas, su iluminación, la respiración y el contraluz |
@@ -68,7 +73,7 @@ con `DialogueManager.advance()` y `choose()`, que deciden qué pasa después.
 | Quién habla | La línea `s`; `narrador` es la narración |
 | Nombre de la placa | `name` en `data/characters.json` (`GameData.get_character_name`) |
 | Silueta | `portrait` en `data/characters.json` (SVG o PNG) |
-| Respuestas, su orden y sus identificadores | `options_shown` (`id`, `label`, `asked`) |
+| Respuestas, su orden y sus identificadores | `options_shown` (`id`, `label`, `asked` y, en un interrogatorio, `state`, `fresh`, `section` y `repeatable` de `ConversationLog.menu`) |
 | Rótulo de las respuestas | «Tus preguntas» si el menú incluye `DialogueManager.EXIT_OPTION` (un interrogatorio), «Tus respuestas» si no (una escena) |
 | Tecla de «Continuar» | La primera de `interact` en el InputMap (o de `ui_accept`), con `InputLabels`, cada vez que se abre |
 
@@ -78,7 +83,8 @@ con `DialogueManager.advance()` y `choose()`, que deciden qué pasa después.
 | --- | --- | --- |
 | E (`interact`), Intro o Espacio (`ui_accept`) | Completa la página; después pasa de página o a la siguiente intervención | Confirma la señalada |
 | Clic izquierdo | Igual que E, en cualquier punto | Elige la tarjeta pulsada |
-| ↑ ↓ (`ui_up`, `ui_down`) | — | Recorren las respuestas; de la última se vuelve a la primera |
+| ↑ ↓ (`ui_up`, `ui_down`) | — | Recorren las respuestas (y la cabecera «Preguntas realizadas»); de la última se vuelve a la primera |
+| → ← (`ui_right`, `ui_left`) | — | Despliegan y pliegan «Preguntas realizadas» |
 | 1 a 9 (fila superior o teclado numérico) | — | Eligen esa respuesta |
 | Mover el ratón | Sobre «Continuar», la aviva | Señala la tarjeta, sin elegirla |
 | Rueda | — | Desplaza la lista |
@@ -154,7 +160,8 @@ Comprobado con pruebas a 16:9, 4:3, 5:4, 16:10 y 21:9, y con capturas a 1280 × 
   las dos siluetas, para que una pista o un testimonio conseguidos hablando se lean.
 - Guardar sigue bloqueado durante una conversación (`SaveSystem.get_save_blocker`) y al cerrar el
   juego se guarda el estado de antes de empezarla, como antes. La interfaz no añade nada a las
-  partidas: lo dicho y lo conseguido son marcas, pistas y testimonios de `GameState`.
+  partidas: lo dicho y lo conseguido son marcas, pistas, testimonios y el registro de conversaciones
+  de `GameState`, que lleva `DialogueManager` (ver [DIALOGOS_INTELIGENTES.md](DIALOGOS_INTELIGENTES.md#guardado)).
 - Con la pregunta de salida en pantalla (X o Alt + F4) el árbol se pausa y la conversación no
   recibe teclas.
 
