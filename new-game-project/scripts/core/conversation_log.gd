@@ -28,6 +28,8 @@ const MODES: Array[String] = [MODE_FREE, MODE_SMART, MODE_SINGLE]
 ## Estado de una pregunta en el menú.
 const PENDING := "pendiente"
 const DONE := "realizada"
+## Hecha en la modalidad de diálogo único: se ve, pero ya no se puede elegir.
+const LOCKED := "bloqueada"
 
 ## Parte del menú en que aparece una pregunta: la principal o «Preguntas realizadas».
 const SECTION_MAIN := "principal"
@@ -89,6 +91,12 @@ static func current_variant(topic: Dictionary) -> String:
 		if Conditions.check(variant.get("if", {})):
 			return String(variant.get("id", ""))
 	return ""
+
+
+## Conversaciones pensadas para repetirse (como reunir a los sospechosos para acusar): ninguna
+## modalidad las bloquea ni las aparta, y sus efectos se aplican cada vez.
+static func is_repeatable(topic: Dictionary) -> bool:
+	return bool(topic.get("repeatable", false))
 
 
 ## Si la pregunta se puede hacer ahora: su condición se cumple y alguna variante también.
@@ -163,18 +171,23 @@ static func note_gained(entry: Dictionary, clues: Array, testimonies: Array) -> 
 # --- Menú -----------------------------------------------------------------------------------
 
 ## Preguntas que ofrece el personaje ahora mismo, ya ordenadas para la modalidad `menu_mode` (sin
-## ella, la de Configuración). Cada entrada: `id`, `label`, `variant`, `state` (`PENDING` o `DONE`),
-## `asked`, `section` (`SECTION_MAIN` o `SECTION_ASKED`) y `count`.
+## ella, la de Configuración). Cada entrada: `id`, `label`, `variant`, `state` (`PENDING`, `DONE` o
+## `LOCKED`), `asked`, `section` (`SECTION_MAIN` o `SECTION_ASKED`), `repeatable` y `count`.
 ##
 ## - Libre: todas en el orden de los datos, en la parte principal, como siempre.
 ## - Inteligente: primero las pendientes, en el orden de los datos; las hechas pasan a «Preguntas
 ##   realizadas» y se pueden repetir.
+## - Única: como la inteligente, pero las hechas quedan bloqueadas. Si la investigación desbloquea
+##   otra variante de una de ellas, esa variante vuelve como pregunta pendiente.
+## Las conversaciones repetibles (`repeatable`) siguen siempre en la parte principal, tras las
+## pendientes, y nunca se bloquean.
 ## Sólo aparecen las preguntas cuya condición se cumple: una que sus propios datos retiran al hacerla
 ## (un «not_clues» con lo que entrega) no vuelve, como antes.
 static func menu(npc_id: String, menu_mode: String = "") -> Array[Dictionary]:
 	if menu_mode.is_empty():
 		menu_mode = mode()
 	var pending: Array[Dictionary] = []
+	var standing: Array[Dictionary] = []
 	var asked: Array[Dictionary] = []
 	for topic: Dictionary in GameData.get_dialogue(npc_id).get("topics", []):
 		if not Conditions.check(topic.get("if", {})):
@@ -184,6 +197,7 @@ static func menu(npc_id: String, menu_mode: String = "") -> Array[Dictionary]:
 			continue
 		var topic_id := String(topic["id"])
 		var done := is_variant_done(npc_id, topic_id, variant_id)
+		var repeatable := is_repeatable(topic)
 		var entry := {
 			"id": topic_id,
 			"label": String(topic.get("label", "")),
@@ -191,13 +205,19 @@ static func menu(npc_id: String, menu_mode: String = "") -> Array[Dictionary]:
 			"state": DONE if done else PENDING,
 			"asked": done,
 			"section": SECTION_MAIN,
+			"repeatable": repeatable,
 			"count": times_asked(npc_id, topic_id, variant_id),
 		}
-		if done and menu_mode != MODE_FREE:
-			entry["section"] = SECTION_ASKED
-			asked.append(entry)
-		else:
+		if not done or menu_mode == MODE_FREE:
 			pending.append(entry)
+		elif repeatable:
+			standing.append(entry)
+		else:
+			entry["section"] = SECTION_ASKED
+			if menu_mode == MODE_SINGLE:
+				entry["state"] = LOCKED
+			asked.append(entry)
+	pending.append_array(standing)
 	pending.append_array(asked)
 	return pending
 

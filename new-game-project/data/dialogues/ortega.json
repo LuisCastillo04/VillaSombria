@@ -74,6 +74,7 @@
     {
       "id": "acusar",
       "label": "Reúna a los sospechosos. Sé quién lo hizo.",
+      "repeatable": true,
       "if": {"day_min": 3, "deductions": ["d_hora_falsa"]},
       "lines": [
         {"s": "ortega", "t": "Bien. Dígame a quién acusa y con qué pruebas. Un error aquí no lo arregla nadie, así que mídalo con calma."}

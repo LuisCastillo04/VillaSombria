@@ -249,9 +249,11 @@ func _show_choices(choices: Array, after: Dictionary) -> void:
 	options_shown.emit(options)
 
 
-## La pregunta, si el menú la ofrece ahora mismo; si no, vacía.
+## La pregunta, si el menú la ofrece ahora mismo y se puede elegir; si no (no está o, en la
+## modalidad de diálogo único, ya se hizo), vacía.
 func _find_topic(topic_id: String) -> Dictionary:
-	if ConversationLog.menu_entry(npc_id, topic_id).is_empty():
+	var entry := ConversationLog.menu_entry(npc_id, topic_id)
+	if entry.is_empty() or entry["state"] == ConversationLog.LOCKED:
 		return {}
 	return ConversationLog.find_topic(npc_id, topic_id)
 
